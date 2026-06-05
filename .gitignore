@@ -4,9 +4,5 @@ venv/
 # Archivos compilados de Python
 __pycache__/
 
-# Bases de datos SQLite
-biblia_pueblo_dios.db
-*.db
-
 # Archivos del sistema y configuraciones locales
 .directory
