@@ -148,9 +148,9 @@ Biblia-app/
 │   └── assets/
 │       └── iglesia_digital.db       # Base de datos SQLite
 └── archive/                         # Scripts Python de ingesta de datos
+    ├── scraper_vaticano.py          # Vatican News → SQLite (lecturas diarias)
     ├── scraper_cic.py               # PDF del CIC → SQLite (catecismo_cic)
     ├── scraper_youcat.py            # PDF del YOUCAT → SQLite (youcat)
-    ├── scraper_leccionario.py       # curas.com.ar → SQLite (lecturas diarias)
     └── scraper_biblia.py            # Scraper original de la Biblia
 ```
 
@@ -191,11 +191,18 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 
 ## 🛠️ Scripts de Datos (Python)
 
-Los scripts en `archive/` procesan los PDFs y generan la base de datos:
+Los scripts en `archive/` procesan los PDFs o sitios web y generan la base de datos:
 
 ```bash
-# Instalar dependencia
+# Instalar dependencia (solo para scrapers PDF)
 pip install pdfplumber --break-system-packages
+
+# Scrapear lecturas diarias desde Vatican News (sin dependencias externas)
+python3 archive/scraper_vaticano.py                          # mes actual + siguiente
+python3 archive/scraper_vaticano.py --fecha 2026-06-11       # una fecha
+python3 archive/scraper_vaticano.py --desde 2026-01-01 --hasta 2026-06-30
+python3 archive/scraper_vaticano.py --preview --fecha 2026-06-11
+python3 archive/scraper_vaticano.py --list                   # ver registros
 
 # Generar catecismo_cic desde el PDF oficial
 python3 archive/scraper_cic.py --preview   # vista previa sin guardar
@@ -204,10 +211,6 @@ python3 archive/scraper_cic.py             # genera la DB
 # Generar youcat desde el PDF
 python3 archive/scraper_youcat.py --preview
 python3 archive/scraper_youcat.py
-
-# Scrappear leccionario diario (requiere internet)
-python3 archive/scraper_leccionario.py     # hoy
-python3 archive/scraper_leccionario.py --date 2025-08-15
 ```
 
 ---

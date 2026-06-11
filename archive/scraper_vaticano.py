@@ -1,458 +1,425 @@
 #!/usr/bin/env python3
 """
-Scraper deuterocanónicos / suplementos desde Vatican.va -> SQLite.
+Scraper de lecturas diarias desde Vatican News → SQLite.
 
-Configuración por libro: URL inicial, capítulo máximo (edición Vaticano) y
-reglas especiales (Ester_Suplementos, Daniel con capítulos 3/13/14, etc.).
-
-Guarda en: biblia_pueblo_dios.db
+Uso:
+  python3 archive/scraper_vaticano.py                           # mes actual + siguiente
+  python3 archive/scraper_vaticano.py --fecha 2026-06-11        # una fecha
+  python3 archive/scraper_vaticano.py --desde 2026-06-01 --hasta 2026-07-31
+  python3 archive/scraper_vaticano.py --preview --fecha 2026-06-11
+  python3 archive/scraper_vaticano.py --list                     # registros guardados
 """
 
-from __future__ import annotations
-
 import argparse
+import html.parser
 import re
 import sqlite3
+import sys
 import time
-from dataclasses import dataclass
-from typing import Optional
-from urllib.parse import urljoin
+import urllib.error
+import urllib.request
+from datetime import date, datetime, timedelta
 
-import requests
-from bs4 import BeautifulSoup, Tag
-from requests.exceptions import RequestException
+DB_PATH = "AppMovil/assets/iglesia_digital.db"
+BASE_URL = "https://www.vaticannews.va/es/evangelio-de-hoy/{year}/{month:02d}/{day:02d}.html"
+USER_AGENT = "Mozilla/5.0 (compatible; IglesiaDigital/1.0)"
+SLEEP_SECS = 0.5
 
+# ─── Schema ───────────────────────────────────────────────────────────────────
 
-VACAN_BASE = "https://www.vatican.va/archive/ESL0506/"
+SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS lecturas (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha               TEXT NOT NULL UNIQUE,
+    url                 TEXT,
+    titulo_misa         TEXT,
+    primera_lectura_ref TEXT,
+    primera_lectura     TEXT,
+    salmo               TEXT,
+    aleluia             TEXT,
+    evangelio_ref       TEXT,
+    evangelio           TEXT,
+    comentario_papal    TEXT,
+    creado_en           TEXT DEFAULT (datetime('now','localtime'))
+);
+"""
 
+# ─── HTML Parser ──────────────────────────────────────────────────────────────
 
-@dataclass(frozen=True)
-class LibroVaticano:
-    """nombre: clave en BD; max_cap: último capítulo permitido (None = sin tope numérico)."""
+_SECCIONES = {
+    "lectura del día": "lectura",
+    "salmo responsorial": "salmo",
+    "aleluya": "aleluia",
+    "evangelio del día": "evangelio",
+    "las palabras de los papas": "papas",
+}
 
-    nombre: str
-    url: str
-    max_cap: Optional[int]
-    solo_capitulos: Optional[tuple[int, ...]] = None
-    urls_fijas: Optional[tuple[tuple[int, str], ...]] = None
-
-
-# Edición Vatican.va ESL0506: URL + capítulo máximo (y reglas especiales).
-LIBROS_VATICANO: tuple[LibroVaticano, ...] = (
-    LibroVaticano("Tobías", f"{VACAN_BASE}__PQV.HTM", 14),
-    LibroVaticano("Judit", f"{VACAN_BASE}__PQ4.HTM", 16),
-    LibroVaticano(
-        "Ester_Suplementos",
-        f"{VACAN_BASE}__PNK.HTM",
-        None,
-    ),
-    LibroVaticano("1 Macabeos", f"{VACAN_BASE}__PR9.HTM", 16),
-    LibroVaticano("2 Macabeos", f"{VACAN_BASE}__PRP.HTM", 15),
-    LibroVaticano("Sabiduría", f"{VACAN_BASE}__PS4.HTM", 19),
-    LibroVaticano("Eclesiástico", f"{VACAN_BASE}__PSN.HTM", 51),
-    LibroVaticano("Baruc", f"{VACAN_BASE}__PU2.HTM", 5),
-    LibroVaticano("Carta de Jeremías", f"{VACAN_BASE}__PUG.HTM", 1),
-    LibroVaticano(
-        "Daniel (Suplementos)",
-        f"{VACAN_BASE}__PU7.HTM",
-        14,
-        solo_capitulos=(3, 13, 14),
-        urls_fijas=(
-            (3, f"{VACAN_BASE}__PU9.HTM"),
-            (13, f"{VACAN_BASE}__PVJ.HTM"),
-            (14, f"{VACAN_BASE}__PVK.HTM"),
-        ),
-    ),
+# Textos al inicio de un <p> que indican referencia en vez de contenido
+_RE_REF = re.compile(
+    r"^(Lectura del (libro|santo)|De la (primera|carta)|Comienzo|Lectura de la carta)",
+    re.IGNORECASE,
 )
 
-LIBROS_POR_NOMBRE: dict[str, LibroVaticano] = {c.nombre: c for c in LIBROS_VATICANO}
 
-DEFAULT_DB = "biblia_pueblo_dios.db"
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-    ),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "es-ES,es;q=0.9,en-US;q=0.8,en;q=0.7",
-}
-REQUEST_DELAY_SECONDS = 1.5
+class LecturasParser(html.parser.HTMLParser):
+    """Parseador del HTML de Vatican News extrayendo lecturas del día."""
 
+    def __init__(self) -> None:
+        super().__init__()
+        self.titulo_misa: str | None = None
+        self.primera_lectura_ref: str | None = None
+        self.primera_lectura: str | None = None
+        self.salmo: str | None = None
+        self.aleluia: str | None = None
+        self.evangelio_ref: str | None = None
+        self.evangelio: str | None = None
+        self.comentario_papal: str | None = None
 
-@dataclass
-class Versiculo:
-    numero: int
-    texto: str
+        self._in_section = False
+        self._in_h1 = False
+        self._in_h2 = False
+        self._in_p = False
+        self._in_content = False
+        self._section_key: str | None = None
+        self._in_titulo_span = False
+        self._buff: list[str] = []
 
+    def _flush_buff(self) -> None:
+        texto = "".join(self._buff).strip()
+        self._buff = []
+        if not texto or self._section_key is None:
+            return
 
-def limpiar_texto(value: str) -> str:
-    return re.sub(r"\s+", " ", value).strip()
-
-
-def normalizar(value: str) -> str:
-    value = value.lower()
-    repl = (
-        ("á", "a"),
-        ("é", "e"),
-        ("í", "i"),
-        ("ó", "o"),
-        ("ú", "u"),
-        ("ü", "u"),
-        ("ñ", "n"),
-    )
-    for src, dst in repl:
-        value = value.replace(src, dst)
-    return value
-
-
-def extraer_numero_capitulo(html: str) -> Optional[int]:
-    """Intenta leer el número de capítulo desde el texto de la página."""
-    soup = BeautifulSoup(html, "html.parser")
-    text = limpiar_texto(soup.get_text(" ", strip=True))
-    text_n = normalizar(text)
-
-    for patron in (
-        r"cap[ií]tulo\s*(\d{1,2})\b",
-        r"\bcap\s*\.?\s*(\d{1,2})\b",
-        r"\b(\d{1,2})\s*º\s*cap",
-    ):
-        m = re.search(patron, text_n, flags=re.IGNORECASE)
-        if m:
-            return int(m.group(1))
-    return None
-
-
-def crear_tablas_si_no_existen(conn: sqlite3.Connection) -> None:
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS libros (
-            id INTEGER PRIMARY KEY,
-            nombre TEXT NOT NULL,
-            testamento TEXT
-        )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS versiculos (
-            id INTEGER PRIMARY KEY,
-            libro_id INTEGER,
-            capitulo INTEGER,
-            numero INTEGER,
-            texto TEXT,
-            FOREIGN KEY (libro_id) REFERENCES libros(id)
-        )
-        """
-    )
-    conn.commit()
-
-
-def obtener_o_crear_libro(conn: sqlite3.Connection, nombre: str) -> int:
-    row = conn.execute("SELECT id FROM libros WHERE nombre = ?", (nombre,)).fetchone()
-    if row:
-        return int(row[0])
-    cursor = conn.execute(
-        "INSERT INTO libros (nombre, testamento) VALUES (?, ?)", (nombre, "Antiguo")
-    )
-    conn.commit()
-    return int(cursor.lastrowid)
-
-
-def descargar_html(url: str) -> str:
-    response = requests.get(url, timeout=40, headers=HEADERS)
-    response.raise_for_status()
-    return response.text
-
-
-def extraer_versiculos(html: str) -> list[Versiculo]:
-    soup = BeautifulSoup(html, "html.parser")
-    verses: list[Versiculo] = []
-
-    for p in soup.find_all("p"):
-        raw = limpiar_texto(p.get_text(" ", strip=True))
-        if not raw:
-            continue
-        raw_lower = raw.lower()
-        if "anterior - siguiente" in raw_lower or "copyright" in raw_lower:
-            continue
-
-        bold = p.find("b")
-        if bold:
-            bold_text = limpiar_texto(bold.get_text(" ", strip=True))
-            m_bold = re.match(r"^(\d{1,3})[\)\.\-:]?$", bold_text)
-            if m_bold:
-                numero = int(m_bold.group(1))
-                full_text = raw
-                texto = re.sub(r"^\d{1,3}[\)\.\-:]?\s*", "", full_text).strip()
-                if texto:
-                    verses.append(Versiculo(numero=numero, texto=limpiar_texto(texto)))
-                continue
-
-        match = re.match(r"^(\d{1,3})[\)\.\-:]?\s+(.+)$", raw)
-        if match:
-            numero = int(match.group(1))
-            texto = limpiar_texto(match.group(2))
-            if texto:
-                verses.append(Versiculo(numero=numero, texto=texto))
-
-    dedup: dict[int, str] = {}
-    for v in verses:
-        dedup[v.numero] = v.texto
-
-    return [Versiculo(numero=n, texto=t) for n, t in sorted(dedup.items())]
-
-
-def _anchor_score(anchor: Tag) -> int:
-    score = 0
-    text = limpiar_texto(anchor.get_text(" ", strip=True)).lower()
-    href = (anchor.get("href") or "").lower()
-    html_blob = str(anchor).lower()
-
-    keywords = ("siguiente", "next", "sig.", "capítulo siguiente", "capitulo siguiente")
-    if any(k in text for k in keywords):
-        score += 8
-    if any(k in href for k in ("next", "sig", "cap")):
-        score += 2
-
-    if "<img" in html_blob and any(k in html_blob for k in ("right", "derecha", "next")):
-        score += 10
-    elif "<img" in html_blob:
-        score += 4
-
-    return score
-
-
-def encontrar_siguiente_url(html: str, current_url: str) -> Optional[str]:
-    soup = BeautifulSoup(html, "html.parser")
-    best_href = None
-    best_score = 0
-
-    for anchor in soup.find_all("a", href=True):
-        score = _anchor_score(anchor)
-        if score > best_score:
-            best_score = score
-            best_href = anchor["href"]
-
-    if not best_href or best_score < 4:
-        return None
-
-    return urljoin(current_url, best_href)
-
-
-def codigo_archivo_vaticano(url: str) -> Optional[str]:
-    m = re.search(r"/__(\w{3})\.HTM$", url, flags=re.IGNORECASE)
-    if not m:
-        return None
-    return m.group(1).upper()
-
-
-def esther_url_permitida(url: str) -> bool:
-    """
-    Ester_Suplementos: solo __PNK.HTM a __PNZ.HTM.
-    Corta en __PO0.HTM o cualquier URL fuera de ese bloque.
-    """
-    code = codigo_archivo_vaticano(url)
-    if not code:
-        return False
-    if len(code) != 3:
-        return False
-    if not code.startswith("PN"):
-        return False
-    return "K" <= code[2] <= "Z"
-
-
-def guardar_capitulo(
-    conn: sqlite3.Connection, libro_id: int, capitulo: int, versiculos: list[Versiculo]
-) -> None:
-    conn.execute(
-        "DELETE FROM versiculos WHERE libro_id = ? AND capitulo = ?",
-        (libro_id, capitulo),
-    )
-    for v in versiculos:
-        conn.execute(
-            """
-            INSERT INTO versiculos (libro_id, capitulo, numero, texto)
-            VALUES (?, ?, ?, ?)
-            """,
-            (libro_id, capitulo, v.numero, v.texto),
-        )
-    conn.commit()
-
-
-def scrape_libro(conn: sqlite3.Connection, cfg: LibroVaticano) -> bool:
-    libro_id = obtener_o_crear_libro(conn, cfg.nombre)
-
-    # Daniel (Suplementos): usar solo URLs fijas, sin flecha "Siguiente".
-    if cfg.urls_fijas:
-        for idx, (cap, fixed_url) in enumerate(cfg.urls_fijas):
-            if idx > 0:
-                time.sleep(REQUEST_DELAY_SECONDS)
-            print(f"{cfg.nombre} [cap {cap}] -> {fixed_url}")
-            try:
-                html = descargar_html(fixed_url)
-            except RequestException as exc:
-                print(f"  Fallo en {cfg.nombre} cap. {cap}: {exc}")
-                return False
-
-            versiculos = extraer_versiculos(html)
-            if not versiculos:
-                print(
-                    f"  Sin versículos parseables en «{cfg.nombre}» "
-                    f"(cap. almacén {cap})."
-                )
-                return False
-            guardar_capitulo(conn, libro_id, cap, versiculos)
-        return True
-
-    url: Optional[str] = cfg.url
-    visited: set[str] = set()
-    first_request = True
-    paso_navegacion = 1
-    daniel_guardados: set[int] = set()
-    max_pasos_seguridad = 600
-
-    while url and url not in visited:
-        # Corte por límite de capítulo: solo cuando el contador es el número de capítulo real
-        # (libros lineales). Daniel (solo_capitulos) usa el número detectado en la página.
-        if (
-            cfg.solo_capitulos is None
-            and cfg.max_cap is not None
-            and paso_navegacion > cfg.max_cap
-        ):
-            print(
-                f"  Límite de capítulos ({cfg.max_cap}) alcanzado para «{cfg.nombre}». "
-                "Fin del libro (sin seguir la flecha)."
-            )
-            break
-
-        if paso_navegacion > max_pasos_seguridad:
-            print("  Límite de seguridad de navegación alcanzado. Se detiene.")
-            break
-
-        if not first_request:
-            time.sleep(REQUEST_DELAY_SECONDS)
-        first_request = False
-
-        # Ester_Suplementos: límite estricto de URLs.
-        if cfg.nombre == "Ester_Suplementos" and not esther_url_permitida(url):
-            print("  URL fuera de rango permitido para Ester_Suplementos. Se detiene.")
-            break
-
-        print(f"{cfg.nombre} [paso {paso_navegacion}] -> {url}")
-        try:
-            html = descargar_html(url)
-        except RequestException as exc:
-            print(f"  Fallo en {cfg.nombre}: {exc}")
-            return False
-
-        cap_para_guardar: Optional[int]
-        if cfg.solo_capitulos is not None:
-            cap_detectado = extraer_numero_capitulo(html)
-            if cap_detectado is None:
-                print("  No se detectó número de capítulo en la página; se omite guardado.")
-                cap_para_guardar = None
-            elif cfg.max_cap is not None and cap_detectado > cfg.max_cap:
-                print(
-                    f"  Capítulo detectado ({cap_detectado}) > máximo ({cfg.max_cap}). Fin."
-                )
-                break
-            elif cap_detectado not in cfg.solo_capitulos:
-                print(
-                    f"  Capítulo {cap_detectado} no está en {cfg.solo_capitulos}; "
-                    "solo navegación."
-                )
-                cap_para_guardar = None
+        if self._section_key == "lectura":
+            if self.primera_lectura_ref is None and _RE_REF.match(texto):
+                self.primera_lectura_ref = texto
             else:
-                cap_para_guardar = cap_detectado
-        else:
-            cap_para_guardar = paso_navegacion
+                self.primera_lectura = (self.primera_lectura or "") + texto + "\n\n"
+        elif self._section_key == "salmo":
+            self.salmo = (self.salmo or "") + texto + "\n\n"
+        elif self._section_key == "aleluia":
+            self.aleluia = (self.aleluia or "") + texto + "\n\n"
+        elif self._section_key == "evangelio":
+            if self.evangelio_ref is None and _RE_REF.match(texto):
+                self.evangelio_ref = texto
+            else:
+                self.evangelio = (self.evangelio or "") + texto + "\n\n"
+        elif self._section_key == "papas":
+            self.comentario_papal = (self.comentario_papal or "") + texto + "\n\n"
 
-        if cap_para_guardar is not None:
-            versiculos = extraer_versiculos(html)
-            if not versiculos:
-                print(
-                    f"  Sin versículos parseables en «{cfg.nombre}» "
-                    f"(cap. almacén {cap_para_guardar})."
-                )
-                return False
-            guardar_capitulo(conn, libro_id, cap_para_guardar, versiculos)
-            if cfg.solo_capitulos is not None:
-                daniel_guardados.add(cap_para_guardar)
-                if daniel_guardados.issuperset(set(cfg.solo_capitulos)):
-                    print("  Daniel (Suplementos): capítulos 3, 13 y 14 guardados. Fin.")
-                    break
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attr_dict = dict(attrs)
+        classes = (attr_dict.get("class") or "").split()
 
-        visited.add(url)
+        if tag == "section":
+            self._in_section = True
+            self._section_key = None
+            self._in_content = False
+        elif tag == "h1":
+            self._in_h1 = True
+        elif tag == "h2":
+            self._in_h2 = True
+        elif tag == "p" and self._in_section:
+            self._in_p = True
+        elif tag == "div" and "section__content" in classes:
+            self._in_content = True
+        elif tag == "div" and "indicazioneLiturgica" in classes:
+            self._in_titulo_span = True
 
-        if (
-            cfg.solo_capitulos is None
-            and cfg.max_cap is not None
-            and paso_navegacion >= cfg.max_cap
-        ):
-            print(
-                f"  Último capítulo permitido ({cfg.max_cap}) procesado para «{cfg.nombre}». "
-                "No se sigue la flecha."
-            )
-            break
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "section":
+            self._in_section = False
+            self._section_key = None
+            self._in_content = False
+        elif tag == "h1":
+            self._in_h1 = False
+        elif tag == "h2":
+            self._in_h2 = False
+        elif tag == "p":
+            if self._in_content:
+                self._flush_buff()
+            self._in_p = False
+        elif tag == "div" and self._in_titulo_span:
+            self._in_titulo_span = False
 
-        next_url = encontrar_siguiente_url(html, url)
-        if not next_url or next_url in visited:
-            break
-        if cfg.nombre == "Ester_Suplementos" and not esther_url_permitida(next_url):
-            print("  Siguiente URL fuera de __PNK..__PNZ. Fin de Ester_Suplementos.")
-            break
-        url = next_url
-        paso_navegacion += 1
+    def handle_data(self, data: str) -> None:
+        texto = data.strip()
+        if not texto:
+            return
 
-    return True
+        # H1 → título de la página (lo ignoramos)
+        if self._in_h1 and self.titulo_misa is None:
+            return
+
+        # H2 dentro de una section → detectar qué sección es
+        if self._in_h2 and self._in_section:
+            clave = texto.lower().strip()
+            if clave in _SECCIONES:
+                self._section_key = _SECCIONES[clave]
+            return
+
+        # Título litúrgico (ej: "Memoria de san Bernabé")
+        if self._in_titulo_span and self.titulo_misa is None:
+            self.titulo_misa = texto
+            return
+
+        # Contenido de <p> dentro de section__content
+        if self._in_p and self._in_content and self._section_key:
+            self._buff.append(texto + " ")
+
+    def handle_entityref(self, name: str) -> None:
+        if self._in_p and self._in_content and self._section_key:
+            char = html.parser.HTMLParser.unescape.__func__(self, f"&{name};")
+            self._buff.append(str(char))
+
+    def handle_charref(self, name: str) -> None:
+        if self._in_p and self._in_content and self._section_key:
+            try:
+                code = int(name) if name.isdigit() else int(name[1:], 16)
+                self._buff.append(chr(code))
+            except ValueError:
+                self._buff.append(f"&#{name};")
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Completa libros usando Vatican.va hacia biblia_pueblo_dios.db"
-    )
-    parser.add_argument("--db", default=DEFAULT_DB, help="Ruta de la base SQLite.")
-    parser.add_argument(
-        "--libro",
-        default=None,
-        help="Procesar solo un libro (nombre exacto de LIBROS_VATICANO).",
-    )
-    return parser.parse_args()
+# ─── Helper de limpieza ──────────────────────────────────────────────────────
 
 
-def main() -> None:
-    args = parse_args()
+def _limpiar(texto: str | None) -> str | None:
+    if texto is None:
+        return None
+    texto = re.sub(r"\s*\n\s*", "\n", texto)
+    texto = re.sub(r"\n{3,}", "\n\n", texto)
+    return texto.strip() or None
 
-    if args.libro:
-        if args.libro not in LIBROS_POR_NOMBRE:
-            raise SystemExit(
-                "Libro inválido. Opciones: "
-                + ", ".join(LIBROS_POR_NOMBRE.keys())
-            )
-        targets = [LIBROS_POR_NOMBRE[args.libro]]
-    else:
-        targets = list(LIBROS_VATICANO)
 
-    conn = sqlite3.connect(args.db)
-    failed_books: list[str] = []
+# ─── Scraper ──────────────────────────────────────────────────────────────────
+
+
+def scrapear_fecha(fecha: date, preview: bool = False) -> dict | None:
+    """Scrapea las lecturas de una fecha. Retorna dict o None si 404."""
+    url = BASE_URL.format(year=fecha.year, month=fecha.month, day=fecha.day)
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+
     try:
-        crear_tablas_si_no_existen(conn)
-        for idx, cfg in enumerate(targets):
-            if idx > 0:
-                time.sleep(REQUEST_DELAY_SECONDS)
-            ok = scrape_libro(conn, cfg)
-            if not ok:
-                failed_books.append(cfg.nombre)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            html_bytes = resp.read()
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            print(f"  [{fecha}] 404 - skip")
+            return None
+        print(f"  [{fecha}] HTTP {e.code} - skip")
+        return None
+    except Exception as e:
+        print(f"  [{fecha}] Error: {e} - skip")
+        return None
+
+    html_str = html_bytes.decode("utf-8", errors="replace")
+
+    parser = LecturasParser()
+    parser.feed(html_str)
+
+    if not parser.evangelio and not parser.primera_lectura:
+        if not preview:
+            print(f"  [{fecha}] sin contenido parseable - skip")
+        return None
+
+    result = {
+        "fecha": fecha.isoformat(),
+        "url": url,
+        "titulo_misa": _limpiar(parser.titulo_misa),
+        "primera_lectura_ref": _limpiar(parser.primera_lectura_ref),
+        "primera_lectura": _limpiar(parser.primera_lectura),
+        "salmo": _limpiar(parser.salmo),
+        "aleluia": _limpiar(parser.aleluia),
+        "evangelio_ref": _limpiar(parser.evangelio_ref),
+        "evangelio": _limpiar(parser.evangelio),
+        "comentario_papal": _limpiar(parser.comentario_papal),
+    }
+    return result
+
+
+def _preview(d: dict) -> None:
+    print(f"\n{'='*60}")
+    print(f"  Fecha: {d['fecha']}")
+    print(f"  Título: {d['titulo_misa']}")
+    print(f"  URL: {d['url']}")
+    print(f"{'='*60}")
+    if d["primera_lectura_ref"]:
+        print(f"\n  📖 1ª Lectura: {d['primera_lectura_ref']}")
+        print(f"  {d['primera_lectura'][:200]}…" if d["primera_lectura"] else "")
+    if d["salmo"]:
+        print(f"\n  🎵 Salmo: {d['salmo'][:120]}…")
+    if d["aleluia"]:
+        print(f"\n  🎵 Aleluya: {d['aleluia'][:120]}…")
+    if d["evangelio_ref"]:
+        print(f"\n  ✝ Evangelio: {d['evangelio_ref']}")
+        print(f"  {d['evangelio'][:200]}…" if d["evangelio"] else "")
+    if d["comentario_papal"]:
+        print(f"\n  📜 Papas: {d['comentario_papal'][:200]}…")
+    print()
+
+
+# ─── Base de datos ────────────────────────────────────────────────────────────
+
+
+def _get_db() -> sqlite3.Connection:
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute(SCHEMA_SQL)
+    conn.commit()
+    return conn
+
+
+def guardar(lectura: dict) -> bool:
+    """Guarda una lectura. Retorna True si se insertó, False si ya existía."""
+    conn = _get_db()
+    try:
+        conn.execute(
+            """INSERT INTO lecturas
+               (fecha, url, titulo_misa, primera_lectura_ref, primera_lectura,
+                salmo, aleluia, evangelio_ref, evangelio, comentario_papal)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                lectura["fecha"],
+                lectura["url"],
+                lectura["titulo_misa"],
+                lectura["primera_lectura_ref"],
+                lectura["primera_lectura"],
+                lectura["salmo"],
+                lectura["aleluia"],
+                lectura["evangelio_ref"],
+                lectura["evangelio"],
+                lectura["comentario_papal"],
+            ),
+        )
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
     finally:
         conn.close()
 
-    print("\nProceso finalizado.")
-    if failed_books:
-        print("\nLibros con fallo:")
-        for name in failed_books:
-            print(f"- {name}")
+
+def existe_fecha(fecha: str) -> bool:
+    conn = _get_db()
+    try:
+        row = conn.execute("SELECT 1 FROM lecturas WHERE fecha = ?", (fecha,)).fetchone()
+        return row is not None
+    finally:
+        conn.close()
+
+
+def listar_registros() -> None:
+    conn = _get_db()
+    rows = conn.execute(
+        "SELECT fecha, titulo_misa, evangelio_ref FROM lecturas ORDER BY fecha DESC"
+    ).fetchall()
+    conn.close()
+    if not rows:
+        print("No hay lecturas guardadas.")
+        return
+    print(f"{'Fecha':<14} {'Título':<50} {'Evangelio'}")
+    print("-" * 110)
+    for r in rows:
+        tit = (r[1] or "")[:48]
+        ev = (r[2] or "")[:48]
+        print(f"{r[0]:<14} {tit:<50} {ev}")
+
+
+# ─── Generación de fechas ─────────────────────────────────────────────────────
+
+
+def _rangos_por_defecto() -> list[date]:
+    """Mes actual + mes siguiente."""
+    hoy = date.today()
+    primero_actual = hoy.replace(day=1)
+    if hoy.month == 12:
+        hasta = primero_actual.replace(year=hoy.year + 1, month=1, day=1)
     else:
-        print("Sin fallos.")
+        hasta = primero_actual.replace(month=hoy.month + 1, day=1)
+    # un día extra para cubrir el mes siguiente completo
+    if hasta.month == 12:
+        fin = hasta.replace(year=hasta.year + 1, month=1, day=1)
+    else:
+        fin = hasta.replace(month=hasta.month + 1, day=1)
+    # desde 15 días antes del mes actual
+    desde = primero_actual - timedelta(days=15)
+    return [desde + timedelta(days=i) for i in range((fin - desde).days)]
+
+
+def _fechas_en_rango(desde: date, hasta: date) -> list[date]:
+    return [desde + timedelta(days=i) for i in range((hasta - desde).days + 1)]
+
+
+# ─── CLI ──────────────────────────────────────────────────────────────────────
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Scrapea lecturas diarias desde Vatican News"
+    )
+    grupo = parser.add_mutually_exclusive_group()
+    grupo.add_argument("--fecha", type=str, help="Una fecha YYYY-MM-DD")
+    grupo.add_argument("--desde", type=str, help="Inicio de rango YYYY-MM-DD")
+    parser.add_argument("--hasta", type=str, help="Fin de rango YYYY-MM-DD")
+    parser.add_argument(
+        "--preview",
+        action="store_true",
+        help="Solo mostrar lo parseado sin guardar",
+    )
+    parser.add_argument("--list", action="store_true", help="Listar registros guardados")
+    args = parser.parse_args()
+
+    if args.list:
+        listar_registros()
+        return
+
+    # Determinar fechas
+    if args.fecha:
+        fechas = [date.fromisoformat(args.fecha)]
+    elif args.desde:
+        hasta = date.fromisoformat(args.hasta) if args.hasta else date.today()
+        fechas = _fechas_en_rango(date.fromisoformat(args.desde), hasta)
+    else:
+        fechas = _rangos_por_defecto()
+
+    # Preview
+    if args.preview:
+        for f in fechas:
+            data = scrapear_fecha(f, preview=True)
+            if data:
+                _preview(data)
+            time.sleep(SLEEP_SECS)
+        return
+
+    # Scrapear y guardar
+    ok = 0
+    existentes = 0
+    skipped = 0
+
+    print(f"Procesando {len(fechas)} fechas...\n")
+    for f in fechas:
+        fecha_str = f.isoformat()
+        if existe_fecha(fecha_str):
+            print(f"  [{fecha_str}] ya existe - skip")
+            existentes += 1
+            continue
+
+        data = scrapear_fecha(f)
+        if data is None:
+            skipped += 1
+            continue
+
+        if guardar(data):
+            tit = data["titulo_misa"] or "(sin título)"
+            print(f"  [{fecha_str}] OK ({tit})")
+            ok += 1
+        else:
+            print(f"  [{fecha_str}] error al guardar - skip")
+            skipped += 1
+
+        time.sleep(SLEEP_SECS)
+
+    print(f"\nTotal: {len(fechas)} fechas procesadas, {ok} guardadas, {existentes} existentes, {skipped} skipped")
 
 
 if __name__ == "__main__":
