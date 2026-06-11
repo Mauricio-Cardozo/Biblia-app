@@ -99,15 +99,12 @@ export default function YoucatScreen() {
       }
       setBuscando(true);
       setSearchError(null);
-      try {
-        setResultados(await searchYoucat(db, termino));
-      } catch (e) {
-        console.error("YOUCAT search error:", e);
-        setResultados([]);
-        setSearchError("Error al buscar. Probá ir a la pantalla de test y usar 'Rebuild FTS'.");
-      } finally {
-        setBuscando(false);
+      const rows = await searchYoucat(db, termino);
+      setResultados(rows);
+      if (rows.length === 0) {
+        setSearchError("Sin resultados. Si esperabas encontrar algo, andá a Test y usá 'Rebuild FTS'.");
       }
+      setBuscando(false);
     },
     [db],
   );

@@ -1,10 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
 import {
-  ActivityIndicator, ScrollView, StyleSheet, Text, TextInput,
+  ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput,
   TouchableOpacity, View,
 } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { searchCIC, searchYoucat } from '@/db/db';
+import { diagnose, forceReCopy } from '@/db/init';
 import type { CICNumeral, YoucatQuestion } from '@/types';
 
 type SearchTarget = 'cic' | 'youcat';
@@ -12,8 +13,8 @@ type SearchTarget = 'cic' | 'youcat';
 export default function TestDatabase() {
   const db = useSQLiteContext();
 
-  const [tablas, setTablas] = useState<string[]>([]);
-  const [esquema, setEsquema] = useState<string>('');
+  const [diagnosis, setDiagnosis] = useState('');
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
 
   const [termino, setTermino] = useState('');
   const [target, setTarget] = useState<SearchTarget>('cic');
@@ -22,31 +23,35 @@ export default function TestDatabase() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
 
-  const inspeccionarEsquema = useCallback(async () => {
-    try {
-      const tables = await db.getAllAsync<{ name: string }>(
-        "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
-      );
-      const names = tables.map((t) => t.name);
-      setTablas(names);
-
-      let info = '';
-      for (const name of names) {
-        if (name.endsWith('_config') || name.endsWith('_data') || name.endsWith('_docsize') || name.endsWith('_idx')) continue;
-        const cols = await db.getAllAsync<{ cid: number; name: string; type: string; notnull: number; pk: number }>(
-          `PRAGMA table_info(${name});`,
-        );
-        info += `\n📦 ${name}\n`;
-        for (const col of cols) {
-          info += `  ${col.pk ? '🔑' : '  '} ${col.name} ${col.type}${col.notnull ? ' NOT NULL' : ''}\n`;
-        }
-      }
-      setEsquema(info);
-    } catch (err) {
-      console.error(err);
-      setEsquema('Error al leer esquema');
-    }
+  const ejecutarDiagnosis = useCallback(async () => {
+    setDiagnosisLoading(true);
+    setDiagnosis('');
+    const d = await diagnose(db);
+    setDiagnosis(d);
+    setDiagnosisLoading(false);
   }, [db]);
+
+  const confirmarReCopy = useCallback(() => {
+    Alert.alert(
+      "¿Expandir base de datos?",
+      "Esto borra la DB actual y la recopia desde assets. La app se cerrará. ¿Continuar?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Expandir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await forceReCopy();
+              Alert.alert("Listo", "Base de datos eliminada. Cerrá y abrí la app para recopiar desde assets.");
+            } catch (e: any) {
+              Alert.alert("Error", e.message);
+            }
+          },
+        },
+      ],
+    );
+  }, []);
 
   const ejecutarBusqueda = useCallback(async () => {
     const t = termino.trim();
@@ -159,22 +164,20 @@ export default function TestDatabase() {
         </View>
       )}
 
-      <TouchableOpacity style={styles.btn} onPress={inspeccionarEsquema}>
-        <Text style={styles.btnText}>📋 Inspeccionar Esquema</Text>
+      <TouchableOpacity style={styles.btn} onPress={ejecutarDiagnosis}>
+        <Text style={styles.btnText}>🔬 Diagnosticar DB</Text>
       </TouchableOpacity>
-
-      {tablas.length > 0 && (
+      {diagnosisLoading && <ActivityIndicator size="small" color="#C9A84C" style={{ marginVertical: 12 }} />}
+      {diagnosis !== '' && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Tablas ({tablas.length})</Text>
-          <Text style={styles.mono}>{tablas.join(', ')}</Text>
+          <Text style={styles.cardTitle}>Diagnóstico</Text>
+          <Text style={styles.mono}>{diagnosis}</Text>
         </View>
       )}
 
-      {esquema !== '' && (
-        <View style={styles.card}>
-          <Text style={styles.mono}>{esquema}</Text>
-        </View>
-      )}
+      <TouchableOpacity style={styles.btnDanger} onPress={confirmarReCopy}>
+        <Text style={styles.btnDangerText}>⚠ Expandir DB desde assets</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -188,7 +191,9 @@ const styles = StyleSheet.create({
   input: { backgroundColor: '#0D1B2A', color: '#F0E6CC', fontSize: 15, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#C9A84C55', marginBottom: 10 },
   btn: { flex: 1, backgroundColor: '#1A2D45', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#C9A84C', alignItems: 'center' },
   btnSecondary: { flex: 1, backgroundColor: '#243B55', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#C9A84C55', alignItems: 'center' },
+  btnDanger: { backgroundColor: '#4A1A2D', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#E07070', alignItems: 'center', marginTop: 8 },
   btnText: { color: '#E8C97A', fontWeight: '700', fontSize: 14 },
+  btnDangerText: { color: '#E07070', fontWeight: '700', fontSize: 14 },
   tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 6, backgroundColor: '#0D1B2A', alignItems: 'center', borderWidth: 1, borderColor: '#C9A84C33' },
   tabBtnActive: { backgroundColor: '#C9A84C33', borderColor: '#C9A84C' },
   tabBtnText: { color: '#888', fontWeight: '600', fontSize: 13 },

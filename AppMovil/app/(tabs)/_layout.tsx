@@ -35,6 +35,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="text.book.closed.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="youcat"
+        options={{
+          title: 'YOUCAT',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="questionmark.text.page.fill" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

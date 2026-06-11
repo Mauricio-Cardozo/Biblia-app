@@ -1,3 +1,4 @@
+import { File, Paths } from "expo-file-system";
 import { type SQLiteDatabase } from "expo-sqlite";
 
 const CURRENT_VERSION = 2;
@@ -96,6 +97,50 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
   }
 
   await logTables(db);
+}
+
+/** Delete the database file so the next open copies fresh from assets */
+export async function forceReCopy(): Promise<void> {
+  const dbFile = new File(Paths.document, "SQLite", "iglesia_digital.db");
+  if (dbFile.exists) {
+    dbFile.delete();
+    console.log("DB deleted, will re-copy from assets on next open");
+  }
+  // delete WAL and SHM too
+  for (const ext of ["-wal", "-shm"]) {
+    const extraFile = new File(Paths.document, "SQLite", `iglesia_digital.db${ext}`);
+    if (extraFile.exists) {
+      try { extraFile.delete(); } catch { /* ok */ }
+    }
+  }
+}
+
+/** Return a diagnosis string describing table/column state */
+export async function diagnose(db: SQLiteDatabase): Promise<string> {
+  const lines: string[] = [];
+  try {
+    const tables = await db.getAllAsync<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
+    );
+    lines.push(`Tablas (${tables.length}): ${tables.map(t => t.name).join(", ")}`);
+
+    for (const table of ["youcat", "catecismo_cic"]) {
+      if (tables.some(t => t.name === table)) {
+        const cols = await db.getAllAsync<{ name: string; type: string }>(
+          `PRAGMA table_info(${table})`,
+        );
+        lines.push(`${table}: ${cols.map(c => `${c.name} (${c.type})`).join(", ")}`);
+        lines.push(`  → tiene 'id'? ${cols.some(c => c.name === "id") ? "SÍ" : "NO"}`);
+      }
+    }
+
+    for (const table of ["youcat_fts", "catecismo_cic_fts"]) {
+      lines.push(`${table}: ${tables.some(t => t.name === table) ? "EXISTE" : "NO EXISTE"}`);
+    }
+  } catch (e: any) {
+    lines.push(`Error en diagnóstico: ${e.message}`);
+  }
+  return lines.join("\n");
 }
 
 export async function logTables(db: SQLiteDatabase): Promise<void> {

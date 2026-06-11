@@ -1,6 +1,6 @@
 import { C } from '@/constants/theme';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, router } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -43,6 +43,15 @@ export default function HomeScreen() {
           <Text style={styles.streakText}>🔥 2 días</Text>
         </TouchableOpacity>
       </View>
+
+      {/* YOUCAT */}
+      <Link href={"/youcat" as any} asChild>
+        <TouchableOpacity style={styles.card}>
+          <Text style={styles.cardLabel}>CATEQUESIS — YOUCAT</Text>
+          <Text style={styles.youcatSub}>Catecismo Joven de la Iglesia Católica</Text>
+          <Text style={styles.youcatMeta}>162 preguntas y respuestas · 4 partes</Text>
+        </TouchableOpacity>
+      </Link>
     </ScrollView>
   );
 }
@@ -55,5 +64,7 @@ const styles = StyleSheet.create({
   cardLabel: { color: C.gold, fontSize: 12, fontWeight: 'bold', marginBottom: 10 },
   verseText: { color: '#fff', fontSize: 18, fontStyle: 'italic' },
   verseRef: { color: '#fff', opacity: 0.6, marginTop: 10, textAlign: 'right' },
-  streakText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  streakText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  youcatSub: { color: C.text, fontSize: 14, lineHeight: 20 },
+  youcatMeta: { color: C.muted, fontSize: 12, marginTop: 6 },
 });

@@ -90,13 +90,17 @@ export async function searchCIC(
   db: SQLiteDatabase,
   termino: string,
 ): Promise<CICNumeral[]> {
-  return db.getAllAsync<CICNumeral>(
-    `SELECT c.* FROM catecismo_cic c
-     JOIN catecismo_cic_fts f ON c.id = f.rowid
-     WHERE catecismo_cic_fts MATCH ?
-     ORDER BY f.rank`,
-    [termino],
-  );
+  try {
+    return await db.getAllAsync<CICNumeral>(
+      `SELECT c.* FROM catecismo_cic c
+       JOIN catecismo_cic_fts f ON c.id = f.rowid
+       WHERE catecismo_cic_fts MATCH ?
+       ORDER BY f.rank`,
+      [termino],
+    );
+  } catch {
+    return [];
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -155,11 +159,15 @@ export async function searchYoucat(
   db: SQLiteDatabase,
   termino: string,
 ): Promise<YoucatQuestion[]> {
-  return db.getAllAsync<YoucatQuestion>(
-    `SELECT y.* FROM youcat y
-     JOIN youcat_fts f ON y.id = f.rowid
-     WHERE youcat_fts MATCH ?
-     ORDER BY f.rank`,
-    [termino],
-  );
+  try {
+    return await db.getAllAsync<YoucatQuestion>(
+      `SELECT y.* FROM youcat y
+       JOIN youcat_fts f ON y.id = f.rowid
+       WHERE youcat_fts MATCH ?
+       ORDER BY f.rank`,
+      [termino],
+    );
+  } catch {
+    return [];
+  }
 }
