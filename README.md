@@ -22,6 +22,7 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
   - 📜 Lectura de versículos con número dorado
 - **Catecismo de la Iglesia Católica (CIC)** — Navegación completa en 4 niveles:
   - Parte → Sección → Numerales → Detalle con jerarquía completa
+- **YOUCAT (Catecismo Joven)** — Navegación por partes + búsqueda FTS5 con 162 preguntas y respuestas
 - **Búsqueda FTS5** — Búsqueda de texto completo optimizada en SQLite
 - **100% Offline** — Toda la base de datos está incluida en la app
 
@@ -128,10 +129,11 @@ Biblia-app/
 │   ├── app/
 │   │   ├── _layout.tsx              # Layout raíz — SQLiteProvider + Stack
 │   │   ├── (tabs)/
-│   │   │   ├── _layout.tsx          # Tab bar (Home, Biblia, Catecismo)
-│   │   │   ├── index.tsx            # Home — versículo del día + rachas
+│   │   │   ├── _layout.tsx          # Tab bar (Home, Biblia, Catecismo, YOUCAT)
+│   │   │   ├── index.tsx            # Home — versículo del día + rachas + YOUCAT
 │   │   │   ├── biblia.tsx           # Biblia — libros → capítulos → versículos
-│   │   │   └── catecismo.tsx        # CIC — partes → secciones → numerales → detalle
+│   │   │   ├── catecismo.tsx        # CIC — partes → secciones → numerales → detalle
+│   │   │   └── youcat.tsx           # YOUCAT — partes → preguntas → detalle + búsqueda
 │   │   ├── rosario/
 │   │   │   └── guia.tsx             # Guía del Rosario (en desarrollo)
 │   │   └── test.tsx                 # Sandbox para pruebas de DB y FTS5
@@ -176,7 +178,7 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] Rachas de lectura
 - [ ] Evangelio del Día dinámico (desde leccionario)
 - [ ] Rosario guiado con misterios
-- [ ] YOUCAT — Catecismo Joven
+- [x] YOUCAT — Catecismo Joven (navegación + búsqueda FTS5)
 - [ ] Marcadores y favoritos
 - [ ] Notificaciones diarias
 - [ ] Modo lectura (fuente ajustable)
