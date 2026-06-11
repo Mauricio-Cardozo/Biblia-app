@@ -44,7 +44,25 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
     console.warn("Migration (catecismo_cic_fts):", e);
   }
 
-  // ── 4. Log all tables for debugging ──────────────────────────────────────
+  // ── 4. Rebuild FTS if index is empty (corrupted / stale DB) ─────────────
+  for (const [ftsTable, contentTable] of [
+    ['youcat_fts', 'youcat'],
+    ['catecismo_cic_fts', 'catecismo_cic'],
+  ] as const) {
+    try {
+      const count = await db.getFirstAsync<{ cnt: number }>(
+        `SELECT COUNT(*) as cnt FROM ${ftsTable}`,
+      );
+      if (count && count.cnt === 0) {
+        console.log(`FTS index empty for ${ftsTable}, rebuilding…`);
+        await db.execAsync(`INSERT INTO ${ftsTable}(${ftsTable}) VALUES('rebuild');`);
+      }
+    } catch {
+      // table doesn't exist or FTS not available – ignore
+    }
+  }
+
+  // ── 5. Log all tables for debugging ──────────────────────────────────────
   try {
     const tables = await db.getAllAsync<{ name: string }>(
       "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
