@@ -23,6 +23,7 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
 - **Catecismo de la Iglesia Católica (CIC)** — Navegación completa en 4 niveles:
   - Parte → Sección → Numerales → Detalle con jerarquía completa
 - **YOUCAT (Catecismo Joven)** — Navegación por partes + búsqueda FTS5 con 162 preguntas y respuestas
+- **Rosario Guiado** — Recitación paso a paso con cuentas visuales, misterios según el día y registro de racha
 - **Búsqueda FTS5** — Búsqueda de texto completo optimizada en SQLite
 - **100% Offline** — Toda la base de datos está incluida en la app
 
@@ -135,7 +136,7 @@ Biblia-app/
 │   │   │   ├── catecismo.tsx        # CIC — partes → secciones → numerales → detalle
 │   │   │   └── youcat.tsx           # YOUCAT — partes → preguntas → detalle + búsqueda
 │   │   ├── rosario/
-│   │   │   └── guia.tsx             # Guía del Rosario (en desarrollo)
+│   │   │   └── guia.tsx             # Guía interactiva del Rosario con misterios
 │   │   └── test.tsx                 # Sandbox para pruebas de DB y FTS5
 │   ├── components/
 │   │   ├── themed-text.tsx
@@ -177,7 +178,7 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] Búsqueda FTS5 en SQLite
 - [x] Rachas de lectura
 - [ ] Evangelio del Día dinámico (desde leccionario)
-- [ ] Rosario guiado con misterios
+- [x] Rosario guiado con misterios
 - [x] YOUCAT — Catecismo Joven (navegación + búsqueda FTS5)
 - [ ] Marcadores y favoritos
 - [ ] Notificaciones diarias
