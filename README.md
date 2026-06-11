@@ -97,6 +97,11 @@ TABLE lecturas (
 
 ## 🚀 Instalación y ejecución
 
+> **Nota sobre actualizaciones de BD:** Si la app muestra errores de columnas o tablas faltantes (ej. `no such column: parte` o `no such table: ..._fts`), la migración automática en `db/init.ts` los corrige al arrancar. También podés forzar la recreación borrando la DB almacenada en el dispositivo:
+> ```bash
+> adb shell "run-as com.tudominio.app rm /data/data/com.tudominio.app/files/ExpoLite/iglesia_digital.db"
+> ```
+
 ### Requisitos previos
 
 - [Node.js](https://nodejs.org/) 18+
@@ -128,7 +133,7 @@ npx expo start -c
 Biblia-app/
 ├── AppMovil/                        # App principal (Expo)
 │   ├── app/
-│   │   ├── _layout.tsx              # Layout raíz — SQLiteProvider + Stack
+│   │   ├── _layout.tsx              # Layout raíz — SQLiteProvider + DatabaseInit + Stack
 │   │   ├── (tabs)/
 │   │   │   ├── _layout.tsx          # Tab bar (Home, Biblia, Catecismo, YOUCAT)
 │   │   │   ├── index.tsx            # Home — versículo del día + rachas + YOUCAT
@@ -138,6 +143,8 @@ Biblia-app/
 │   │   ├── rosario/
 │   │   │   └── guia.tsx             # Guía interactiva del Rosario con misterios
 │   │   └── test.tsx                 # Sandbox para pruebas de DB y FTS5
+│   ├── db/
+│   │   └── init.ts                  # Migración automática de BD al arrancar
 │   ├── components/
 │   │   ├── themed-text.tsx
 │   │   └── themed-view.tsx

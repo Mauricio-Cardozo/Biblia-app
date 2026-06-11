@@ -1,7 +1,27 @@
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
-import { SQLiteProvider } from 'expo-sqlite';
-import { ActivityIndicator } from 'react-native';
+import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
+import { ActivityIndicator, View } from 'react-native';
+import { ensureDatabaseSchema } from '@/db/init';
+
+function DatabaseInit({ children }: { children: React.ReactNode }) {
+  const db = useSQLiteContext();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    ensureDatabaseSchema(db).then(() => setReady(true));
+  }, [db]);
+
+  if (!ready) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#D4AF37" />
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 export default function RootLayout() {
   return (
@@ -11,10 +31,12 @@ export default function RootLayout() {
         assetSource={{ assetId: require('../assets/iglesia_digital.db') }}
         useSuspense
       >
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
+        <DatabaseInit>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          </Stack>
+        </DatabaseInit>
       </SQLiteProvider>
     </Suspense>
   );
