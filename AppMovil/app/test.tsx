@@ -85,18 +85,35 @@ export default function TestDatabase() {
     setSearchLoading(true);
     setSearchError(null);
     try {
-      await db.execAsync('DROP TABLE IF EXISTS youcat_fts;');
-      await db.execAsync('DROP TABLE IF EXISTS catecismo_cic_fts;');
-      await db.execAsync(`CREATE VIRTUAL TABLE youcat_fts USING fts5(
+      await db.runAsync('DROP TABLE IF EXISTS youcat_fts;');
+      await db.runAsync('DROP TABLE IF EXISTS catecismo_cic_fts;');
+
+      await db.runAsync(`CREATE VIRTUAL TABLE youcat_fts USING fts5(
         id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo
-      );`);
-      await db.execAsync(`CREATE VIRTUAL TABLE catecismo_cic_fts USING fts5(
+      )`);
+      const youcatRows = await db.getAllAsync<any>(
+        "SELECT rowid, id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo FROM youcat"
+      );
+      for (const r of youcatRows) {
+        await db.runAsync(
+          "INSERT INTO youcat_fts(rowid, id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [r.rowid, r.id, r.pregunta_nro, r.pregunta_texto, r.respuesta_texto, r.parte, r.capitulo],
+        );
+      }
+
+      await db.runAsync(`CREATE VIRTUAL TABLE catecismo_cic_fts USING fts5(
         id, parte, seccion, capitulo, articulo, texto
-      );`);
-      await db.execAsync(`INSERT INTO youcat_fts(rowid, id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo)
-        SELECT rowid, id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo FROM youcat;`);
-      await db.execAsync(`INSERT INTO catecismo_cic_fts(rowid, id, parte, seccion, capitulo, articulo, texto)
-        SELECT rowid, id, parte, seccion, capitulo, articulo, texto FROM catecismo_cic;`);
+      )`);
+      const cicRows = await db.getAllAsync<any>(
+        "SELECT rowid, id, parte, seccion, capitulo, articulo, texto FROM catecismo_cic"
+      );
+      for (const r of cicRows) {
+        await db.runAsync(
+          "INSERT INTO catecismo_cic_fts(rowid, id, parte, seccion, capitulo, articulo, texto) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [r.rowid, r.id, r.parte, r.seccion, r.capitulo, r.articulo, r.texto],
+        );
+      }
+
       setSearchResults('✅ FTS rebuild exitoso');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
