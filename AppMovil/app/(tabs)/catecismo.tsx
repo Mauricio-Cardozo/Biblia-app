@@ -148,7 +148,7 @@ export default function CatecismoScreen() {
 
       {nivel === "partes" && (
         <FlashList data={partes} keyExtractor={(item) => item.parte} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={s.sep} />} estimatedItemSize={80}
+          ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item, index }) => (
             <TouchableOpacity style={s.card} onPress={() => seleccionarParte(item.parte)} activeOpacity={0.75}>
               <View style={s.indexBadge}><ThemedText style={s.indexText}>{index + 1}</ThemedText></View>
@@ -161,7 +161,7 @@ export default function CatecismoScreen() {
 
       {nivel === "secciones" && (
         <FlashList data={secciones} keyExtractor={(item) => item.seccion} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={s.sep} />} estimatedItemSize={80}
+          ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item, index }) => (
             <TouchableOpacity style={s.card} onPress={() => seleccionarSeccion(item.seccion)} activeOpacity={0.75}>
               <View style={[s.indexBadge, s.indexBadgeSec]}><ThemedText style={s.indexText}>{index + 1}</ThemedText></View>
@@ -174,7 +174,7 @@ export default function CatecismoScreen() {
 
       {nivel === "numerales" && (
         <FlashList data={numerales} keyExtractor={(item) => String(item.id)} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={s.sep} />} estimatedItemSize={100}
+          ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item }) => (
             <TouchableOpacity style={s.card} onPress={() => cargarDetalle(item.id)} activeOpacity={0.75}>
               <View style={s.nroBox}><ThemedText style={s.nroText}>{item.id}</ThemedText></View>

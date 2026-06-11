@@ -9,7 +9,12 @@ function DatabaseInit({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    ensureDatabaseSchema(db).then(() => setReady(true));
+    ensureDatabaseSchema(db)
+      .then(() => setReady(true))
+      .catch((e) => {
+        console.warn("Migration error:", e);
+        setReady(true); // continue even if migration fails
+      });
   }, [db]);
 
   if (!ready) {

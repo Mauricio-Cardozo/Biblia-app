@@ -102,7 +102,7 @@ export default function BibliaScreen() {
 
       {nivel === "libros" && (
         <FlashList data={libros} keyExtractor={(item) => item.libro} contentContainerStyle={s.list}
-          showsVerticalScrollIndicator={false} ItemSeparatorComponent={() => <View style={s.sep} />} estimatedItemSize={80}
+          showsVerticalScrollIndicator={false} ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item, index }) => (
             <TouchableOpacity style={s.libroCard} onPress={() => seleccionarLibro(item)} activeOpacity={0.75}>
               <View style={[s.indexBadge, item.testamento === "Nuevo" && s.indexBadgeNuevo]}>
@@ -120,7 +120,7 @@ export default function BibliaScreen() {
 
       {nivel === "capitulos" && (
         <FlashList data={capitulos} keyExtractor={(item) => String(item.capitulo)} numColumns={5}
-          contentContainerStyle={s.capGrid} showsVerticalScrollIndicator={false} estimatedItemSize={60}
+          contentContainerStyle={s.capGrid} showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <TouchableOpacity style={s.capCard} onPress={() => seleccionarCapitulo(item.capitulo)} activeOpacity={0.75}>
               <ThemedText style={s.capNum}>{item.capitulo}</ThemedText>
@@ -131,7 +131,7 @@ export default function BibliaScreen() {
 
       {nivel === "versiculos" && (
         <FlashList data={versiculos} keyExtractor={(item) => String(item.id)} contentContainerStyle={s.list}
-          showsVerticalScrollIndicator={false} ItemSeparatorComponent={() => <View style={{ height: 12 }} />} estimatedItemSize={100}
+          showsVerticalScrollIndicator={false} ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           renderItem={({ item }) => (
             <View style={s.versRow}>
               <ThemedText style={s.versNum}>{item.versiculo}</ThemedText>

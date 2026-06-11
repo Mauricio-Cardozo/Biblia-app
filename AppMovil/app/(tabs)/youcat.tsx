@@ -238,7 +238,7 @@ export default function YoucatScreen() {
             contentContainerStyle={s.list}
             showsVerticalScrollIndicator={false}
             ItemSeparatorComponent={() => <View style={s.sep} />}
-            estimatedItemSize={90}
+           
             renderItem={({ item }) => (
               <TouchableOpacity style={s.card} onPress={() => cargarDetalleFn(item.id)} activeOpacity={0.75}>
                 <View style={s.nroBox}>
@@ -275,7 +275,7 @@ export default function YoucatScreen() {
           contentContainerStyle={s.list}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={s.sep} />}
-          estimatedItemSize={90}
+         
           renderItem={({ item, index }) => (
             <TouchableOpacity style={s.card} onPress={() => seleccionarParte(item.parte)} activeOpacity={0.75}>
               <View style={s.indexBadge}><ThemedText style={s.indexText}>{index + 1}</ThemedText></View>
@@ -296,7 +296,7 @@ export default function YoucatScreen() {
           contentContainerStyle={s.list}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={s.sep} />}
-          estimatedItemSize={80}
+         
           renderItem={({ item }) => (
             <TouchableOpacity style={s.card} onPress={() => cargarDetalleFn(item.id)} activeOpacity={0.75}>
               <View style={s.nroBox}><ThemedText style={s.nroText}>{item.pregunta_nro}</ThemedText></View>
