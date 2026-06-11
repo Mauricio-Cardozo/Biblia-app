@@ -135,12 +135,13 @@ Biblia-app/
 │   │   ├── rosario/
 │   │   │   └── guia.tsx             # Guía del Rosario (en desarrollo)
 │   │   └── test.tsx                 # Sandbox para pruebas de DB y FTS5
-│   ├── services/                    # Capa de abstracción para SQLite
 │   ├── components/
 │   │   ├── themed-text.tsx
 │   │   └── themed-view.tsx
+│   ├── types/
+│   │   └── index.ts                 # Interfaces compartidas (Book, CICNumeral, etc.)
 │   ├── constants/
-│   │   └── theme.ts                 # Paleta Navy/Gold
+│   │   └── theme.ts                 # Paleta Navy/Gold + tokens C
 │   └── assets/
 │       └── iglesia_digital.db       # Base de datos SQLite
 └── archive/                         # Scripts Python de ingesta de datos
@@ -180,7 +181,8 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [ ] Notificaciones diarias
 - [ ] Modo lectura (fuente ajustable)
 - [ ] Sincronización en la nube (Firebase)
-- [ ] Tipos TypeScript centralizados en `types/`
+- [x] Tipos TypeScript centralizados en `types/`
+- [x] Paleta de colores consolidada en `constants/theme.ts`
 
 ---
 

@@ -1,48 +1,23 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { C } from "@/constants/theme";
+import { Book, Chapter, Verse } from "@/types";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   Platform,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
   View,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Nivel = "libros" | "capitulos" | "versiculos";
-
-interface Libro {
-  libro: string;
-  testamento: string;
-}
-interface Capitulo {
-  capitulo: number;
-}
-interface Versiculo {
-  id: number;
-  versiculo: number;
-  texto: string;
-}
-
-// ─── Colors ───────────────────────────────────────────────────────────────────
-
-const C = {
-  navy: "#0D1B2A",
-  navyMid: "#1A2D45",
-  navyLight: "#243B55",
-  gold: "#C9A84C",
-  goldLight: "#E8C97A",
-  goldDim: "#8B6914",
-  text: "#F0E6CC",
-  muted: "#9BA8B5",
-  sep: "#1E3050",
-};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -50,12 +25,12 @@ export default function BibliaScreen() {
   const db = useSQLiteContext();
 
   const [nivel, setNivel] = useState<Nivel>("libros");
-  const [libroActual, setLibroActual] = useState<Libro | null>(null);
+  const [libroActual, setLibroActual] = useState<Book | null>(null);
   const [capActual, setCapActual] = useState<number | null>(null);
 
-  const [libros, setLibros] = useState<Libro[]>([]);
-  const [capitulos, setCapitulos] = useState<Capitulo[]>([]);
-  const [versiculos, setVersiculos] = useState<Versiculo[]>([]);
+  const [libros, setLibros] = useState<Book[]>([]);
+  const [capitulos, setCapitulos] = useState<Chapter[]>([]);
+  const [versiculos, setVersiculos] = useState<Verse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,7 +40,7 @@ export default function BibliaScreen() {
     setLoading(true);
     setError(null);
     try {
-      const rows = await db.getAllAsync<Libro>(
+      const rows = await db.getAllAsync<Book>(
         `SELECT libro, testamento
          FROM biblia_pueblo_dios
          GROUP BY libro
@@ -84,7 +59,7 @@ export default function BibliaScreen() {
       setLoading(true);
       setError(null);
       try {
-        const rows = await db.getAllAsync<Capitulo>(
+        const rows = await db.getAllAsync<Chapter>(
           `SELECT DISTINCT capitulo FROM biblia_pueblo_dios
          WHERE libro = ? ORDER BY capitulo ASC`,
           [libro],
@@ -104,7 +79,7 @@ export default function BibliaScreen() {
       setLoading(true);
       setError(null);
       try {
-        const rows = await db.getAllAsync<Versiculo>(
+        const rows = await db.getAllAsync<Verse>(
           `SELECT id, versiculo, texto FROM biblia_pueblo_dios
          WHERE libro = ? AND capitulo = ?
          ORDER BY versiculo ASC`,
@@ -126,7 +101,7 @@ export default function BibliaScreen() {
 
   // ── Navigation ─────────────────────────────────────────────────────────────
 
-  const seleccionarLibro = (libro: Libro) => {
+  const seleccionarLibro = (libro: Book) => {
     setLibroActual(libro);
     cargarCapitulos(libro.libro);
     setNivel("capitulos");
@@ -211,12 +186,13 @@ export default function BibliaScreen() {
 
       {/* LIBROS */}
       {nivel === "libros" && (
-        <FlatList
+        <FlashList
           data={libros}
           keyExtractor={(item) => item.libro}
           contentContainerStyle={s.list}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={s.sep} />}
+          estimatedItemSize={80}
           renderItem={({ item, index }) => (
             <TouchableOpacity
               style={s.libroCard}
@@ -245,12 +221,13 @@ export default function BibliaScreen() {
 
       {/* CAPÍTULOS */}
       {nivel === "capitulos" && (
-        <FlatList
+        <FlashList
           data={capitulos}
           keyExtractor={(item) => String(item.capitulo)}
           numColumns={5}
           contentContainerStyle={s.capGrid}
           showsVerticalScrollIndicator={false}
+          estimatedItemSize={60}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={s.capCard}
@@ -265,12 +242,13 @@ export default function BibliaScreen() {
 
       {/* VERSÍCULOS */}
       {nivel === "versiculos" && (
-        <FlatList
+        <FlashList
           data={versiculos}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={s.list}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          estimatedItemSize={100}
           renderItem={({ item }) => (
             <View style={s.versRow}>
               <ThemedText style={s.versNum}>{item.versiculo}</ThemedText>
