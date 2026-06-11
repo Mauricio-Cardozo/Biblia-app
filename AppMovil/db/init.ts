@@ -1,68 +1,85 @@
 import { type SQLiteDatabase } from "expo-sqlite";
 
+const CURRENT_VERSION = 2;
+
+interface VersionRow {
+  user_version: number;
+}
+
+async function getVersion(db: SQLiteDatabase): Promise<number> {
+  const row = await db.getFirstAsync<VersionRow>("PRAGMA user_version;");
+  return row?.user_version ?? 0;
+}
+
+async function setVersion(db: SQLiteDatabase, v: number): Promise<void> {
+  await db.execAsync(`PRAGMA user_version = ${v};`);
+}
+
 export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
-  // ── 1. Ensure `parte` column exists in `youcat` ──────────────────────────
-  try {
-    await db.execAsync("ALTER TABLE youcat ADD COLUMN parte TEXT;");
-  } catch {
-    // Column already exists – ignore
+  const version = await getVersion(db);
+
+  if (version >= CURRENT_VERSION) {
+    await logTables(db);
+    return;
   }
 
-  // ── 2. Ensure `youcat_fts` FTS5 virtual table exists ─────────────────────
-  try {
-    const youcatFts = await db.getFirstAsync<{ cnt: number }>(
-      "SELECT COUNT(*) as cnt FROM sqlite_master WHERE type='table' AND name='youcat_fts'",
-    );
-    if (!youcatFts || youcatFts.cnt === 0) {
-      await db.execAsync(
-        "CREATE VIRTUAL TABLE youcat_fts USING fts5(" +
-        "id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo, " +
-        "content='youcat', content_rowid='id'" +
-        ");",
-      );
-      await db.execAsync("INSERT INTO youcat_fts(youcat_fts) VALUES('rebuild');");
+  // ── v1: FTS standalone (external content → standalone) ────────────────
+  if (version < 1) {
+    console.log("Migration v1: recreating FTS tables as standalone…");
+
+    // Drop triggers that reference old external-content FTS tables
+    for (const t of [
+      "youcat_ai", "youcat_ad", "youcat_au",
+      "catecismo_cic_ai", "catecismo_cic_ad", "catecismo_cic_au",
+    ]) {
+      try { await db.execAsync(`DROP TRIGGER IF EXISTS ${t};`); } catch { /* ok */ }
     }
-  } catch (e) {
-    console.warn("Migration (youcat_fts):", e);
-  }
 
-  // ── 3. Ensure `catecismo_cic_fts` FTS5 virtual table exists ──────────────
-  try {
-    const cicFts = await db.getFirstAsync<{ cnt: number }>(
-      "SELECT COUNT(*) as cnt FROM sqlite_master WHERE type='table' AND name='catecismo_cic_fts'",
-    );
-    if (!cicFts || cicFts.cnt === 0) {
-      await db.execAsync(
-        "CREATE VIRTUAL TABLE catecismo_cic_fts USING fts5(" +
-        "id, parte, seccion, capitulo, articulo, texto, " +
-        "content='catecismo_cic', content_rowid='id'" +
-        ");",
-      );
-      await db.execAsync("INSERT INTO catecismo_cic_fts(catecismo_cic_fts) VALUES('rebuild');");
+    // Drop old FTS tables
+    for (const t of ["youcat_fts", "catecismo_cic_fts"]) {
+      try { await db.execAsync(`DROP TABLE IF EXISTS ${t};`); } catch { /* ok */ }
     }
-  } catch (e) {
-    console.warn("Migration (catecismo_cic_fts):", e);
+
+    // Recreate as standalone FTS5
+    await db.execAsync(`
+      CREATE VIRTUAL TABLE youcat_fts USING fts5(
+        id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo
+      );
+    `);
+    await db.execAsync(`
+      CREATE VIRTUAL TABLE catecismo_cic_fts USING fts5(
+        id, parte, seccion, capitulo, articulo, texto
+      );
+    `);
+
+    // Populate from source tables
+    await db.execAsync(`
+      INSERT INTO youcat_fts(rowid, id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo)
+      SELECT rowid, id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo FROM youcat;
+    `);
+    await db.execAsync(`
+      INSERT INTO catecismo_cic_fts(rowid, id, parte, seccion, capitulo, articulo, texto)
+      SELECT rowid, id, parte, seccion, capitulo, articulo, texto FROM catecismo_cic;
+    `);
+
+    await setVersion(db, 1);
   }
 
-  // ── 4. Rebuild FTS if index is empty (corrupted / stale DB) ─────────────
-  for (const [ftsTable, contentTable] of [
-    ['youcat_fts', 'youcat'],
-    ['catecismo_cic_fts', 'catecismo_cic'],
-  ] as const) {
+  // ── v2: Add `parte` column if missing ─────────────────────────────────
+  if (version < 2) {
+    console.log("Migration v2: ensuring parte column…");
     try {
-      const count = await db.getFirstAsync<{ cnt: number }>(
-        `SELECT COUNT(*) as cnt FROM ${ftsTable}`,
-      );
-      if (count && count.cnt === 0) {
-        console.log(`FTS index empty for ${ftsTable}, rebuilding…`);
-        await db.execAsync(`INSERT INTO ${ftsTable}(${ftsTable}) VALUES('rebuild');`);
-      }
+      await db.execAsync("ALTER TABLE youcat ADD COLUMN parte TEXT;");
     } catch {
-      // table doesn't exist or FTS not available – ignore
+      // already exists
     }
+    await setVersion(db, 2);
   }
 
-  // ── 5. Log all tables for debugging ──────────────────────────────────────
+  await logTables(db);
+}
+
+async function logTables(db: SQLiteDatabase): Promise<void> {
   try {
     const tables = await db.getAllAsync<{ name: string }>(
       "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",

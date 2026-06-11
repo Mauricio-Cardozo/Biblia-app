@@ -29,6 +29,16 @@ export interface CICNumeral {
   texto: string;
 }
 
+export interface CICParte {
+  parte: string;
+}
+
+export interface CICSeccion {
+  seccion: string;
+}
+
+export type CICNumeralPreview = Pick<CICNumeral, 'id' | 'articulo' | 'texto'>;
+
 export interface CICSearchResult extends CICNumeral {
   highlight?: string;
   rank?: number;
@@ -43,6 +53,19 @@ export interface YoucatQuestion {
   respuesta_texto: string;
   parte: string;
   capitulo: string;
+}
+
+export interface YoucatParte {
+  parte: string;
+  desde: number;
+  hasta: number;
+  preguntas: number;
+}
+
+export interface YoucatPregunta {
+  id: number;
+  pregunta_nro: number;
+  pregunta_texto: string;
 }
 
 // ─── Lecturas ───────────────────────────────────────────────────────────────────
