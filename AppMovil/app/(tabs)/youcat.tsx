@@ -99,10 +99,15 @@ export default function YoucatScreen() {
       }
       setBuscando(true);
       setSearchError(null);
-      const rows = await searchYoucat(db, termino);
-      setResultados(rows);
-      if (rows.length === 0) {
-        setSearchError("Sin resultados. Si esperabas encontrar algo, andá a Test y usá 'Rebuild FTS'.");
+      try {
+        const rows = await searchYoucat(db, termino);
+        setResultados(rows);
+        if (rows.length === 0) {
+          setSearchError("Sin resultados. Si esperabas encontrar algo, andá a Test y usá 'Rebuild FTS'.");
+        }
+      } catch (e: any) {
+        setResultados([]);
+        setSearchError(`Error en búsqueda: ${e.message}. Probá con términos más simples, o andá a Test > Rebuild FTS.`);
       }
       setBuscando(false);
     },
@@ -251,7 +256,7 @@ export default function YoucatScreen() {
             ListEmptyComponent={
               searchError
                 ? <ThemedText style={s.errorText}>{searchError}</ThemedText>
-                : <ThemedText style={s.emptyText}>Sin resultados para "{query}"</ThemedText>
+                : <ThemedText style={s.emptyText}>Sin resultados para {'\u201C'}{query}{'\u201D'}</ThemedText>
             }
           />
         )}

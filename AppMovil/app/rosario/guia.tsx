@@ -2,6 +2,7 @@ import { C } from "@/constants/theme";
 import { ThemedText } from "@/components/themed-text";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Platform,
@@ -293,10 +294,15 @@ export default function RosarioGuiaScreen() {
 
       {/* Header con progreso general */}
       <View style={s.header}>
-        <ThemedText style={s.headerTitle}>Santo Rosario</ThemedText>
-        <ThemedText style={s.headerProgreso}>
-          Paso {Math.min(stepIndex + 1, total)} de {total}
-        </ThemedText>
+        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+          <ThemedText style={s.backArrow}>←</ThemedText>
+        </TouchableOpacity>
+        <View style={s.headerTextWrap}>
+          <ThemedText style={s.headerTitle}>Santo Rosario</ThemedText>
+          <ThemedText style={s.headerProgreso}>
+            Paso {Math.min(stepIndex + 1, total)} de {total}
+          </ThemedText>
+        </View>
       </View>
 
       {/* Beads del misterio */}
@@ -373,12 +379,23 @@ const s = StyleSheet.create({
 
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: C.goldDim,
+  },
+  backBtn: {
+    paddingRight: 12,
+    paddingVertical: 4,
+  },
+  backArrow: {
+    color: C.gold,
+    fontSize: 22,
+    lineHeight: 24,
+  },
+  headerTextWrap: {
+    flex: 1,
   },
   headerTitle: {
     color: C.gold,

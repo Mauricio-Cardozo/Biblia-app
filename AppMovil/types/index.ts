@@ -74,9 +74,11 @@ export interface Lectura {
   id: number;
   fecha: string;
   titulo_misa: string;
+  primera_lectura_ref: string;
   primera_lectura: string;
   salmo: string;
   aleluia: string;
+  evangelio_ref: string;
   evangelio: string;
 }
 

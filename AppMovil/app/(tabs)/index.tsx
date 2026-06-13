@@ -28,7 +28,7 @@ export default function HomeScreen() {
       {/* Evangelio del Día */}
       <TouchableOpacity onPress={() => router.push('/evangelio')} style={styles.card}>
         <Text style={styles.cardLabel}>EVANGELIO DEL DÍA</Text>
-        <Text style={styles.verseText}>"Yo soy el camino, la verdad y la vida."</Text>
+        <Text style={styles.verseText}>{'\u201C'}Yo soy el camino, la verdad y la vida.{'\u201D'}</Text>
         <Text style={styles.verseRef}>— Juan 14:6</Text>
       </TouchableOpacity>
 

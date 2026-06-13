@@ -21,6 +21,7 @@ const MAPPING = {
   'book.closed.fill': 'menu-book',
   'text.book.closed.fill': 'library-books',
   'questionmark.text.page.fill': 'school',
+  'hands.sparkles': 'volunteer-activism',
 } as IconMapping;
 
 /**

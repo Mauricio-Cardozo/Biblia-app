@@ -3,6 +3,7 @@ import type {
   Book, Chapter, Verse,
   CICNumeral, CICParte, CICSeccion, CICNumeralPreview,
   YoucatQuestion, YoucatParte, YoucatPregunta,
+  Lectura,
 } from "@/types";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -90,17 +91,13 @@ export async function searchCIC(
   db: SQLiteDatabase,
   termino: string,
 ): Promise<CICNumeral[]> {
-  try {
-    return await db.getAllAsync<CICNumeral>(
-      `SELECT c.* FROM catecismo_cic c
-       JOIN catecismo_cic_fts f ON c.id = f.rowid
-       WHERE catecismo_cic_fts MATCH ?
-       ORDER BY f.rank`,
-      [termino],
-    );
-  } catch {
-    return [];
-  }
+  return db.getAllAsync<CICNumeral>(
+    `SELECT c.* FROM catecismo_cic c
+     JOIN catecismo_cic_fts f ON c.id = f.rowid
+     WHERE catecismo_cic_fts MATCH ?
+     ORDER BY f.rank`,
+    [termino],
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -155,19 +152,29 @@ export async function getYoucatDetalle(
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// LECTURAS (Evangelio del día)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function getLecturaDelDia(
+  db: SQLiteDatabase,
+  fecha: string,
+): Promise<Lectura | null> {
+  return db.getFirstAsync<Lectura>(
+    "SELECT * FROM lecturas WHERE fecha = ?",
+    [fecha],
+  );
+}
+
 export async function searchYoucat(
   db: SQLiteDatabase,
   termino: string,
 ): Promise<YoucatQuestion[]> {
-  try {
-    return await db.getAllAsync<YoucatQuestion>(
-      `SELECT y.* FROM youcat y
-       JOIN youcat_fts f ON y.id = f.rowid
-       WHERE youcat_fts MATCH ?
-       ORDER BY f.rank`,
-      [termino],
-    );
-  } catch {
-    return [];
-  }
+  return db.getAllAsync<YoucatQuestion>(
+    `SELECT y.* FROM youcat y
+     JOIN youcat_fts f ON y.id = f.rowid
+     WHERE youcat_fts MATCH ?
+     ORDER BY f.rank`,
+    [termino],
+  );
 }
