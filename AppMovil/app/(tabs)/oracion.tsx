@@ -64,6 +64,14 @@ const SECCIONES: Seccion[] = [
     ruta: '/oraciones/angelus',
     color: C.navyMid,
   },
+  {
+    id: 'novenas',
+    titulo: 'Novenas',
+    subtitulo: '18 devociones de 9 días',
+    icono: '🕯️',
+    ruta: '/oraciones/novena',
+    color: C.navyMid,
+  },
 ];
 
 export default function OracionScreen() {

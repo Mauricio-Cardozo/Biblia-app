@@ -28,6 +28,7 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
 - **Coronilla de la Divina Misericordia** — Guiada paso a paso con el mismo sistema de rachas
 - **Oraciones del Vaticano** — 23 oraciones extraídas de Vatican News (Ángelus, Magnificat, Te Deum, etc.)
 - **Jaculatorias** — 5 grupos de invocaciones con formato V./R.
+- **Novenas** — 18 devociones de 9 días (Espíritu Santo, Virgen María, Inmaculada, etc.) con selector de día
 - **Calendario Litúrgico** — Navegación mensual con indicador de lecturas disponibles
 - **Evangelio del Día** — Lectura diaria desde el leccionario con fuente ajustable
 - **Modo Lectura** — Control de tamaño de fuente (0.8×–1.5×) con persistencia
@@ -99,6 +100,23 @@ TABLE lecturas (
   aleluia         TEXT,
   evangelio       TEXT
 )
+
+-- Novenas (devociones de 9 días)
+TABLE novenas (
+  id     INTEGER PRIMARY KEY AUTOINCREMENT,
+  titulo TEXT NOT NULL,
+  url    TEXT
+)
+
+-- Días de novena
+TABLE novena_dias (
+  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  novena_id INTEGER NOT NULL,
+  dia       INTEGER NOT NULL,
+  titulo    TEXT,
+  texto     TEXT NOT NULL,
+  FOREIGN KEY (novena_id) REFERENCES novenas(id)
+)
 ```
 
 ---
@@ -133,6 +151,22 @@ npx expo start -c
 
 > **Nota para CachyOS / Arch Linux (fish shell):** Los heredocs `<< 'EOF'` no funcionan en fish. Usá `python3 -c "open(...).write(...)"` o editá los archivos directamente desde VS Code.
 
+### Build APK (Android)
+
+```bash
+# 1. Instalar EAS CLI (si no lo tenés)
+npm install -g eas-cli
+
+# 2. Iniciar sesión en tu cuenta Expo
+eas login
+
+# 3. Build APK de desarrollo
+eas build --platform android --profile preview
+
+# 4. Build AAB para Play Store
+eas build --platform android --profile production
+```
+
 ---
 
 ## 📁 Estructura del Proyecto
@@ -154,7 +188,10 @@ Biblia-app/
 │   │   ├── oraciones/
 │   │   │   ├── index.tsx            # Lista de 23 oraciones del Vaticano
 │   │   │   ├── [id].tsx             # Detalle de oración con fuente ajustable
-│   │   │   └── jaculatorias.tsx     # Jaculatorias agrupadas con V./R.
+│   │   │   ├── jaculatorias.tsx     # Jaculatorias agrupadas con V./R.
+│   │   │   └── novena/
+│   │   │       ├── index.tsx        # Lista de 18 novenas
+│   │   │       └── [id].tsx         # Detalle con selector de día
 │   │   ├── evangelio.tsx            # Lectura del día (evangelio + primera lectura + salmo)
 │   │   ├── calendario.tsx           # Calendario litúrgico mensual con lecturas
 │   │   ├── favoritos.tsx            # Todos los favoritos agrupados
@@ -175,7 +212,8 @@ Biblia-app/
     ├── scraper_cic.py               # PDF del CIC → SQLite (catecismo_cic)
     ├── scraper_youcat.py            # PDF del YOUCAT → SQLite (youcat)
     ├── scraper_biblia.py            # Scraper original de la Biblia
-    └── scraper_oraciones_vatican.py # 23 oraciones desde Vatican News → JSON
+    ├── scraper_oraciones_vatican.py # 23 oraciones desde Vatican News → JSON
+    └── scraper_novenas.py           # 18 novenas desde devocionario.com → SQLite/JSON
 ```
 
 ---
@@ -209,8 +247,8 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] Jaculatorias agrupadas
 - [x] Modo lectura (fuente ajustable 0.8×–1.5×)
 - [x] Notificaciones diarias (20:00, configurable)
+- [x] Novenas — 18 devociones de 9 días
 - [ ] Sincronización en la nube (Firebase)
-- [ ] Novenas (pendiente de definir textos)
 - [ ] Biblia de Jerusalén (pendiente de conseguir texto digital)
 
 ---
@@ -241,6 +279,10 @@ python3 archive/scraper_youcat.py
 # Scrapear oraciones desde Vatican News (sin dependencias externas)
 python3 archive/scraper_oraciones_vatican.py          # imprime JSON en stdout
 python3 archive/scraper_oraciones_vatican.py > oraciones.json
+
+# Novenas desde devocionario.com (sin dependencias externas)
+python3 archive/scraper_novenas.py --preview           # vista previa JSON
+python3 archive/scraper_novenas.py --db assets/db.db   # escribir en DB
 ```
 
 ---

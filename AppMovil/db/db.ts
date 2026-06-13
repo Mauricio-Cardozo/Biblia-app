@@ -94,8 +94,8 @@ export async function searchCIC(
   termino: string,
 ): Promise<CICNumeral[]> {
   return db.getAllAsync<CICNumeral>(
-    `SELECT c.* FROM catecismo_cic c
-     JOIN catecismo_cic_fts f ON c.id = f.rowid
+     `SELECT c.* FROM catecismo_cic c
+      JOIN catecismo_cic_fts f ON c.rowid = f.rowid
      WHERE catecismo_cic_fts MATCH ?
      ORDER BY f.rank`,
     [termino],
@@ -173,8 +173,8 @@ export async function searchYoucat(
   termino: string,
 ): Promise<YoucatQuestion[]> {
   return db.getAllAsync<YoucatQuestion>(
-    `SELECT y.* FROM youcat y
-     JOIN youcat_fts f ON y.id = f.rowid
+     `SELECT y.* FROM youcat y
+      JOIN youcat_fts f ON y.rowid = f.rowid
      WHERE youcat_fts MATCH ?
      ORDER BY f.rank`,
     [termino],

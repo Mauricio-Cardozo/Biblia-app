@@ -89,10 +89,18 @@ export default function TestDatabase() {
   const rebuildFTS = useCallback(async () => {
     setSearchLoading(true);
     setSearchError(null);
+    setSearchResults('');
+    const errors: string[] = [];
+
     try {
       await db.runAsync('DROP TABLE IF EXISTS youcat_fts;');
       await db.runAsync('DROP TABLE IF EXISTS catecismo_cic_fts;');
+    } catch {
+      errors.push('Error al dropear tablas FTS existentes');
+    }
 
+    // ── youcat_fts ──
+    try {
       await db.runAsync(`CREATE VIRTUAL TABLE youcat_fts USING fts5(
         id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo
       )`);
@@ -105,7 +113,12 @@ export default function TestDatabase() {
           [r.rowid, r.id, r.pregunta_nro, r.pregunta_texto, r.respuesta_texto, r.parte, r.capitulo],
         );
       }
+    } catch (err: any) {
+      errors.push(`youcat_fts: ${err.message}`);
+    }
 
+    // ── catecismo_cic_fts ──
+    try {
       await db.runAsync(`CREATE VIRTUAL TABLE catecismo_cic_fts USING fts5(
         id, parte, seccion, capitulo, articulo, texto
       )`);
@@ -118,15 +131,16 @@ export default function TestDatabase() {
           [r.rowid, r.id, r.parte, r.seccion, r.capitulo, r.articulo, r.texto],
         );
       }
-
-      setSearchResults('✅ FTS rebuild exitoso');
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error('Rebuild error:', err);
-      setSearchError(`Error en rebuild: ${msg}`);
-    } finally {
-      setSearchLoading(false);
+    } catch (err: any) {
+      errors.push(`catecismo_cic_fts: ${err.message}`);
     }
+
+    if (errors.length === 0) {
+      setSearchResults('✅ FTS rebuild exitoso');
+    } else {
+      setSearchResults(`⚠ Rebuild parcial:\n  ${errors.join('\n  ')}`);
+    }
+    setSearchLoading(false);
   }, [db]);
 
   return (
