@@ -6,9 +6,9 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
 
 ## 📱 Capturas de pantalla
 
-| Home | Biblia | Catecismo |
-|------|--------|-----------|
-| Versículo del día y rachas | Navegación por libros, capítulos y versículos | Navegación multinivel por partes y numerales |
+| Home | Biblia | Catecismo | Oración |
+|------|--------|-----------|---------|
+| Versículo del día, rachas 🔥 y acceso rápido | Navegación por libros, capítulos y versículos | Navegación multinivel por partes y numerales | Rosario, Coronilla, Oraciones Vatican News, Jaculatorias |
 
 ---
 
@@ -22,9 +22,17 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
   - 📜 Lectura de versículos con número dorado
 - **Catecismo de la Iglesia Católica (CIC)** — Navegación completa en 4 niveles:
   - Parte → Sección → Numerales → Detalle con jerarquía completa
-- **YOUCAT (Catecismo Joven)** — Navegación por partes + búsqueda FTS5 con 162 preguntas y respuestas
-- **Rosario Guiado** — Recitación paso a paso con cuentas visuales, misterios según el día y registro de racha
-- **Búsqueda FTS5** — Búsqueda de texto completo optimizada en SQLite
+- **YOUCAT (Catecismo Joven)** — Navegación por partes + búsqueda FTS5 con 527 preguntas y respuestas
+- **Favoritos** — Marcá versículos, numerales y preguntas como favoritos con persistencia en AsyncStorage
+- **Rosario Guiado** — Recitación paso a paso con cuentas visuales, misterios según el día y registro de racha (🔥 días consecutivos)
+- **Coronilla de la Divina Misericordia** — Guiada paso a paso con el mismo sistema de rachas
+- **Oraciones del Vaticano** — 23 oraciones extraídas de Vatican News (Ángelus, Magnificat, Te Deum, etc.)
+- **Jaculatorias** — 5 grupos de invocaciones con formato V./R.
+- **Calendario Litúrgico** — Navegación mensual con indicador de lecturas disponibles
+- **Evangelio del Día** — Lectura diaria desde el leccionario con fuente ajustable
+- **Modo Lectura** — Control de tamaño de fuente (0.8×–1.5×) con persistencia
+- **Notificaciones Diarias** — Recordatorio configurable a las 20:00
+- **Búsqueda FTS5** — Búsqueda de texto completo optimizada en SQLite sobre CIC y YOUCAT
 - **100% Offline** — Toda la base de datos está incluida en la app
 
 ---
@@ -135,13 +143,21 @@ Biblia-app/
 │   ├── app/
 │   │   ├── _layout.tsx              # Layout raíz — SQLiteProvider + DatabaseInit + Stack
 │   │   ├── (tabs)/
-│   │   │   ├── _layout.tsx          # Tab bar (Home, Biblia, Catecismo, YOUCAT)
-│   │   │   ├── index.tsx            # Home — versículo del día + rachas + YOUCAT
-│   │   │   ├── biblia.tsx           # Biblia — libros → capítulos → versículos
-│   │   │   ├── catecismo.tsx        # CIC — partes → secciones → numerales → detalle
-│   │   │   └── youcat.tsx           # YOUCAT — partes → preguntas → detalle + búsqueda
+│   │   │   ├── _layout.tsx          # Tab bar (Home, Biblia, Catecismo, YOUCAT, Oración)
+│   │   │   ├── index.tsx            # Home — versículo del día + rachas + acceso rápido
+│   │   │   ├── biblia.tsx           # Biblia — libros → capítulos → versículos + selector de versión
+│   │   │   ├── catecismo.tsx        # CIC — partes → secciones → numerales → detalle + FTS5
+│   │   │   ├── youcat.tsx           # YOUCAT — partes → preguntas → detalle + búsqueda FTS5
+│   │   │   └── oracion.tsx          # Hub de oración — rosario, coronilla, oraciones del Vaticano, jaculatorias
 │   │   ├── rosario/
 │   │   │   └── guia.tsx             # Guía interactiva del Rosario con misterios
+│   │   ├── oraciones/
+│   │   │   ├── index.tsx            # Lista de 23 oraciones del Vaticano
+│   │   │   ├── [id].tsx             # Detalle de oración con fuente ajustable
+│   │   │   └── jaculatorias.tsx     # Jaculatorias agrupadas con V./R.
+│   │   ├── evangelio.tsx            # Lectura del día (evangelio + primera lectura + salmo)
+│   │   ├── calendario.tsx           # Calendario litúrgico mensual con lecturas
+│   │   ├── favoritos.tsx            # Todos los favoritos agrupados
 │   │   └── test.tsx                 # Sandbox para pruebas de DB y FTS5
 │   ├── db/
 │   │   └── init.ts                  # Migración automática de BD al arrancar
@@ -158,7 +174,8 @@ Biblia-app/
     ├── scraper_vaticano.py          # Vatican News → SQLite (lecturas diarias)
     ├── scraper_cic.py               # PDF del CIC → SQLite (catecismo_cic)
     ├── scraper_youcat.py            # PDF del YOUCAT → SQLite (youcat)
-    └── scraper_biblia.py            # Scraper original de la Biblia
+    ├── scraper_biblia.py            # Scraper original de la Biblia
+    └── scraper_oraciones_vatican.py # 23 oraciones desde Vatican News → JSON
 ```
 
 ---
@@ -180,19 +197,21 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 
 ## 🗺️ Roadmap
 
-- [x] Biblia del Pueblo de Dios — navegación completa
-- [x] Catecismo CIC — navegación multinivel (4 niveles)
-- [x] Búsqueda FTS5 en SQLite
-- [x] Rachas de lectura
-- [ ] Evangelio del Día dinámico (desde leccionario)
-- [x] Rosario guiado con misterios
+- [x] Biblia del Pueblo de Dios — navegación completa + selector de versión
+- [x] Catecismo CIC — navegación multinivel (4 niveles) + FTS5
 - [x] YOUCAT — Catecismo Joven (navegación + búsqueda FTS5)
-- [ ] Marcadores y favoritos
-- [ ] Notificaciones diarias
-- [ ] Modo lectura (fuente ajustable)
+- [x] Rosario guiado con misterios y rachas 🔥
+- [x] Coronilla de la Divina Misericordia guiada
+- [x] Evangelio del Día desde el leccionario (76 fechas cargadas)
+- [x] Calendario litúrgico mensual
+- [x] Favoritos (versículos, numerales, preguntas)
+- [x] 23 oraciones del Vaticano
+- [x] Jaculatorias agrupadas
+- [x] Modo lectura (fuente ajustable 0.8×–1.5×)
+- [x] Notificaciones diarias (20:00, configurable)
 - [ ] Sincronización en la nube (Firebase)
-- [x] Tipos TypeScript centralizados en `types/`
-- [x] Paleta de colores consolidada en `constants/theme.ts`
+- [ ] Novenas (pendiente de definir textos)
+- [ ] Biblia de Jerusalén (pendiente de conseguir texto digital)
 
 ---
 
@@ -218,6 +237,10 @@ python3 archive/scraper_cic.py             # genera la DB
 # Generar youcat desde el PDF
 python3 archive/scraper_youcat.py --preview
 python3 archive/scraper_youcat.py
+
+# Scrapear oraciones desde Vatican News (sin dependencias externas)
+python3 archive/scraper_oraciones_vatican.py          # imprime JSON en stdout
+python3 archive/scraper_oraciones_vatican.py > oraciones.json
 ```
 
 ---
