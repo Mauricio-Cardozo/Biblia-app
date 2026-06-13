@@ -41,12 +41,12 @@ const SECCIONES: Seccion[] = [
     color: C.navyMid,
   },
   {
-    id: 'novena',
-    titulo: 'Novenas',
-    subtitulo: 'Próximamente',
-    icono: '🕯️',
-    ruta: null,
-    color: C.navyLight,
+    id: 'jaculatorias',
+    titulo: 'Jaculatorias',
+    subtitulo: 'Oraciones breves para el día',
+    icono: '🔥',
+    ruta: '/oraciones/jaculatorias',
+    color: C.navyMid,
   },
   {
     id: 'angelus',

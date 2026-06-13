@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { C } from "@/constants/theme";
+import FavBtn from "@/components/fav-btn";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -208,8 +209,19 @@ export default function YoucatScreen() {
         <StatusBar barStyle="light-content" backgroundColor={C.navy} />
         {renderHeader()}
         <ScrollView contentContainerStyle={s.detalleContent} showsVerticalScrollIndicator={false}>
-          <View style={s.nroBadge}>
-            <ThemedText style={s.nroBadgeText}>Pregunta {detalle.pregunta_nro}</ThemedText>
+          <View style={s.nroBadgeRow}>
+            <View style={s.nroBadge}>
+              <ThemedText style={s.nroBadgeText}>Pregunta {detalle.pregunta_nro}</ThemedText>
+            </View>
+            <FavBtn
+              favorito={{
+                id: `youcat-${detalle.id}`,
+                tipo: "youcat",
+                referencia: `YOUCAT #${detalle.pregunta_nro}`,
+                preview: detalle.pregunta_texto?.slice(0, 80) ?? "",
+                timestamp: Date.now(),
+              }}
+            />
           </View>
           <ThemedText style={s.preguntaTexto}>{detalle.pregunta_texto}</ThemedText>
           <View style={s.divider} />
@@ -342,7 +354,8 @@ const s = StyleSheet.create({
   nroBox: { minWidth: 46, height: 40, borderRadius: 8, backgroundColor: C.goldDim, alignItems: "center", justifyContent: "center", paddingHorizontal: 6 },
   nroText: { color: C.goldLight, fontSize: 13, fontWeight: "800" },
   detalleContent: { padding: 20, paddingBottom: 40 },
-  nroBadge: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 14 },
+  nroBadgeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
+  nroBadge: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },
   nroBadgeText: { color: C.goldLight, fontSize: 14, fontWeight: "800", letterSpacing: 1 },
   preguntaTexto: { color: C.gold, fontSize: 18, fontWeight: "700", lineHeight: 26, marginBottom: 16, fontStyle: "italic" },
   divider: { height: 2, backgroundColor: C.goldDim, borderRadius: 1, marginBottom: 20 },

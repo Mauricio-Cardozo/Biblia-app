@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { C } from "@/constants/theme";
+import FavBtn from "@/components/fav-btn";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -222,7 +223,18 @@ export default function CatecismoScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
       <Header nivel="detalle" parteActual={parteActual} seccionActual={seccionActual} onBack={volver} />
       <ScrollView contentContainerStyle={s.detalleContent} showsVerticalScrollIndicator={false}>
-        <View style={s.nroBadge}><ThemedText style={s.nroBadgeText}>Numeral {detalle.id}</ThemedText></View>
+        <View style={s.nroBadgeRow}>
+          <View style={s.nroBadge}><ThemedText style={s.nroBadgeText}>Numeral {detalle.id}</ThemedText></View>
+          <FavBtn
+            favorito={{
+              id: `cic-${detalle.id}`,
+              tipo: "cic",
+              referencia: `CIC #${detalle.id}`,
+              preview: detalle.texto?.slice(0, 80) ?? "",
+              timestamp: Date.now(),
+            }}
+          />
+        </View>
         <View style={s.jerarquia}>
           {detalle.parte && <ThemedText style={s.jerarquiaItem}>📖 {detalle.parte}</ThemedText>}
           {detalle.seccion && <ThemedText style={s.jerarquiaItem}>  › {detalle.seccion}</ThemedText>}
@@ -399,7 +411,8 @@ const s = StyleSheet.create({
   cardSub: { color: C.gold, fontSize: 11, fontWeight: "600", marginBottom: 3 },
   cardPreview: { color: C.text, fontSize: 13, lineHeight: 18 },
   detalleContent: { padding: 20, paddingBottom: 40 },
-  nroBadge: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 14 },
+  nroBadgeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
+  nroBadge: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },
   nroBadgeText: { color: C.goldLight, fontSize: 14, fontWeight: "800", letterSpacing: 1 },
   jerarquia: { gap: 4, marginBottom: 16 },
   jerarquiaItem: { color: C.muted, fontSize: 13, lineHeight: 20 },

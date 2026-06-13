@@ -4,6 +4,7 @@ import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { ActivityIndicator, View } from 'react-native';
 import { ensureDatabaseSchema } from '@/db/init';
 import { FontSizeProvider } from '@/contexts/font-size';
+import { BibliaVersionProvider } from '@/contexts/bible-version';
 import { setupNotifications } from '@/data/notifications';
 
 function DatabaseInit({ children }: { children: React.ReactNode }) {
@@ -41,10 +42,12 @@ export default function RootLayout() {
       >
         <DatabaseInit>
           <FontSizeProvider>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-            </Stack>
+            <BibliaVersionProvider>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+              </Stack>
+            </BibliaVersionProvider>
           </FontSizeProvider>
         </DatabaseInit>
       </SQLiteProvider>
