@@ -1,7 +1,7 @@
 import { C } from "@/constants/theme";
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { getLecturaDelDia } from "@/db/db";
 import FavBtn from "@/components/fav-btn";
 import FontSizeControl from "@/components/font-size-control";
@@ -52,6 +52,7 @@ function SeccionLectura({
 export default function EvangelioScreen() {
   const insets = useSafeAreaInsets();
   const db = useSQLiteContext();
+  const { fecha: fechaParam } = useLocalSearchParams<{ fecha?: string }>();
 
   const [lectura, setLectura] = useState<Lectura | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,16 +62,17 @@ export default function EvangelioScreen() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getLecturaDelDia(db, hoy());
+      const targetDate = fechaParam ?? hoy();
+      const data = await getLecturaDelDia(db, targetDate);
       setLectura(data);
     } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [db]);
+  }, [db, fechaParam]);
 
-  useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => { cargar(); }, [cargar, fechaParam]);
 
   if (loading) {
     return (
@@ -108,6 +110,9 @@ export default function EvangelioScreen() {
           <ThemedText style={s.headerFecha}>{formatoFecha(lectura.fecha)}</ThemedText>
         </View>
         <FontSizeControl />
+        <TouchableOpacity onPress={() => router.push("/calendario")} style={{ marginRight: 8 }}>
+          <ThemedText style={{ color: C.gold, fontSize: 20 }}>📅</ThemedText>
+        </TouchableOpacity>
         <FavBtn
           favorito={{
             id: `evangelio-${lectura.fecha}`,
