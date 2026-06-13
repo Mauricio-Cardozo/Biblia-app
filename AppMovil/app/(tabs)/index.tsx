@@ -1,21 +1,34 @@
 import { C } from '@/constants/theme';
 import { Link, router } from 'expo-router';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { calcularRacha, obtenerStats } from '@/data/streaks';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
 
+  const [rachaRosario, setRachaRosario] = useState(0);
+  const [rachaCoronilla, setRachaCoronilla] = useState(0);
+  const [stats, setStats] = useState({ rosario_total: 0, coronilla_total: 0 });
+
+  useEffect(() => {
+    Promise.all([
+      calcularRacha("racha_rosario_ultima"),
+      calcularRacha("racha_coronilla_ultima"),
+      obtenerStats(),
+    ]).then(([rr, rc, st]) => {
+      setRachaRosario(rr);
+      setRachaCoronilla(rc);
+      setStats({ rosario_total: st.rosario_total, coronilla_total: st.coronilla_total });
+    });
+  }, []);
+
   const obtenerFechaActual = () => {
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    
     const hoy = new Date();
-    const diaSemana = dias[hoy.getDay()];
-    const numeroDia = hoy.getDate();
-    const mes = meses[hoy.getMonth()];
-    
-    return `${diaSemana}, ${numeroDia} de ${mes}`;
+    return `${dias[hoy.getDay()]}, ${hoy.getDate()} de ${meses[hoy.getMonth()]}`;
   };
 
   return (
@@ -24,7 +37,7 @@ export default function HomeScreen() {
         [Debug] Test Database
       </Link>
       <Text style={styles.dateText}>{obtenerFechaActual()}</Text>
-      
+
       {/* Evangelio del Día */}
       <TouchableOpacity onPress={() => router.push('/evangelio')} style={styles.card}>
         <Text style={styles.cardLabel}>EVANGELIO DEL DÍA</Text>
@@ -32,15 +45,17 @@ export default function HomeScreen() {
         <Text style={styles.verseRef}>— Juan 14:6</Text>
       </TouchableOpacity>
 
-      {/* Racha */}
-      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-        <View style={[styles.card, {flex: 0.48}]}>
-          <Text style={styles.cardLabel}>CERCA DE DIOS</Text>
-          <Text style={styles.streakText}>🔥 5 días</Text>
-        </View>
-        <TouchableOpacity onPress={() => router.push('/rosario/guia')} style={[styles.card, {flex: 0.48}]}>
-          <Text style={styles.cardLabel}>RACHA ROSARIO</Text>
-          <Text style={styles.streakText}>🔥 2 días</Text>
+      {/* Rachas */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <TouchableOpacity onPress={() => router.push('/rosario/guia')} style={[styles.card, { flex: 0.48 }]}>
+          <Text style={styles.cardLabel}>ROSARIO</Text>
+          <Text style={styles.streakText}>🔥 {rachaRosario} días</Text>
+          {stats.rosario_total > 0 && <Text style={styles.streakSub}>Total: {stats.rosario_total}</Text>}
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/rosario/coronilla')} style={[styles.card, { flex: 0.48 }]}>
+          <Text style={styles.cardLabel}>CORONILLA</Text>
+          <Text style={styles.streakText}>🔥 {rachaCoronilla} días</Text>
+          {stats.coronilla_total > 0 && <Text style={styles.streakSub}>Total: {stats.coronilla_total}</Text>}
         </TouchableOpacity>
       </View>
 
@@ -65,6 +80,7 @@ const styles = StyleSheet.create({
   verseText: { color: '#fff', fontSize: 18, fontStyle: 'italic' },
   verseRef: { color: '#fff', opacity: 0.6, marginTop: 10, textAlign: 'right' },
   streakText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  streakSub: { color: C.muted, fontSize: 11, marginTop: 2 },
   youcatSub: { color: C.text, fontSize: 14, lineHeight: 20 },
   youcatMeta: { color: C.muted, fontSize: 12, marginTop: 6 },
 });

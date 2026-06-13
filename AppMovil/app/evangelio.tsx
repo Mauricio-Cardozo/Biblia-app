@@ -3,6 +3,7 @@ import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
 import { getLecturaDelDia } from "@/db/db";
+import FavBtn from "@/components/fav-btn";
 import type { Lectura } from "@/types";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -103,6 +104,15 @@ export default function EvangelioScreen() {
           <ThemedText style={s.headerTitle}>Evangelio del día</ThemedText>
           <ThemedText style={s.headerFecha}>{formatoFecha(lectura.fecha)}</ThemedText>
         </View>
+        <FavBtn
+          favorito={{
+            id: `evangelio-${lectura.fecha}`,
+            tipo: "evangelio",
+            referencia: `Evangelio ${lectura.fecha}`,
+            preview: lectura.evangelio?.slice(0, 80) ?? "",
+            timestamp: Date.now(),
+          }}
+        />
       </View>
 
       {/* Título de la misa */}

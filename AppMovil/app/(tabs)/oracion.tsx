@@ -32,6 +32,14 @@ const SECCIONES: Seccion[] = [
     color: C.navyMid,
   },
   {
+    id: 'favoritos',
+    titulo: 'Favoritos',
+    subtitulo: 'Versículos, numerales y lecturas guardadas',
+    icono: '❤️',
+    ruta: '/favoritos',
+    color: C.navyMid,
+  },
+  {
     id: 'novena',
     titulo: 'Novenas',
     subtitulo: 'Próximamente',

@@ -47,6 +47,11 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
       const hoy = new Date();
       const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
       AsyncStorage.setItem(storageKey, fecha).catch(() => {});
+      const statsKey = "stats_" + storageKey.replace("racha_", "");
+      AsyncStorage.getItem(statsKey).then((val) => {
+        const n = val ? parseInt(val, 10) + 1 : 1;
+        AsyncStorage.setItem(statsKey, String(n)).catch(() => {});
+      }).catch(() => {});
     }
   }, [step.id, completado, storageKey]);
 
