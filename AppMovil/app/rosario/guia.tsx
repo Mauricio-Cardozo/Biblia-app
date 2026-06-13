@@ -292,7 +292,7 @@ export default function RosarioGuiaScreen() {
     <View style={[s.safe, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
 
-      {/* Header con progreso general */}
+      {/* Header compacto */}
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
           <ThemedText style={s.backArrow}>←</ThemedText>
@@ -323,10 +323,10 @@ export default function RosarioGuiaScreen() {
         </View>
       )}
 
-      {/* Contenido del paso */}
+      {/* Contenido del paso — centrado vertical, scrolleable si es largo */}
       <ScrollView
-        style={s.scroll}
-        contentContainerStyle={s.scrollContent}
+        style={s.contentArea}
+        contentContainerStyle={s.contentInner}
         showsVerticalScrollIndicator={false}
       >
         <Animated.View
@@ -346,7 +346,7 @@ export default function RosarioGuiaScreen() {
         </Animated.View>
       </ScrollView>
 
-      {/* Botón Amén / Siguiente */}
+      {/* Botón Amén / Siguiente — siempre visible al fondo */}
       {step.id !== "completado" ? (
         <View style={s.footer}>
           <TouchableOpacity
@@ -381,7 +381,7 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: C.goldDim,
   },
@@ -441,10 +441,12 @@ const s = StyleSheet.create({
   },
 
   // Contenido
-  scroll: { flex: 1 },
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 100,
+  contentArea: { flex: 1 },
+  contentInner: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 20,
   },
   stepBadge: {
     alignSelf: "flex-start",
@@ -475,13 +477,9 @@ const s = StyleSheet.create({
 
   // Footer
   footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     paddingHorizontal: 20,
-    paddingBottom: Platform.OS === "android" ? 16 : 32,
     paddingTop: 12,
+    paddingBottom: Platform.OS === "android" ? 16 : 32,
     backgroundColor: C.navy,
     borderTopWidth: 1,
     borderTopColor: C.goldDim,
