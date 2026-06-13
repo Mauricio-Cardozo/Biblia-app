@@ -41,6 +41,14 @@ const SECCIONES: Seccion[] = [
     color: C.navyMid,
   },
   {
+    id: 'oraciones',
+    titulo: 'Oraciones',
+    subtitulo: 'Del Vaticano: Padre nuestro, Ave María, Credo y más',
+    icono: '📖',
+    ruta: '/oraciones',
+    color: C.navyMid,
+  },
+  {
     id: 'jaculatorias',
     titulo: 'Jaculatorias',
     subtitulo: 'Oraciones breves para el día',
@@ -51,10 +59,10 @@ const SECCIONES: Seccion[] = [
   {
     id: 'angelus',
     titulo: 'Ángelus',
-    subtitulo: 'Próximamente',
+    subtitulo: 'Oración del Ángelus',
     icono: '🔔',
-    ruta: null,
-    color: C.navyLight,
+    ruta: '/oraciones/angelus',
+    color: C.navyMid,
   },
 ];
 
