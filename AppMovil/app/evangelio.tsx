@@ -4,6 +4,8 @@ import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
 import { getLecturaDelDia } from "@/db/db";
 import FavBtn from "@/components/fav-btn";
+import FontSizeControl from "@/components/font-size-control";
+import { useFontSize, fs } from "@/contexts/font-size";
 import type { Lectura } from "@/types";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -37,11 +39,12 @@ function SeccionLectura({
   referencia?: string | null;
   texto: string;
 }) {
+  const { multiplier } = useFontSize();
   return (
     <View style={s.seccion}>
       <ThemedText style={s.seccionLabel}>{label}</ThemedText>
-      {referencia ? <ThemedText style={s.referencia}>{referencia}</ThemedText> : null}
-      <ThemedText style={s.texto}>{texto}</ThemedText>
+      {referencia ? <ThemedText style={[s.referencia, { fontSize: fs(14, multiplier) }]}>{referencia}</ThemedText> : null}
+      <ThemedText style={[s.texto, { fontSize: fs(15, multiplier), lineHeight: fs(24, multiplier) }]}>{texto}</ThemedText>
     </View>
   );
 }
@@ -104,6 +107,7 @@ export default function EvangelioScreen() {
           <ThemedText style={s.headerTitle}>Evangelio del día</ThemedText>
           <ThemedText style={s.headerFecha}>{formatoFecha(lectura.fecha)}</ThemedText>
         </View>
+        <FontSizeControl />
         <FavBtn
           favorito={{
             id: `evangelio-${lectura.fecha}`,

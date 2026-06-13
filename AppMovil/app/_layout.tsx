@@ -3,6 +3,8 @@ import { Stack } from 'expo-router';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { ActivityIndicator, View } from 'react-native';
 import { ensureDatabaseSchema } from '@/db/init';
+import { FontSizeProvider } from '@/contexts/font-size';
+import { setupNotifications } from '@/data/notifications';
 
 function DatabaseInit({ children }: { children: React.ReactNode }) {
   const db = useSQLiteContext();
@@ -13,8 +15,9 @@ function DatabaseInit({ children }: { children: React.ReactNode }) {
       .then(() => setReady(true))
       .catch((e) => {
         console.warn("Migration error:", e);
-        setReady(true); // continue even if migration fails
+        setReady(true);
       });
+    setupNotifications();
   }, [db]);
 
   if (!ready) {
@@ -37,10 +40,12 @@ export default function RootLayout() {
         useSuspense
       >
         <DatabaseInit>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          </Stack>
+          <FontSizeProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+            </Stack>
+          </FontSizeProvider>
         </DatabaseInit>
       </SQLiteProvider>
     </Suspense>

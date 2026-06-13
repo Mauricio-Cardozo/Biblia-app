@@ -2,6 +2,8 @@ import { C } from "@/constants/theme";
 import { ThemedText } from "@/components/themed-text";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import FontSizeControl from "@/components/font-size-control";
+import { useFontSize, fs } from "@/contexts/font-size";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Platform,
@@ -23,6 +25,7 @@ interface Props {
 
 export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props) {
   const insets = useSafeAreaInsets();
+  const { multiplier } = useFontSize();
 
   const [stepIndex, setStepIndex] = useState(0);
   const [completado, setCompletado] = useState(false);
@@ -72,6 +75,7 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
             Paso {Math.min(stepIndex + 1, total)} de {total}
           </ThemedText>
         </View>
+        <FontSizeControl />
       </View>
 
       {showBeads && (
@@ -106,7 +110,7 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
             <ThemedText style={s.subtitle}>{step.subtitle}</ThemedText>
           ) : null}
 
-          <ThemedText style={s.prayerText}>{step.text}</ThemedText>
+          <ThemedText style={[s.prayerText, { fontSize: fs(17, multiplier), lineHeight: fs(30, multiplier) }]}>{step.text}</ThemedText>
         </Animated.View>
       </ScrollView>
 
