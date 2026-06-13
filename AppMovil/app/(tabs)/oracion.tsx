@@ -24,6 +24,14 @@ const SECCIONES: Seccion[] = [
     color: C.navyMid,
   },
   {
+    id: 'coronilla',
+    titulo: 'Coronilla',
+    subtitulo: 'Divina Misericordia',
+    icono: '🌿',
+    ruta: '/rosario/coronilla',
+    color: C.navyMid,
+  },
+  {
     id: 'novena',
     titulo: 'Novenas',
     subtitulo: 'Próximamente',
