@@ -47,6 +47,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "995af4b4-7be4-479b-a839-2521656ac264"
+      }
+    },
+    "owner": "mauricio-cardozo"
   }
 }
