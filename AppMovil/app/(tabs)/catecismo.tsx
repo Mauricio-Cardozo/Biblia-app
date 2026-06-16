@@ -68,9 +68,13 @@ export default function CatecismoScreen() {
     setLoading(true); setError(null);
     try {
       const row = await getCICDetalle(db, id);
-      setDetalle(row ?? null);
-      setCurrentNumeralId(id);
-      setNivel("detalle");
+      if (row) {
+        setDetalle(row);
+        setCurrentNumeralId(id);
+        setNivel("detalle");
+      } else {
+        setError(`No existe el numeral ${id}`);
+      }
     } catch (e: any) { setError(`Error: ${e.message}`); }
     finally { setLoading(false); }
   }, [db]);
@@ -128,8 +132,8 @@ export default function CatecismoScreen() {
       return;
     }
     if (nivel === "detalle") { setNivel("numerales"); setDetalle(null); setCurrentNumeralId(null); }
-    if (nivel === "numerales") { setNivel("secciones"); setSeccionActual(null); }
-    if (nivel === "secciones") { setNivel("partes"); setParteActual(null); }
+    else if (nivel === "numerales") { setNivel("secciones"); setSeccionActual(null); }
+    else if (nivel === "secciones") { setNivel("partes"); setParteActual(null); }
   };
 
   const idx = currentNumeralId != null ? numerales.findIndex((n) => n.id === currentNumeralId) : -1;
@@ -361,7 +365,7 @@ export default function CatecismoScreen() {
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item }) => (
             <ListItemCard
-              title={item.articulo ?? `Numeral ${item.id}`}
+              title={item.articulo || `Numeral ${item.id}`}
               subtitle={item.texto?.slice(0, 80) + "…"}
               onPress={() => cargarDetalle(item.id)}
             />

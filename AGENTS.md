@@ -60,6 +60,8 @@ These reflect actual codebase patterns, not aspirational rules:
 - No pagination on list screens — all data fits in memory.
 - No FTS on misal tables yet — not needed for current UX.
 - Novenas: 18 scraped from `devocionario.com` (single-page format); ~28 more exist on devocionario.com with multi-page or numeric-day format — not yet scraped.
+- CIC `capitulo`/`articulo` populated (2359/2865 caps, 1964/2865 arts) via `archive/popular_cic.py`. Asset DB has no FTS triggers (dropped before UPDATE; app recreates them on first launch via migration v1).
+- FTS on `catecismo_cic` is created by migration v1 at app launch — the asset DB does NOT include the `catecismo_cic_fts` table (it's created on first run).
 
 ## Key Components
 
@@ -120,6 +122,7 @@ python3 archive/scraper_vaticano.py --fecha 2026-06-12 # single date
 pip install pdfplumber --break-system-packages          # only for scraper_cic.py / scraper_misal.py
 python3 archive/scraper_misal.py --preview           # Misal Romano: 157 propios, 202 ordinario, 67 prefacios, 4 plegarias
 python3 archive/scraper_misal.py                     # write to AppMovil/assets/iglesia_digital.db
+python3 archive/popular_cic.py                       # extract capitulo/articulo from CIC text markers
 python3 archive/scraper_oraciones_vatican.py            # fetch 23 prayers from Vatican News → stdout JSON
 python3 archive/scraper_novenas.py --preview            # scrape novenas from devocionario.com, show JSON preview
 python3 archive/scraper_novenas.py --db path/to/db.db   # write novenas to existing DB
@@ -133,6 +136,12 @@ python3 archive/scraper_misal.py --preview   # print summary (157 propios, 202 o
 python3 archive/scraper_misal.py             # write to AppMovil/assets/iglesia_digital.db
 ```
 Key patterns: `RE_DAY_LINE = r'^(DÍA\s+|Domingo|Feria|Lunes|Martes|Miércoles|Jueves|Viernes|Sábado|Inicio|Octava|I\d+)'`, roman numeral parsing with `[IVXLCDM]{1,6}`. Navidad uses special `parse_propio_navidad()` for date/feast format. Triduo Pascual excluded (ordinario-style rubrics). Dedup removes duplicate Easter Sunday entries and trailing periods.
+
+**CIC capítulo/artículo populator** (extracts from text markers):
+```bash
+python3 archive/popular_cic.py   # 2359/2865 capitulos, 1964/2865 articulos populated
+```
+Key patterns: `CAP_PAT` / `ART_PAT` regexes scanning full text, `clean_title()` for trailing chars. Drops FTS triggers before UPDATE (recreated by app migration v1 on launch). Resets at part/section boundaries.
 
 **Novenas scraper** (single-page novenas from devocionario.com):
 ```bash

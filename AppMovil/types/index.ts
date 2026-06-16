@@ -49,13 +49,13 @@ export interface CICSearchResult extends CICNumeral {
 export interface Lectura {
   id: number;
   fecha: string;
-  titulo_misa: string;
-  primera_lectura_ref: string;
-  primera_lectura: string;
-  salmo: string;
-  aleluia: string;
-  evangelio_ref: string;
-  evangelio: string;
+  titulo_misa: string | null;
+  primera_lectura_ref: string | null;
+  primera_lectura: string | null;
+  salmo: string | null;
+  aleluia: string | null;
+  evangelio_ref: string | null;
+  evangelio: string | null;
 }
 
 // ─── Misal Romano ──────────────────────────────────────────────────────────────
@@ -63,14 +63,14 @@ export interface Lectura {
 export interface MisalPropioEntry {
   id: number;
   temporada: string;
-  temporada_label: string;
-  dia: string;
-  colecta: string;
-  oracion_ofrendas: string;
-  postcomunion: string;
-  prefacio: string;
-  antifona_entrada: string;
-  antifona_comunion: string;
+  temporada_label: string | null;
+  dia: string | null;
+  colecta: string | null;
+  oracion_ofrendas: string | null;
+  postcomunion: string | null;
+  prefacio: string | null;
+  antifona_entrada: string | null;
+  antifona_comunion: string | null;
 }
 
 export interface MisalOrdinarioBlock {

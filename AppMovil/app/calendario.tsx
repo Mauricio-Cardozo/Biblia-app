@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface DiaLectura {
   fecha: string;
   titulo: string;
-  tieneEvangelio: boolean;
+  tieneEvangelio: number;
 }
 
 const MESES = [

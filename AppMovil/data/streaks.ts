@@ -5,39 +5,17 @@ export async function calcularRacha(key: string): Promise<number> {
     const ultima = await AsyncStorage.getItem(key);
     if (!ultima) return 0;
 
+    const countKey = key.replace("_ultima", "_count");
+    const count = parseInt((await AsyncStorage.getItem(countKey)) || "1", 10);
+
     const ultimaFecha = new Date(ultima + "T00:00:00");
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
     const diff = Math.floor((hoy.getTime() - ultimaFecha.getTime()) / (1000 * 60 * 60 * 24));
 
-    // Si la última vez fue hoy, racha está intacta (diff=0)
-    // Si fue ayer (diff=1), la racha también está intacta
-    if (diff > 1) return 0; // se rompió
-
-    // Ahora contamos hacia atrás desde hoy
-    let racha = 0;
-    const fechaCursor = new Date(hoy);
-    while (true) {
-      const key = fechaCursor.toISOString().split("T")[0];
-      if (key === ultima) {
-        racha++;
-        break; // llegamos a la última fecha registrada
-      }
-      const existe = await AsyncStorage.getItem(key);
-      if (!existe) {
-        // Si es hoy, contamos 1 día aunque no esté registrado (ya que completó hoy)
-        if (fechaCursor.getTime() === hoy.getTime() && diff === 0) {
-          racha++;
-          break;
-        }
-        break;
-      }
-      racha++;
-      fechaCursor.setDate(fechaCursor.getDate() - 1);
-    }
-
-    return racha;
+    if (diff > 1) return 0;
+    return count;
   } catch {
     return 0;
   }

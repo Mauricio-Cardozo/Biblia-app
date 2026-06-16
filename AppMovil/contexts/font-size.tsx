@@ -42,11 +42,13 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const aumentar = useCallback(() => {
-    persist(Math.round((multiplier + STEP) * 10) / 10);
+    const next = Math.round((multiplier + STEP) * 10) / 10;
+    persist(next > MAX ? MAX : next);
   }, [multiplier, persist]);
 
   const disminuir = useCallback(() => {
-    persist(Math.round((multiplier - STEP) * 10) / 10);
+    const next = Math.round((multiplier - STEP) * 10) / 10;
+    persist(next < MIN ? MIN : next);
   }, [multiplier, persist]);
 
   const reset = useCallback(() => {

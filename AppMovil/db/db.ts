@@ -38,7 +38,7 @@ export async function getVersiculos(
   tabla = "biblia_pueblo_dios",
 ): Promise<Verse[]> {
   return db.getAllAsync<Verse>(
-    `SELECT id, versiculo, texto FROM ${tabla}
+    `SELECT id, libro, capitulo, versiculo, texto, testamento FROM ${tabla}
      WHERE libro = ? AND capitulo = ?
      ORDER BY versiculo ASC`,
     [libro, capitulo],
@@ -96,7 +96,7 @@ export async function searchCIC(
   return db.getAllAsync<CICNumeral>(
      `SELECT c.* FROM catecismo_cic c
       JOIN catecismo_cic_fts f ON c.rowid = f.rowid
-     WHERE catecismo_cic_fts MATCH ?
+     WHERE f MATCH ?
      ORDER BY f.rank`,
     [termino],
   );

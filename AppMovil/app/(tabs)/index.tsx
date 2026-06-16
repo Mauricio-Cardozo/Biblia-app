@@ -4,12 +4,10 @@ import { Link, router } from 'expo-router';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSQLiteContext } from 'expo-sqlite';
 import { calcularRacha, obtenerStats } from '@/data/streaks';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const db = useSQLiteContext();
 
   const [rachaRosario, setRachaRosario] = useState(0);
   const [rachaCoronilla, setRachaCoronilla] = useState(0);
@@ -25,7 +23,7 @@ export default function HomeScreen() {
       setRachaCoronilla(rc);
       setStats({ rosario_total: st.rosario_total, coronilla_total: st.coronilla_total });
     });
-  }, [db]);
+  }, []);
 
   const obtenerFechaActual = () => {
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];

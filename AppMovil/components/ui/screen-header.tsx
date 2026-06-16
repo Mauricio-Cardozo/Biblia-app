@@ -23,7 +23,7 @@ export default function ScreenHeader({
   return (
     <View style={s.header}>
       {showBack && (
-        <TouchableOpacity onPress={onBack} style={s.backBtn} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => onBack?.()} style={s.backBtn} activeOpacity={0.7}>
           <ThemedText style={s.backArrow}>←</ThemedText>
         </TouchableOpacity>
       )}

@@ -20,8 +20,8 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
   - 📖 Lista de libros con distinción Antiguo/Nuevo Testamento
   - 🔢 Selección de capítulo en grilla
   - 📜 Lectura de versículos con número dorado
-- **Catecismo de la Iglesia Católica (CIC)** — Navegación completa en 4 niveles:
-  - Parte → Sección → Numerales → Detalle con jerarquía completa
+- **Catecismo de la Iglesia Católica (CIC)** — Navegación completa en 5 niveles:
+  - Parte → Sección → Capítulo → Artículo → Numerales con jerarquía completa y búsqueda FTS5
 - **Misal Romano (México)** — Ordinario de la Misa, Propio del Tiempo completo (157 días), 67 Prefacios y 4 Plegarias Eucarísticas, desde los PDFs oficiales de LiturgiaPapal
 - **Misa de Hoy** — Lecturas diarias del leccionario + acceso rápido al Propio del Tiempo y Prefacios
 - **Favoritos** — Marcá versículos y numerales como favoritos con persistencia en AsyncStorage
@@ -33,7 +33,6 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
 - **Calendario Litúrgico** — Navegación mensual con indicador de lecturas disponibles
 - **Evangelio del Día** — Lectura diaria desde el leccionario con fuente ajustable
 - **Modo Lectura** — Control de tamaño de fuente (0.8×–1.5×) con persistencia
-- **Notificaciones Diarias** — Recordatorio configurable a las 20:00
 - **Búsqueda FTS5** — Búsqueda de texto completo optimizada en SQLite sobre CIC
 - **100% Offline** — Toda la base de datos está incluida en la app
 
@@ -71,13 +70,13 @@ TABLE biblia_pueblo_dios (
   testamento  TEXT   -- 'Antiguo' | 'Nuevo'
 )
 
--- Catecismo de la Iglesia Católica (CIC)
+-- Catecismo de la Iglesia Católica (CIC) — 2865 numerales con capítulo/artículo poblados
 TABLE catecismo_cic (
   id        INTEGER PRIMARY KEY,  -- Número de numeral (1-2865)
-  parte     TEXT,
-  seccion   TEXT,
-  capitulo  TEXT,
-  articulo  TEXT,
+  parte     TEXT,                 -- 4 partes principales
+  seccion   TEXT,                 -- 7 secciones
+  capitulo  TEXT,                 -- extraído de marcadores textuales (2359 poblados)
+  articulo  TEXT,                 -- extraído de marcadores textuales (1964 poblados)
   texto     TEXT NOT NULL
 )
 
@@ -253,13 +252,14 @@ Biblia-app/
 │   │   └── theme.ts                 # Paleta Navy/Gold + tokens C
 │   └── assets/
 │       └── iglesia_digital.db       # Base de datos SQLite
-└── archive/                         # Scripts Python de ingesta de datos
-    ├── scraper_vaticano.py          # Vatican News → SQLite (lecturas diarias)
-    ├── scraper_cic.py               # PDF del CIC → SQLite (catecismo_cic)
-    ├── scraper_misal.py             # PDFs del Misal Romano → SQLite (157 días propios + Ordinario + Prefacios + Plegarias)
-    ├── scraper_biblia.py            # Scraper original de la Biblia
-    ├── scraper_oraciones_vatican.py # 23 oraciones desde Vatican News → JSON
-    └── scraper_novenas.py           # 18 novenas desde devocionario.com → SQLite/JSON
+    ├── archive/                         # Scripts Python de ingesta de datos
+    │   ├── popular_cic.py               # Extrae capítulo/artículo de marcadores textuales del CIC
+    │   ├── scraper_vaticano.py          # Vatican News → SQLite (lecturas diarias)
+    │   ├── scraper_cic.py               # PDF del CIC → SQLite (catecismo_cic)
+    │   ├── scraper_misal.py             # PDFs del Misal Romano → SQLite (157 días propios + Ordinario + Prefacios + Plegarias)
+    │   ├── scraper_biblia.py            # Scraper original de la Biblia
+    │   ├── scraper_oraciones_vatican.py # 23 oraciones desde Vatican News → JSON
+    │   └── scraper_novenas.py           # 18 novenas desde devocionario.com → SQLite/JSON
     └── misal_pdfs/                  # 17 PDFs del Misal Romano (LiturgiaPapal México)
 ```
 
@@ -293,7 +293,6 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] 23 oraciones del Vaticano
 - [x] Jaculatorias agrupadas
 - [x] Modo lectura (fuente ajustable 0.8×–1.5×)
-- [x] Notificaciones diarias (20:00, eliminadas por incompatibilidad con Expo Go)
 - [x] Novenas — 18 devociones de 9 días
 - [ ] Sincronización en la nube (Firebase)
 - [ ] Biblia de Jerusalén (pendiente de conseguir texto digital)
@@ -322,6 +321,9 @@ python3 archive/scraper_cic.py             # genera la DB
 # Scrapear Misal Romano desde 17 PDFs (LiturgiaPapal México)
 python3 archive/scraper_misal.py --preview                                   # resumen de lo parseado
 python3 archive/scraper_misal.py                                             # escribe en AppMovil/assets/iglesia_digital.db
+
+# Poblar capítulo/artículo del CIC desde marcadores textuales
+python3 archive/popular_cic.py                                               # extrae y actualiza catecismo_cic.capitulo + articulo
 
 # Scrapear oraciones desde Vatican News (sin dependencias externas)
 python3 archive/scraper_oraciones_vatican.py          # imprime JSON en stdout

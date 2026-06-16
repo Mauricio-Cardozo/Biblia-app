@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { searchCIC } from '@/db/db';
+import type { CICNumeral } from '@/types';
 import { diagnose, forceReCopy } from '@/db/init';
 
 export default function TestDatabase() {
@@ -61,7 +62,7 @@ export default function TestDatabase() {
       const data = await searchCIC(db, t);
       setSearchResults(data.length === 0
         ? 'Sin resultados'
-        : data.slice(0, 30).map((r: any) =>
+        : data.slice(0, 30).map((r: CICNumeral) =>
             `• Numeral ${r.id}: ${r.texto.slice(0, 120)}…`
           ).join('\n\n')
       );
@@ -96,7 +97,7 @@ export default function TestDatabase() {
       for (const r of cicRows) {
         await db.runAsync(
           "INSERT INTO catecismo_cic_fts(rowid, id, parte, seccion, capitulo, articulo, texto) VALUES (?, ?, ?, ?, ?, ?, ?)",
-          [r.rowid, r.id, r.parte, r.seccion, r.capitulo, r.articulo, r.texto],
+          [r.id, r.id, r.parte, r.seccion, r.capitulo, r.articulo, r.texto],
         );
       }
     } catch (err: any) {

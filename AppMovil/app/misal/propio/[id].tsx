@@ -52,7 +52,7 @@ export default function PropioDetalleScreen() {
   );
 }
 
-function Section({ label, text }: { label: string; text: string }) {
+function Section({ label, text }: { label: string; text: string | null | undefined }) {
   if (!text) return null;
   return (
     <View style={s.section}>

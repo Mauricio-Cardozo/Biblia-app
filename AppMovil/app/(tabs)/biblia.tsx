@@ -11,6 +11,7 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getLibros, getCapitulos, getVersiculos } from "@/db/db";
+import { addFavorito, isFavorito, removeFavorito, type Favorito } from "@/data/favoritos";
 import type { Book, Chapter, Verse } from "@/types";
 
 type Nivel = "libros" | "capitulos" | "versiculos";
@@ -82,6 +83,7 @@ export default function BibliaScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("Todos");
+  const [favs, setFavs] = useState<Set<number>>(new Set());
 
   const cargarLibros = useCallback(async () => {
     setLoading(true); setError(null);
@@ -105,6 +107,32 @@ export default function BibliaScreen() {
   }, [db, version.tabla]);
 
   useEffect(() => { cargarLibros(); }, [cargarLibros]);
+
+  useEffect(() => {
+    Promise.all(versiculos.map((v) => isFavorito(`biblia-${v.id}`))).then((results) => {
+      const s = new Set<number>();
+      versiculos.forEach((v, i) => { if (results[i]) s.add(v.id); });
+      setFavs(s);
+    });
+  }, [versiculos]);
+
+  const toggleFav = useCallback(async (v: Verse) => {
+    const id = `biblia-${v.id}`;
+    const isFav = await isFavorito(id);
+    if (isFav) {
+      await removeFavorito(id);
+      setFavs((prev) => { const s = new Set(prev); s.delete(v.id); return s; });
+    } else {
+      await addFavorito({
+        id,
+        tipo: "biblia",
+        referencia: `${v.libro} ${v.capitulo}:${v.versiculo}`,
+        preview: v.texto.slice(0, 80),
+        timestamp: Date.now(),
+      } as Favorito);
+      setFavs((prev) => new Set(prev).add(v.id));
+    }
+  }, []);
 
   const seleccionarLibro = (libro: Book) => {
     setLibroActual(libro); cargarCapitulos(libro.libro); setNivel("capitulos");
@@ -239,10 +267,11 @@ export default function BibliaScreen() {
         <FlashList data={versiculos} keyExtractor={(item) => String(item.id)} contentContainerStyle={s.list}
           showsVerticalScrollIndicator={false} ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           renderItem={({ item }) => (
-            <View style={s.versRow}>
+            <TouchableOpacity style={s.versRow} onLongPress={() => toggleFav(item)} activeOpacity={0.85} delayLongPress={400}>
               <ThemedText style={s.versNum}>{item.versiculo}</ThemedText>
               <ThemedText style={s.versTexto}>{item.texto}</ThemedText>
-            </View>
+              <ThemedText style={s.versFav}>{favs.has(item.id) ? "♥" : ""}</ThemedText>
+            </TouchableOpacity>
           )}
         />
       )}
@@ -326,6 +355,7 @@ const s = StyleSheet.create({
   versRow: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
   versNum: { color: C.gold, fontSize: 13, fontWeight: "700", minWidth: 28, paddingTop: 2, textAlign: "right" },
   versTexto: { flex: 1, color: C.text, fontSize: 15, lineHeight: 24 },
+  versFav: { color: C.error, fontSize: 16, minWidth: 20, textAlign: "center", paddingTop: 2 },
 
   versionOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 100 },
   versionBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)" },

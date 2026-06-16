@@ -47,14 +47,35 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
   useEffect(() => {
     if (step.id === "completado" && !completado) {
       setCompletado(true);
-      const hoy = new Date();
-      const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
-      AsyncStorage.setItem(storageKey, fecha).catch(() => {});
-      const statsKey = "stats_" + storageKey.replace("racha_", "");
-      AsyncStorage.getItem(statsKey).then((val) => {
-        const n = val ? parseInt(val, 10) + 1 : 1;
-        AsyncStorage.setItem(statsKey, String(n)).catch(() => {});
-      }).catch(() => {});
+      (async () => {
+        const hoy = new Date();
+        const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+
+        const prayerName = storageKey.includes("rosario") ? "rosario" : "coronilla";
+        const countKey = storageKey.replace("_ultima", "_count");
+        const statsKey = "stats_" + prayerName + "_total";
+
+        const lastDate = await AsyncStorage.getItem(storageKey);
+        const hoyLocal = new Date(); hoyLocal.setHours(0, 0, 0, 0);
+        const last = lastDate ? new Date(lastDate + "T00:00:00") : null;
+        const diff = last ? Math.floor((hoyLocal.getTime() - last.getTime()) / (1000 * 60 * 60 * 24)) : -1;
+
+        let streak = 1;
+        if (diff === 0) {
+          const existing = await AsyncStorage.getItem(countKey);
+          streak = parseInt(existing || "1", 10);
+        } else if (diff === 1) {
+          const existing = await AsyncStorage.getItem(countKey);
+          streak = (parseInt(existing || "1", 10)) + 1;
+        }
+
+        await AsyncStorage.setItem(storageKey, fecha);
+        await AsyncStorage.setItem(countKey, String(streak));
+
+        const statsVal = await AsyncStorage.getItem(statsKey);
+        const newTotal = statsVal ? parseInt(statsVal, 10) + 1 : 1;
+        await AsyncStorage.setItem(statsKey, String(newTotal));
+      })().catch(() => {});
     }
   }, [step.id, completado, storageKey]);
 
