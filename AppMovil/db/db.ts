@@ -2,8 +2,8 @@ import { type SQLiteDatabase } from "expo-sqlite";
 import type {
   Book, Chapter, Verse,
   CICNumeral, CICParte, CICSeccion, CICNumeralPreview,
-  YoucatQuestion, YoucatParte, YoucatPregunta,
   Lectura,
+  MisalPropioEntry, MisalOrdinarioBlock, MisalPrefacio, MisalPlegaria,
 } from "@/types";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -103,60 +103,63 @@ export async function searchCIC(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// YOUCAT
+// LECTURAS (Evangelio del día)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function getYoucatPartes(db: SQLiteDatabase): Promise<YoucatParte[]> {
-  const rows = await db.getAllAsync<{
-    parte: string;
-    min_nro: number;
-    max_nro: number;
-    cnt: number;
-  }>(
-    `SELECT
-       CASE WHEN parte IS NULL OR parte = '' THEN '1. Lo que creemos' ELSE parte END as parte,
-       MIN(pregunta_nro) as min_nro,
-       MAX(pregunta_nro) as max_nro,
-       COUNT(*) as cnt
-     FROM youcat
-     GROUP BY parte
-     ORDER BY MIN(pregunta_nro) ASC`,
-  );
-  return rows.map((r) => ({
-    parte: r.parte,
-    desde: r.min_nro,
-    hasta: r.max_nro,
-    preguntas: r.cnt,
-  }));
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+// MISAL ROMANO
+// ═══════════════════════════════════════════════════════════════════════════════
 
-export async function getYoucatPreguntas(
-  db: SQLiteDatabase,
-  parte: string,
-): Promise<YoucatPregunta[]> {
-  const isPart1 = parte === "1. Lo que creemos";
-  return db.getAllAsync<YoucatPregunta>(
-    `SELECT id, pregunta_nro, pregunta_texto
-     FROM youcat
-     WHERE ${isPart1 ? "(parte IS NULL OR parte = '')" : "parte = ?"}
-     ORDER BY pregunta_nro ASC`,
-    isPart1 ? [] : [parte],
+export async function getMisalTemporadas(db: SQLiteDatabase): Promise<{ temporada: string; temporada_label: string; count: number }[]> {
+  return db.getAllAsync<{ temporada: string; temporada_label: string; count: number }>(
+    "SELECT temporada, temporada_label, COUNT(*) as count FROM misal_propio GROUP BY temporada ORDER BY MIN(id)",
   );
 }
 
-export async function getYoucatDetalle(
-  db: SQLiteDatabase,
-  id: number,
-): Promise<YoucatQuestion | null> {
-  return db.getFirstAsync<YoucatQuestion>(
-    "SELECT id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo FROM youcat WHERE id = ?",
+export async function getMisalPropio(db: SQLiteDatabase, temporada: string): Promise<MisalPropioEntry[]> {
+  return db.getAllAsync<MisalPropioEntry>(
+    "SELECT id, temporada, temporada_label, dia, colecta, oracion_ofrendas, postcomunion, prefacio, antifona_entrada, antifona_comunion FROM misal_propio WHERE temporada = ? ORDER BY id",
+    [temporada],
+  );
+}
+
+export async function getMisalPropioDetalle(db: SQLiteDatabase, id: number): Promise<MisalPropioEntry | null> {
+  return db.getFirstAsync<MisalPropioEntry>(
+    "SELECT id, temporada, temporada_label, dia, colecta, oracion_ofrendas, postcomunion, prefacio, antifona_entrada, antifona_comunion FROM misal_propio WHERE id = ?",
     [id],
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// LECTURAS (Evangelio del día)
-// ═══════════════════════════════════════════════════════════════════════════════
+export async function getMisalOrdinario(db: SQLiteDatabase): Promise<MisalOrdinarioBlock[]> {
+  return db.getAllAsync<MisalOrdinarioBlock>(
+    "SELECT id, seccion, subseccion, rol, texto, orden FROM misal_ordinario ORDER BY orden",
+  );
+}
+
+export async function getMisalOrdinarioPorSeccion(db: SQLiteDatabase, seccion: string): Promise<MisalOrdinarioBlock[]> {
+  return db.getAllAsync<MisalOrdinarioBlock>(
+    "SELECT id, seccion, subseccion, rol, texto, orden FROM misal_ordinario WHERE seccion = ? ORDER BY orden",
+    [seccion],
+  );
+}
+
+export async function getMisalOrdinarioSecciones(db: SQLiteDatabase): Promise<{ seccion: string; count: number }[]> {
+  return db.getAllAsync<{ seccion: string; count: number }>(
+    "SELECT seccion, COUNT(*) as count FROM misal_ordinario GROUP BY seccion ORDER BY MIN(orden)",
+  );
+}
+
+export async function getMisalPrefacios(db: SQLiteDatabase): Promise<MisalPrefacio[]> {
+  return db.getAllAsync<MisalPrefacio>(
+    "SELECT id, titulo, texto FROM misal_prefacios ORDER BY id",
+  );
+}
+
+export async function getMisalPlegarias(db: SQLiteDatabase): Promise<MisalPlegaria[]> {
+  return db.getAllAsync<MisalPlegaria>(
+    "SELECT id, nombre, texto FROM misal_plegarias ORDER BY id",
+  );
+}
 
 export async function getLecturaDelDia(
   db: SQLiteDatabase,
@@ -165,18 +168,5 @@ export async function getLecturaDelDia(
   return db.getFirstAsync<Lectura>(
     "SELECT * FROM lecturas WHERE fecha = ?",
     [fecha],
-  );
-}
-
-export async function searchYoucat(
-  db: SQLiteDatabase,
-  termino: string,
-): Promise<YoucatQuestion[]> {
-  return db.getAllAsync<YoucatQuestion>(
-     `SELECT y.* FROM youcat y
-      JOIN youcat_fts f ON y.rowid = f.rowid
-     WHERE youcat_fts MATCH ?
-     ORDER BY f.rank`,
-    [termino],
   );
 }

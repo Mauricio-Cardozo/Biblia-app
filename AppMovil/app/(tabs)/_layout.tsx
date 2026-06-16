@@ -36,17 +36,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="misal"
+        options={{
+          title: 'Misal',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="oracion"
         options={{
           title: 'Oración',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="hands.sparkles" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="youcat"
-        options={{
-          title: 'YOUCAT',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="questionmark.text.page.fill" color={color} />,
         }}
       />
     </Tabs>

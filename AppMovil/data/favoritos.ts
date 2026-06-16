@@ -4,7 +4,7 @@ const STORAGE_KEY = "favoritos";
 
 export interface Favorito {
   id: string;
-  tipo: "biblia" | "cic" | "youcat" | "evangelio";
+  tipo: "biblia" | "cic" | "evangelio";
   referencia: string;
   preview: string;
   timestamp: number;

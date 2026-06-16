@@ -1,6 +1,6 @@
 # ✝️ Iglesia Digital
 
-Una aplicación móvil católica desarrollada con **Expo** y **React Native**, diseñada para acompañar la vida de fe. Centraliza textos sagrados (Biblia, Catecismo, YOUCAT) y herramientas de oración con una interfaz minimalista y elegante, combinando consulta de textos con elementos de gamificación espiritual.
+Una aplicación móvil católica desarrollada con **Expo** y **React Native**, diseñada para acompañar la vida de fe. Centraliza textos sagrados (Biblia, Catecismo, Misal Romano) y herramientas de oración con una interfaz minimalista y elegante, combinando consulta de textos con elementos de gamificación espiritual.
 
 ---
 
@@ -8,7 +8,7 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
 
 | Home | Biblia | Catecismo | Oración |
 |------|--------|-----------|---------|
-| Versículo del día, rachas 🔥 y acceso rápido | Navegación por libros, capítulos y versículos | Navegación multinivel por partes y numerales | Rosario, Coronilla, Oraciones Vatican News, Jaculatorias |
+| Versículo del día, rachas 🔥 y acceso rápido | Navegación por libros, capítulos y versículos | Navegación multinivel por partes y numerales | Misal Romano completo + Rosario, Coronilla, Oraciones |
 
 ---
 
@@ -22,8 +22,9 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
   - 📜 Lectura de versículos con número dorado
 - **Catecismo de la Iglesia Católica (CIC)** — Navegación completa en 4 niveles:
   - Parte → Sección → Numerales → Detalle con jerarquía completa
-- **YOUCAT (Catecismo Joven)** — Navegación por partes + búsqueda FTS5 con 527 preguntas y respuestas
-- **Favoritos** — Marcá versículos, numerales y preguntas como favoritos con persistencia en AsyncStorage
+- **Misal Romano (México)** — Ordinario de la Misa, Propio del Tiempo completo (157 días), 67 Prefacios y 4 Plegarias Eucarísticas, desde los PDFs oficiales de LiturgiaPapal
+- **Misa de Hoy** — Lecturas diarias del leccionario + acceso rápido al Propio del Tiempo y Prefacios
+- **Favoritos** — Marcá versículos y numerales como favoritos con persistencia en AsyncStorage
 - **Rosario Guiado** — Recitación paso a paso con cuentas visuales, misterios según el día y registro de racha (🔥 días consecutivos)
 - **Coronilla de la Divina Misericordia** — Guiada paso a paso con el mismo sistema de rachas
 - **Oraciones del Vaticano** — 23 oraciones extraídas de Vatican News (Ángelus, Magnificat, Te Deum, etc.)
@@ -33,7 +34,7 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
 - **Evangelio del Día** — Lectura diaria desde el leccionario con fuente ajustable
 - **Modo Lectura** — Control de tamaño de fuente (0.8×–1.5×) con persistencia
 - **Notificaciones Diarias** — Recordatorio configurable a las 20:00
-- **Búsqueda FTS5** — Búsqueda de texto completo optimizada en SQLite sobre CIC y YOUCAT
+- **Búsqueda FTS5** — Búsqueda de texto completo optimizada en SQLite sobre CIC
 - **100% Offline** — Toda la base de datos está incluida en la app
 
 ---
@@ -80,16 +81,6 @@ TABLE catecismo_cic (
   texto     TEXT NOT NULL
 )
 
--- YOUCAT (Catecismo Joven)
-TABLE youcat (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  pregunta_nro    INTEGER NOT NULL,
-  pregunta_texto  TEXT NOT NULL,
-  respuesta_texto TEXT NOT NULL,
-  parte           TEXT,
-  capitulo        TEXT
-)
-
 -- Leccionario diario (evangelio del día)
 TABLE lecturas (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,6 +90,43 @@ TABLE lecturas (
   salmo           TEXT,
   aleluia         TEXT,
   evangelio       TEXT
+)
+
+-- Misal Romano — Propio del Tiempo (Adviento, Navidad, Cuaresma, Pascua, Ordinario)
+TABLE misal_propio (
+  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  temporada TEXT NOT NULL,       -- adviento | navidad | cuaresma | pascua | ordinario
+  dia       TEXT NOT NULL,       -- nombre del día o fecha
+  titulo    TEXT,
+  entrada   TEXT,
+  oracion   TEXT,
+  ofrendas  TEXT,
+  comunion  TEXT,
+  poscomunion TEXT,
+  unico     TEXT                -- algunos días tienen formato distinto (1 bloque)
+)
+
+-- Misal Romano — Ordinario de la Misa
+TABLE misal_ordinario (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  seccion     TEXT NOT NULL,     -- Ritos Iniciales, Liturgia de la Palabra, etc.
+  titulo      TEXT,
+  contenido   TEXT NOT NULL,
+  orden       INTEGER
+)
+
+-- Misal Romano — Prefacios
+TABLE misal_prefacios (
+  id      INTEGER PRIMARY KEY AUTOINCREMENT,
+  titulo  TEXT NOT NULL,
+  texto   TEXT NOT NULL
+)
+
+-- Misal Romano — Plegarias Eucarísticas
+TABLE misal_plegarias (
+  id    INTEGER PRIMARY KEY AUTOINCREMENT,
+  titulo TEXT NOT NULL,
+  texto  TEXT NOT NULL
 )
 
 -- Novenas (devociones de 9 días)
@@ -177,12 +205,30 @@ Biblia-app/
 │   ├── app/
 │   │   ├── _layout.tsx              # Layout raíz — SQLiteProvider + DatabaseInit + Stack
 │   │   ├── (tabs)/
-│   │   │   ├── _layout.tsx          # Tab bar (Home, Biblia, Catecismo, YOUCAT, Oración)
+│   │   │   ├── _layout.tsx          # Tab bar (Home, Biblia, Catecismo, Misal, Oración)
 │   │   │   ├── index.tsx            # Home — versículo del día + rachas + acceso rápido
 │   │   │   ├── biblia.tsx           # Biblia — libros → capítulos → versículos + selector de versión
 │   │   │   ├── catecismo.tsx        # CIC — partes → secciones → numerales → detalle + FTS5
-│   │   │   ├── youcat.tsx           # YOUCAT — partes → preguntas → detalle + búsqueda FTS5
+│   │   │   ├── misal.tsx            # Misal — Misa de Hoy, Propio, Ordinario, Prefacios, Plegarias
 │   │   │   └── oracion.tsx          # Hub de oración — rosario, coronilla, oraciones del Vaticano, jaculatorias
+│   │   ├── misal/
+│   │   │   ├── hoy.tsx              # Misa de Hoy (lecturas + links al Propio)
+│   │   │   ├── propio/
+│   │   │   │   ├── _layout.tsx
+│   │   │   │   ├── index.tsx        # Temporadas (Adviento, Navidad, Cuaresma, Pascua, Ordinario)
+│   │   │   │   └── [id].tsx         # Detalle del día propio
+│   │   │   ├── ordinario/
+│   │   │   │   ├── _layout.tsx
+│   │   │   │   ├── index.tsx        # Secciones del Ordinario
+│   │   │   │   └── [id].tsx         # Detalle de sección
+│   │   │   ├── prefacios/
+│   │   │   │   ├── _layout.tsx
+│   │   │   │   ├── index.tsx        # Lista de 67 prefacios
+│   │   │   │   └── [id].tsx         # Texto del prefacio
+│   │   │   └── plegarias/
+│   │   │       ├── _layout.tsx
+│   │   │       ├── index.tsx        # Lista de 4 plegarias
+│   │   │       └── [id].tsx         # Texto de la plegaria
 │   │   ├── rosario/
 │   │   │   └── guia.tsx             # Guía interactiva del Rosario con misterios
 │   │   ├── oraciones/
@@ -210,10 +256,11 @@ Biblia-app/
 └── archive/                         # Scripts Python de ingesta de datos
     ├── scraper_vaticano.py          # Vatican News → SQLite (lecturas diarias)
     ├── scraper_cic.py               # PDF del CIC → SQLite (catecismo_cic)
-    ├── scraper_youcat.py            # PDF del YOUCAT → SQLite (youcat)
+    ├── scraper_misal.py             # PDFs del Misal Romano → SQLite (157 días propios + Ordinario + Prefacios + Plegarias)
     ├── scraper_biblia.py            # Scraper original de la Biblia
     ├── scraper_oraciones_vatican.py # 23 oraciones desde Vatican News → JSON
     └── scraper_novenas.py           # 18 novenas desde devocionario.com → SQLite/JSON
+    └── misal_pdfs/                  # 17 PDFs del Misal Romano (LiturgiaPapal México)
 ```
 
 ---
@@ -237,7 +284,7 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 
 - [x] Biblia del Pueblo de Dios — navegación completa + selector de versión
 - [x] Catecismo CIC — navegación multinivel (4 niveles) + FTS5
-- [x] YOUCAT — Catecismo Joven (navegación + búsqueda FTS5)
+- [x] Misal Romano — Propio del Tiempo (157 días), Ordinario (202 bloques), 67 Prefacios, 4 Plegarias Eucarísticas
 - [x] Rosario guiado con misterios y rachas 🔥
 - [x] Coronilla de la Divina Misericordia guiada
 - [x] Evangelio del Día desde el leccionario (76 fechas cargadas)
@@ -246,7 +293,7 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] 23 oraciones del Vaticano
 - [x] Jaculatorias agrupadas
 - [x] Modo lectura (fuente ajustable 0.8×–1.5×)
-- [x] Notificaciones diarias (20:00, configurable)
+- [x] Notificaciones diarias (20:00, eliminadas por incompatibilidad con Expo Go)
 - [x] Novenas — 18 devociones de 9 días
 - [ ] Sincronización en la nube (Firebase)
 - [ ] Biblia de Jerusalén (pendiente de conseguir texto digital)
@@ -272,9 +319,9 @@ python3 archive/scraper_vaticano.py --list                   # ver registros
 python3 archive/scraper_cic.py --preview   # vista previa sin guardar
 python3 archive/scraper_cic.py             # genera la DB
 
-# Generar youcat desde el PDF
-python3 archive/scraper_youcat.py --preview
-python3 archive/scraper_youcat.py
+# Scrapear Misal Romano desde 17 PDFs (LiturgiaPapal México)
+python3 archive/scraper_misal.py --preview                                   # resumen de lo parseado
+python3 archive/scraper_misal.py                                             # escribe en AppMovil/assets/iglesia_digital.db
 
 # Scrapear oraciones desde Vatican News (sin dependencias externas)
 python3 archive/scraper_oraciones_vatican.py          # imprime JSON en stdout
@@ -291,7 +338,7 @@ python3 archive/scraper_novenas.py --db assets/db.db   # escribir en DB
 
 - **Biblia del Pueblo de Dios** — Texto bíblico en español latinoamericano
 - **Catecismo de la Iglesia Católica** — © Libreria Editrice Vaticana
-- **YOUCAT** — Catecismo Joven de la Iglesia Católica
+- **Misal Romano (México)** — © LiturgiaPapal.org / Conferencia del Episcopado Mexicano
 - Desarrollado con ❤️ por [Mauricio](https://github.com/Mauricio-bb)
 
 ---

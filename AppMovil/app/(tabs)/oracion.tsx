@@ -1,10 +1,9 @@
 import { C } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { isEnabled, setEnabled } from '@/data/notifications';
 
 interface Seccion {
   id: string;
@@ -57,14 +56,6 @@ const SECCIONES: Seccion[] = [
     color: C.navyMid,
   },
   {
-    id: 'angelus',
-    titulo: 'Ángelus',
-    subtitulo: 'Oración del Ángelus',
-    icono: '🔔',
-    ruta: '/oraciones/angelus',
-    color: C.navyMid,
-  },
-  {
     id: 'novenas',
     titulo: 'Novenas',
     subtitulo: '18 devociones de 9 días',
@@ -76,16 +67,6 @@ const SECCIONES: Seccion[] = [
 
 export default function OracionScreen() {
   const insets = useSafeAreaInsets();
-  const [notifOn, setNotifOn] = useState(false);
-
-  useEffect(() => {
-    isEnabled().then(setNotifOn);
-  }, []);
-
-  const toggleNotif = async (v: boolean) => {
-    setNotifOn(v);
-    await setEnabled(v);
-  };
 
   return (
     <ScrollView
@@ -127,19 +108,6 @@ export default function OracionScreen() {
           </TouchableOpacity>
         );
       })}
-
-      <View style={styles.notifRow}>
-        <View style={styles.notifTextWrap}>
-          <ThemedText style={styles.notifTitle}>Recordatorio diario</ThemedText>
-          <ThemedText style={styles.notifSub}>Todos los días a las 20:00</ThemedText>
-        </View>
-        <Switch
-          value={notifOn}
-          onValueChange={toggleNotif}
-          trackColor={{ false: C.navyLight, true: C.goldDim }}
-          thumbColor={notifOn ? C.gold : C.muted}
-        />
-      </View>
     </ScrollView>
   );
 }
@@ -212,27 +180,5 @@ const styles = StyleSheet.create({
     color: C.navy,
     fontSize: 10,
     fontWeight: '700',
-  },
-  notifRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 20,
-    marginTop: 16,
-    padding: 18,
-    borderRadius: 15,
-    backgroundColor: C.navyLight,
-  },
-  notifTextWrap: {
-    flex: 1,
-  },
-  notifTitle: {
-    color: C.text,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  notifSub: {
-    color: C.muted,
-    fontSize: 13,
-    marginTop: 2,
   },
 });

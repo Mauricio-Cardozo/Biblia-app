@@ -18,9 +18,9 @@ No tsc/typecheck command available — `npm run lint` is the only static check.
 
 - **Entrypoint**: `expo-router/entry` (in `package.json` `main` field). Routes in `app/`.
 - **Stack**: Expo SDK 54 / RN 0.81.5 / TS 5.9 / Fabric (`newArchEnabled: true`) / React Compiler (`experiments.reactCompiler: true`) / `edgeToEdgeEnabled` on Android.
-- **Routing**: expo-router 6 file-based. `app/_layout.tsx` = root layout (SQLiteProvider + DatabaseInit + FontSizeProvider + BibliaVersionProvider + Stack). `app/(tabs)/_layout.tsx` = JS tab navigator (Home/Biblia/Catecismo/YOUCAT/Oración). Routes inside `(tabs)` get the tab bar; routes outside (`evangelio.tsx`, `calendario.tsx`, `rosario/`, `oraciones/`, `favoritos.tsx`, `modal.tsx`, `test.tsx`) don't.
+- **Routing**: expo-router 6 file-based. `app/_layout.tsx` = root layout (SQLiteProvider + DatabaseInit + FontSizeProvider + BibliaVersionProvider + Stack). `app/(tabs)/_layout.tsx` = JS tab navigator (Home/Biblia/Catecismo/Misal/Oración). Routes inside `(tabs)` get the tab bar; routes outside (`evangelio.tsx`, `calendario.tsx`, `rosario/`, `oraciones/`, `favoritos.tsx`, `modal.tsx`, `test.tsx`, `misal/`) don't.
 - **DB**: Single `iglesia_digital.db` shipped in `AppMovil/assets/`, copied via `SQLiteProvider databaseName assetSource` with `useSuspense`. `metro.config.js` adds `db` to `assetExts` so Metro resolves `.db` files.
-- **DB Migrations**: `db/init.ts` uses `PRAGMA user_version`. Runs on every app launch. `CURRENT_VERSION = 3`. V1 recreates FTS tables as standalone (drops triggers, re-inserts data). V2 adds `youcat.parte` column. V3 creates `novenas` + `novena_dias` tables. FTS creation is skipped if source columns are missing; use the "Rebuild FTS" button on `/test` to retry.
+- **DB Migrations**: `db/init.ts` uses `PRAGMA user_version`. Runs on every app launch. `CURRENT_VERSION = 5`. V1 recreates FTS tables as standalone (drops triggers, re-inserts data). V2 adds `youcat.parte` column (no-op since youcat dropped). V3 creates `novenas` + `novena_dias` tables. V4 drops YOUCAT tables. V5 creates `misal_propio`, `misal_ordinario`, `misal_prefacios`, `misal_plegarias` tables. FTS creation is skipped if source columns are missing; use the "Rebuild FTS" button on `/test` to retry.
 - **DB API** (v16 `expo-sqlite`): `db.getAllAsync<T>`, `db.getFirstAsync<T>`, `db.runAsync`. FTS5 join: `JOIN table_fts f ON source.rowid = f.rowid WHERE table_fts MATCH ? ORDER BY f.rank` (⚠️ use `rowid`, NOT `id`). `GROUP BY ... ORDER BY MIN(id)` for dedup. `forceReCopy()` in `db/init.ts` uses `expo-file-system` File/Paths API (NOT raw `documentDirectory` strings).
 - **Color palette**: `import { C, Colors, Fonts } from '@/constants/theme'`. `C.*` = Navy/Gold (`#0D1B2A` / `#C9A84C`) — use for all UI. `Colors` = Expo light/dark defaults — only used for tab tint in `(tabs)/_layout.tsx`. `Fonts` = platform-aware font families (`.serif`, `.sans`, `.rounded`, `.mono`).
 - **Icons**: Dual-platform files. `components/ui/icon-symbol.ios.tsx` (SF Symbols via `expo-symbols`), `components/ui/icon-symbol.tsx` (MaterialIcons fallback for Android/web). Both export `IconSymbol({ name, size, color })`. SF→Material mapping dict in `icon-symbol.tsx`.
@@ -45,9 +45,11 @@ These reflect actual codebase patterns, not aspirational rules:
 |-------|---------|-------------|
 | `biblia_pueblo_dios` | Bible verses | `id`, `libro`, `capitulo`, `versiculo`, `texto`, `testamento` |
 | `catecismo_cic` | CIC | `id` (numeral), `parte`, `seccion`, `capitulo`, `articulo`, `texto` |
-| `youcat` | YOUCAT Q&A | `id`, `pregunta_nro`, `pregunta_texto`, `respuesta_texto`, `parte`, `capitulo` |
 | `lecturas` | Daily readings | `fecha` (UNIQUE), `titulo_misa`, `primera_lectura`, `salmo`, `aleluia`, `evangelio` |
-| `youcat_fts` / `catecismo_cic_fts` | FTS5 virtual (standalone) | mirrors source columns |
+| `misal_propio` | Proper of Time | `id`, `temporada`, `dia`, `titulo`, `entrada`, `oracion`, `ofrendas`, `comunion`, `poscomunion`, `unico` |
+| `misal_ordinario` | Ordinary of Mass | `id`, `seccion`, `titulo`, `contenido`, `orden` |
+| `misal_prefacios` | Prefaces | `id`, `titulo`, `texto` |
+| `misal_plegarias` | Eucharistic Prayers | `id`, `titulo`, `texto` |
 | `novenas` | Novenas list | `id`, `titulo`, `url` |
 | `novena_dias` | Novena day prayers | `id`, `novena_id`, `dia`, `titulo`, `texto` |
 
@@ -56,12 +58,13 @@ These reflect actual codebase patterns, not aspirational rules:
 - `app/evangelio.tsx` — fully working, accepts `?fecha=YYYY-MM-DD`. Uses `getLecturaDelDia`.
 - Streak cards on Home (`🔥 N días`) — real data from `data/streaks.ts` via AsyncStorage (`racha_rosario_ultima`, `racha_coronilla_ultima`). `calcularRacha()` counts consecutive days backwards.
 - No pagination on list screens — all data fits in memory.
-- `youcat_ai/ad/au` and `catecismo_cic_ai/ad/au` triggers exist in older DB copies but are dropped by migration v1.
-- `expo-notifications` uses lazy `import()` via `getNotifications()` helper — gracefully no-ops in Expo Go where the native module is unavailable.
+- No FTS on misal tables yet — not needed for current UX.
 - Novenas: 18 scraped from `devocionario.com` (single-page format); ~28 more exist on devocionario.com with multi-page or numeric-day format — not yet scraped.
 
 ## Key Components
 
+- **ScreenHeader** (`components/ui/screen-header.tsx`) — reusable header with back button (36px circle), superLabel, title, subtitle, rightSlot.
+- **ListItemCard** (`components/ui/list-item-card.tsx`) — card with gold badge, press scale animation (0.97), chevron, subtitle.
 - **PrayerRunner** (`components/prayer-runner.tsx`) — generic component for counted prayers (rosario, coronilla). Accepts `pasos`, `storageKey`, `title`, `onBack`. Has beads display, FadeIn/FadeOut animations, AsyncStorage persistence.
 - **FavBtn** (`components/fav-btn.tsx`) — heart toggle for favorites. Uses `data/favoritos.ts` (AsyncStorage CRUD).
 - **FontSizeControl** (`components/font-size-control.tsx`) — A-/A+ buttons. Uses `contexts/font-size.tsx`.
@@ -77,14 +80,13 @@ These reflect actual codebase patterns, not aspirational rules:
 | `data/coronilla-steps.ts` | `generarPasosCoronilla()` — Divine Mercy chaplet |
 | `data/streaks.ts` | `calcularRacha(key)`, `obtenerStats()` — streak calculation |
 | `data/favoritos.ts` | `addFavorito`, `removeFavorito`, `isFavorito`, `getFavoritos` — CRUD via AsyncStorage |
-| `data/notifications.ts` | `setupNotifications()`, `isEnabled()`, `setEnabled()` — daily at 20:00. Uses lazy `import("expo-notifications")` to avoid crash in Expo Go. |
 | `data/jaculatorias.ts` | Jaculatorias grouped by section (Jesús, Espíritu Santo, María, José, etc.) |
 | `data/vatican-prayers.ts` | 23 prayers from Vatican News (Angelus, Magnificat, Te Deum, etc.) |
 
 ## Android Quirks
 
-- `MIN(id)` inside `GROUP BY` can return wrong ordering on Android. Prefer `MIN(ROWID)` or `ORDER BY MIN(pregunta_nro)` (as in `getYoucatPartes`).
-- DB replacement: `adb shell "run-as com.tudominio.app rm /data/data/com.tudominio.app/files/ExpoLite/iglesia_digital.db"` then re-launch. Or use the "Expandir DB" button on `/test` screen.
+- `MIN(id)` inside `GROUP BY` can return wrong ordering on Android. Prefer `MIN(ROWID)` or `ORDER BY MIN(id)`.
+- DB replacement: `adb shell "run-as com.iglesiadigital.app rm /data/data/com.iglesiadigital.app/files/ExpoLite/iglesia_digital.db"` then re-launch. Or use the "Expandir DB" button on `/test` screen.
 - WAL/SHM files must be deleted too — see `forceReCopy()` in `db/init.ts`.
 
 ## Debug Screens
@@ -107,16 +109,17 @@ eas build --platform android --profile production
 # Or use Expo Application Services dashboard
 ```
 
-- `app.json`: `android.package = "com.iglesiadigital.app"`, `versionCode = 1`, plugin `expo-notifications` added.
+- `app.json`: `android.package = "com.iglesiadigital.app"`, `versionCode = 1`.
 - `eas.json`: created at `AppMovil/eas.json` with `preview` (APK) and `production` (AAB) profiles.
-- Notifications require a dev build — they don't work in Expo Go (SDK 53+ removed support).
 
 ## Python Scrapers (`archive/`)
 
 ```bash
 python3 archive/scraper_vaticano.py                    # current + next month (no deps)
 python3 archive/scraper_vaticano.py --fecha 2026-06-12 # single date
-pip install pdfplumber --break-system-packages          # only for scraper_cic.py / scraper_youcat.py
+pip install pdfplumber --break-system-packages          # only for scraper_cic.py / scraper_misal.py
+python3 archive/scraper_misal.py --preview           # Misal Romano: 157 propios, 202 ordinario, 67 prefacios, 4 plegarias
+python3 archive/scraper_misal.py                     # write to AppMovil/assets/iglesia_digital.db
 python3 archive/scraper_oraciones_vatican.py            # fetch 23 prayers from Vatican News → stdout JSON
 python3 archive/scraper_novenas.py --preview            # scrape novenas from devocionario.com, show JSON preview
 python3 archive/scraper_novenas.py --db path/to/db.db   # write novenas to existing DB
@@ -124,15 +127,12 @@ python3 archive/scraper_novenas.py --db path/to/db.db   # write novenas to exist
 
 Vatican scraper: 0.5s sleep between requests, parses 5 HTML `<h2>` sections. Default range = 15d before current month → end of next month.
 
-**YOUCAT scraper** (3-phase: extract → clean → parse):
+**Misal Romano scraper** (17 PDFs from LiturgiaPapal México):
 ```bash
-python3 archive/scraper_youcat.py extract   # raw text → paginas_raw.json
-python3 archive/scraper_youcat.py clean     # column split (disabled, uses raw text)
-python3 archive/scraper_youcat.py parse --preview  # detect questions, preview
-python3 archive/scraper_youcat.py parse --db       # write youcat + FTS to AppMovil/assets/iglesia_digital.db
+python3 archive/scraper_misal.py --preview   # print summary (157 propios, 202 ordinario, 67 prefacios, 4 plegarias)
+python3 archive/scraper_misal.py             # write to AppMovil/assets/iglesia_digital.db
 ```
-
-Key patterns: `RE_SIMPLE = r'(?<!\d)(\d{1,3})\s+(¿)'` finds 524/527 questions. 6 premise questions use per-number fallback regex. `limpiar_sidebar()` strips author names/Latin/date patterns. `limpiar_texto()` collapses whitespace, removes `[\d,\-\[\]]` markers. Index cutoff at `Índice temático`. Part/chapter via reversed-position search. 527/527 questions parsed; 3 duplicates (Q27, Q92, Q152) deduped (keep first).
+Key patterns: `RE_DAY_LINE = r'^(DÍA\s+|Domingo|Feria|Lunes|Martes|Miércoles|Jueves|Viernes|Sábado|Inicio|Octava|I\d+)'`, roman numeral parsing with `[IVXLCDM]{1,6}`. Navidad uses special `parse_propio_navidad()` for date/feast format. Triduo Pascual excluded (ordinario-style rubrics). Dedup removes duplicate Easter Sunday entries and trailing periods.
 
 **Novenas scraper** (single-page novenas from devocionario.com):
 ```bash

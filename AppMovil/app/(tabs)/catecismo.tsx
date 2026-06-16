@@ -1,11 +1,13 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { C } from "@/constants/theme";
+import ScreenHeader from "@/components/ui/screen-header";
+import ListItemCard from "@/components/ui/list-item-card";
 import FavBtn from "@/components/fav-btn";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, Platform, ScrollView, StatusBar,
+  ActivityIndicator, ScrollView, StatusBar,
   StyleSheet, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
@@ -16,33 +18,6 @@ import {
 import type { CICNumeral, CICParte, CICSeccion, CICNumeralPreview } from "@/types";
 
 type Nivel = "partes" | "secciones" | "numerales" | "detalle";
-
-function Header({ nivel, parteActual, seccionActual, onBack }: {
-  nivel: Nivel; parteActual: string | null; seccionActual: string | null; onBack: () => void;
-}) {
-  const titles: Record<Nivel, string> = {
-    partes: "Catecismo de la Iglesia",
-    secciones: parteActual ?? "",
-    numerales: seccionActual ?? "",
-    detalle: "Numeral",
-  };
-
-  return (
-    <View style={s.header}>
-      {nivel !== "partes" && (
-        <TouchableOpacity onPress={onBack} style={s.backBtn} activeOpacity={0.7}>
-          <ThemedText style={s.backArrow}>←</ThemedText>
-        </TouchableOpacity>
-      )}
-      <View style={{ flex: 1 }}>
-        <ThemedText style={s.headerSuper}>✝ IGLESIA DIGITAL</ThemedText>
-        <ThemedText style={s.headerTitle} numberOfLines={2}>{titles[nivel]}</ThemedText>
-        {nivel === "secciones" && <ThemedText style={s.breadcrumb}>Seleccioná una sección</ThemedText>}
-        {nivel === "numerales" && <ThemedText style={s.breadcrumb}>{parteActual}</ThemedText>}
-      </View>
-    </View>
-  );
-}
 
 export default function CatecismoScreen() {
   const db = useSQLiteContext();
@@ -161,6 +136,15 @@ export default function CatecismoScreen() {
   const prevId = idx > 0 ? numerales[idx - 1]?.id : null;
   const nextId = idx < numerales.length - 1 ? numerales[idx + 1]?.id : null;
 
+  const getHeaderTitles = () => {
+    switch (nivel) {
+      case "partes": return { title: "Catecismo de la Iglesia", superLabel: "✝ IGLESIA DIGITAL" };
+      case "secciones": return { title: parteActual ?? "", superLabel: "✝ IGLESIA DIGITAL", subtitle: "Seleccioná una sección" };
+      case "numerales": return { title: seccionActual ?? "", superLabel: "✝ IGLESIA DIGITAL", subtitle: parteActual ?? "" };
+      case "detalle": return { title: "Numeral", superLabel: "✝ IGLESIA DIGITAL" };
+    }
+  };
+
   const renderBuscador = () => (
     <View style={s.buscadorRow}>
       <View style={s.buscador}>
@@ -221,7 +205,12 @@ export default function CatecismoScreen() {
   if (nivel === "detalle" && detalle) return (
     <View style={[s.safe, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
-      <Header nivel="detalle" parteActual={parteActual} seccionActual={seccionActual} onBack={volver} />
+      <ScreenHeader
+        title="Numeral"
+        showBack={nivel !== "partes"}
+        onBack={volver}
+        superLabel="✝ IGLESIA DIGITAL"
+      />
       <ScrollView contentContainerStyle={s.detalleContent} showsVerticalScrollIndicator={false}>
         <View style={s.nroBadgeRow}>
           <View style={s.nroBadge}><ThemedText style={s.nroBadgeText}>Numeral {detalle.id}</ThemedText></View>
@@ -244,7 +233,6 @@ export default function CatecismoScreen() {
         <View style={s.divider} />
         <ThemedText style={s.detalleTexto}>{detalle.texto}</ThemedText>
 
-        {/* Prev / Next */}
         <View style={s.prevNextRow}>
           <TouchableOpacity
             style={[s.prevNextBtn, !prevId && s.prevNextDisabled]}
@@ -264,7 +252,6 @@ export default function CatecismoScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Jump to numeral */}
         <View style={s.jumpDetailRow}>
           <TextInput
             style={s.jumpDetailInput}
@@ -293,7 +280,12 @@ export default function CatecismoScreen() {
     return (
       <View style={[s.safe, { paddingTop: insets.top }]}>
         <StatusBar barStyle="light-content" backgroundColor={C.navy} />
-        <Header nivel={nivel} parteActual={parteActual} seccionActual={seccionActual} onBack={volver} />
+        <ScreenHeader
+          title={getHeaderTitles().title}
+          showBack={nivel !== "partes"}
+          onBack={volver}
+          superLabel="✝ IGLESIA DIGITAL"
+        />
         {renderBuscador()}
         {buscando ? (
           <View style={s.center}><ActivityIndicator size="large" color={C.gold} /></View>
@@ -305,14 +297,12 @@ export default function CatecismoScreen() {
             showsVerticalScrollIndicator={false}
             ItemSeparatorComponent={() => <View style={s.sep} />}
             renderItem={({ item }) => (
-              <TouchableOpacity style={s.card} onPress={() => cargarDetalle(item.id)} activeOpacity={0.75}>
-                <View style={s.nroBox}><ThemedText style={s.nroText}>{item.id}</ThemedText></View>
-                <View style={{ flex: 1 }}>
-                  {item.articulo ? <ThemedText style={s.cardSub} numberOfLines={1}>{item.articulo}</ThemedText> : null}
-                  <ThemedText style={s.cardPreview} numberOfLines={2}>{item.texto?.slice(0, 80)}…</ThemedText>
-                </View>
-                <ThemedText style={s.chevron}>›</ThemedText>
-              </TouchableOpacity>
+              <ListItemCard
+                index={item.id}
+                title={item.texto?.slice(0, 80) + "…"}
+                subtitle={[item.parte, item.seccion].filter(Boolean).join(" › ")}
+                onPress={() => cargarDetalle(item.id)}
+              />
             )}
             ListEmptyComponent={
               searchError
@@ -328,47 +318,53 @@ export default function CatecismoScreen() {
   return (
     <View style={[s.safe, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
-      <Header nivel={nivel} parteActual={parteActual} seccionActual={seccionActual} onBack={volver} />
+      <ScreenHeader
+        title={getHeaderTitles().title}
+        showBack={nivel !== "partes"}
+        onBack={volver}
+        superLabel="✝ IGLESIA DIGITAL"
+        subtitle={getHeaderTitles().subtitle}
+      />
       {renderBuscador()}
 
       {nivel === "partes" && (
         <FlashList data={partes} keyExtractor={(item) => item.parte} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
+          ListHeaderComponent={<ThemedText style={s.nivelInfo}>Seleccioná una parte del Catecismo</ThemedText>}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item, index }) => (
-            <TouchableOpacity style={s.card} onPress={() => seleccionarParte(item.parte)} activeOpacity={0.75}>
-              <View style={s.indexBadge}><ThemedText style={s.indexText}>{index + 1}</ThemedText></View>
-              <ThemedText style={s.cardTitle} numberOfLines={2}>{item.parte}</ThemedText>
-              <ThemedText style={s.chevron}>›</ThemedText>
-            </TouchableOpacity>
+            <ListItemCard
+              index={index + 1}
+              title={item.parte}
+              onPress={() => seleccionarParte(item.parte)}
+            />
           )}
         />
       )}
 
       {nivel === "secciones" && (
         <FlashList data={secciones} keyExtractor={(item) => item.seccion} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
+          ListHeaderComponent={<ThemedText style={s.nivelInfo}>Seleccioná una sección</ThemedText>}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item, index }) => (
-            <TouchableOpacity style={s.card} onPress={() => seleccionarSeccion(item.seccion)} activeOpacity={0.75}>
-              <View style={[s.indexBadge, s.indexBadgeSec]}><ThemedText style={s.indexText}>{index + 1}</ThemedText></View>
-              <ThemedText style={s.cardTitle} numberOfLines={2}>{item.seccion}</ThemedText>
-              <ThemedText style={s.chevron}>›</ThemedText>
-            </TouchableOpacity>
+            <ListItemCard
+              index={index + 1}
+              title={item.seccion}
+              onPress={() => seleccionarSeccion(item.seccion)}
+            />
           )}
         />
       )}
 
       {nivel === "numerales" && (
         <FlashList data={numerales} keyExtractor={(item) => String(item.id)} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
+          ListHeaderComponent={<ThemedText style={s.nivelInfo}>Seleccioná un numeral</ThemedText>}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item }) => (
-            <TouchableOpacity style={s.card} onPress={() => cargarDetalle(item.id)} activeOpacity={0.75}>
-              <View style={s.nroBox}><ThemedText style={s.nroText}>{item.id}</ThemedText></View>
-              <View style={{ flex: 1 }}>
-                {item.articulo ? <ThemedText style={s.cardSub} numberOfLines={1}>{item.articulo}</ThemedText> : null}
-                <ThemedText style={s.cardPreview} numberOfLines={2}>{item.texto?.slice(0, 80)}…</ThemedText>
-              </View>
-              <ThemedText style={s.chevron}>›</ThemedText>
-            </TouchableOpacity>
+            <ListItemCard
+              title={item.articulo ?? `Numeral ${item.id}`}
+              subtitle={item.texto?.slice(0, 80) + "…"}
+              onPress={() => cargarDetalle(item.id)}
+            />
           )}
         />
       )}
@@ -384,32 +380,16 @@ const s = StyleSheet.create({
   errorText: { color: C.error, fontSize: 14, textAlign: "center", paddingHorizontal: 20 },
   retryBtn: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: C.navyLight, borderRadius: 8, borderWidth: 1, borderColor: C.goldDim },
   retryText: { color: C.goldLight, fontWeight: "600" },
-  header: { flexDirection: "row", alignItems: "center", backgroundColor: C.navyMid, paddingHorizontal: 16, paddingTop: Platform.OS === "android" ? 12 : 8, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: C.goldDim, gap: 10 },
-  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.navyLight, borderWidth: 1, borderColor: C.goldDim, alignItems: "center", justifyContent: "center" },
-  backArrow: { color: C.gold, fontSize: 20, lineHeight: 22 },
-  headerSuper: { color: C.gold, fontSize: 10, letterSpacing: 2, fontWeight: "600" },
-  headerTitle: { color: C.text, fontSize: 18, fontWeight: "700", marginTop: 2 },
-  breadcrumb: { color: C.muted, fontSize: 11, marginTop: 2 },
-  // Search + jump
-  buscadorRow: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 12, marginVertical: 10 },
+  buscadorRow: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 16, marginVertical: 10 },
   buscador: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: C.navyMid, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, paddingHorizontal: 14 },
   input: { flex: 1, color: C.text, fontSize: 15, paddingVertical: 12 },
   clearBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: C.navyLight, alignItems: "center", justifyContent: "center", marginLeft: 8 },
   clearText: { color: C.muted, fontSize: 12 },
   jumpBox: { width: 52, height: 44, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, backgroundColor: C.navyMid, alignItems: "center", justifyContent: "center" },
   jumpInput: { color: C.gold, fontSize: 16, fontWeight: "700", textAlign: "center", width: "100%", padding: 0 },
-  list: { padding: 12 },
+  list: { padding: 16 },
   sep: { height: 1, backgroundColor: C.sep, marginHorizontal: 8 },
-  card: { flexDirection: "row", alignItems: "center", backgroundColor: C.navyMid, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12, gap: 12, borderWidth: 1, borderColor: C.sep, marginBottom: 6 },
-  indexBadge: { width: 34, height: 34, borderRadius: 8, backgroundColor: C.goldDim, alignItems: "center", justifyContent: "center" },
-  indexBadgeSec: { backgroundColor: "#1A4A6E" },
-  indexText: { color: C.goldLight, fontSize: 13, fontWeight: "800" },
-  cardTitle: { flex: 1, color: C.text, fontSize: 14, fontWeight: "600", lineHeight: 20 },
-  chevron: { color: C.gold, fontSize: 22 },
-  nroBox: { minWidth: 46, height: 40, borderRadius: 8, backgroundColor: C.goldDim, alignItems: "center", justifyContent: "center", paddingHorizontal: 6 },
-  nroText: { color: C.goldLight, fontSize: 13, fontWeight: "800" },
-  cardSub: { color: C.gold, fontSize: 11, fontWeight: "600", marginBottom: 3 },
-  cardPreview: { color: C.text, fontSize: 13, lineHeight: 18 },
+  nivelInfo: { color: C.muted, fontSize: 12, paddingBottom: 8, paddingHorizontal: 4 },
   detalleContent: { padding: 20, paddingBottom: 40 },
   nroBadgeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
   nroBadge: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },

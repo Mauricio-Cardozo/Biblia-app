@@ -1,14 +1,13 @@
+import { C } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
 import { useCallback, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput,
+  ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, View,
 } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
-import { searchCIC, searchYoucat } from '@/db/db';
+import { searchCIC } from '@/db/db';
 import { diagnose, forceReCopy } from '@/db/init';
-import type { CICNumeral, YoucatQuestion } from '@/types';
-
-type SearchTarget = 'cic' | 'youcat';
 
 export default function TestDatabase() {
   const db = useSQLiteContext();
@@ -17,7 +16,6 @@ export default function TestDatabase() {
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
 
   const [termino, setTermino] = useState('');
-  const [target, setTarget] = useState<SearchTarget>('cic');
   const [searchResults, setSearchResults] = useState<string>('');
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -60,23 +58,13 @@ export default function TestDatabase() {
     setSearchError(null);
     setSearchResults('');
     try {
-      if (target === 'cic') {
-        const data = await searchCIC(db, t);
-        setSearchResults(data.length === 0
-          ? 'Sin resultados'
-          : data.slice(0, 30).map((r: CICNumeral) =>
-              `• Numeral ${r.id}: ${r.texto.slice(0, 120)}…`
-            ).join('\n\n')
-        );
-      } else {
-        const data = await searchYoucat(db, t);
-        setSearchResults(data.length === 0
-          ? 'Sin resultados'
-          : data.slice(0, 30).map((r: YoucatQuestion) =>
-              `• Pregunta ${r.pregunta_nro}: ${r.pregunta_texto.slice(0, 80)}…`
-            ).join('\n\n')
-        );
-      }
+      const data = await searchCIC(db, t);
+      setSearchResults(data.length === 0
+        ? 'Sin resultados'
+        : data.slice(0, 30).map((r: any) =>
+            `• Numeral ${r.id}: ${r.texto.slice(0, 120)}…`
+          ).join('\n\n')
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('Search error:', err);
@@ -84,7 +72,7 @@ export default function TestDatabase() {
     } finally {
       setSearchLoading(false);
     }
-  }, [db, termino, target]);
+  }, [db, termino]);
 
   const rebuildFTS = useCallback(async () => {
     setSearchLoading(true);
@@ -93,37 +81,17 @@ export default function TestDatabase() {
     const errors: string[] = [];
 
     try {
-      await db.runAsync('DROP TABLE IF EXISTS youcat_fts;');
       await db.runAsync('DROP TABLE IF EXISTS catecismo_cic_fts;');
     } catch {
-      errors.push('Error al dropear tablas FTS existentes');
+      errors.push('Error al dropear tabla FTS');
     }
 
-    // ── youcat_fts ──
     try {
-      await db.runAsync(`CREATE VIRTUAL TABLE youcat_fts USING fts5(
-        id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo
-      )`);
-      const youcatRows = await db.getAllAsync<any>(
-        "SELECT rowid, id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo FROM youcat"
-      );
-      for (const r of youcatRows) {
-        await db.runAsync(
-          "INSERT INTO youcat_fts(rowid, id, pregunta_nro, pregunta_texto, respuesta_texto, parte, capitulo) VALUES (?, ?, ?, ?, ?, ?, ?)",
-          [r.rowid, r.id, r.pregunta_nro, r.pregunta_texto, r.respuesta_texto, r.parte, r.capitulo],
-        );
-      }
-    } catch (err: any) {
-      errors.push(`youcat_fts: ${err.message}`);
-    }
-
-    // ── catecismo_cic_fts ──
-    try {
-      await db.runAsync(`CREATE VIRTUAL TABLE catecismo_cic_fts USING fts5(
+      await db.runAsync(`CREATE VIRTUAL TABLE IF NOT EXISTS catecismo_cic_fts USING fts5(
         id, parte, seccion, capitulo, articulo, texto
       )`);
       const cicRows = await db.getAllAsync<any>(
-        "SELECT rowid, id, parte, seccion, capitulo, articulo, texto FROM catecismo_cic"
+        "SELECT rowid as id, parte, seccion, capitulo, articulo, texto FROM catecismo_cic"
       );
       for (const r of cicRows) {
         await db.runAsync(
@@ -143,76 +111,66 @@ export default function TestDatabase() {
     setSearchLoading(false);
   }, [db]);
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
-      <Text style={styles.title}>🔍 Debug de Base de Datos</Text>
+  if (!__DEV__) return null;
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Buscar</Text>
-        <View style={styles.row}>
-          <TouchableOpacity style={[styles.tabBtn, target === 'cic' && styles.tabBtnActive]} onPress={() => setTarget('cic')}>
-            <Text style={[styles.tabBtnText, target === 'cic' && styles.tabBtnTextActive]}>CIC</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.tabBtn, target === 'youcat' && styles.tabBtnActive]} onPress={() => setTarget('youcat')}>
-            <Text style={[styles.tabBtnText, target === 'youcat' && styles.tabBtnTextActive]}>YOUCAT</Text>
-          </TouchableOpacity>
-        </View>
-        <TextInput ref={inputRef} style={styles.input} placeholder="Ej: Dios, amor, fe..." placeholderTextColor="#666"
+  return (
+    <ScrollView style={s.container} contentContainerStyle={{ paddingBottom: 60 }}>
+      <ThemedText style={s.title}>🔍 Debug de Base de Datos</ThemedText>
+
+      <View style={s.card}>
+        <ThemedText style={s.cardTitle}>Buscar en CIC</ThemedText>
+        <TextInput ref={inputRef} style={s.input} placeholder="Ej: Dios, amor, fe..." placeholderTextColor={C.muted}
           value={termino} onChangeText={setTermino} onSubmitEditing={ejecutarBusqueda} returnKeyType="search"
         />
-        <View style={styles.row}>
-          <TouchableOpacity style={styles.btn} onPress={ejecutarBusqueda}>
-            <Text style={styles.btnText}>🔎 Buscar</Text>
+        <View style={s.row}>
+          <TouchableOpacity style={s.btn} onPress={ejecutarBusqueda}>
+            <ThemedText style={s.btnText}>🔎 Buscar</ThemedText>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.btnSecondary} onPress={rebuildFTS}>
-            <Text style={styles.btnText}>🔄 Rebuild FTS</Text>
+          <TouchableOpacity style={s.btnSecondary} onPress={rebuildFTS}>
+            <ThemedText style={s.btnText}>🔄 Rebuild FTS</ThemedText>
           </TouchableOpacity>
         </View>
       </View>
 
-      {searchLoading && <ActivityIndicator size="large" color="#C9A84C" style={{ marginVertical: 20 }} />}
-      {searchError && <Text style={styles.error}>{searchError}</Text>}
+      {searchLoading && <ActivityIndicator size="large" color={C.gold} style={{ marginVertical: 20 }} />}
+      {searchError && <ThemedText style={s.error}>{searchError}</ThemedText>}
       {searchResults !== '' && !searchLoading && (
-        <View style={styles.card}>
-          <Text style={styles.resultText}>{searchResults}</Text>
+        <View style={s.card}>
+          <ThemedText style={s.resultText}>{searchResults}</ThemedText>
         </View>
       )}
 
-      <TouchableOpacity style={styles.btn} onPress={ejecutarDiagnosis}>
-        <Text style={styles.btnText}>🔬 Diagnosticar DB</Text>
+      <TouchableOpacity style={s.btn} onPress={ejecutarDiagnosis}>
+        <ThemedText style={s.btnText}>🔬 Diagnosticar DB</ThemedText>
       </TouchableOpacity>
-      {diagnosisLoading && <ActivityIndicator size="small" color="#C9A84C" style={{ marginVertical: 12 }} />}
+      {diagnosisLoading && <ActivityIndicator size="small" color={C.gold} style={{ marginVertical: 12 }} />}
       {diagnosis !== '' && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Diagnóstico</Text>
-          <Text style={styles.mono}>{diagnosis}</Text>
+        <View style={s.card}>
+          <ThemedText style={s.cardTitle}>Diagnóstico</ThemedText>
+          <ThemedText style={s.mono}>{diagnosis}</ThemedText>
         </View>
       )}
 
-      <TouchableOpacity style={styles.btnDanger} onPress={confirmarReCopy}>
-        <Text style={styles.btnDangerText}>⚠ Expandir DB desde assets</Text>
+      <TouchableOpacity style={s.btnDanger} onPress={confirmarReCopy}>
+        <ThemedText style={s.btnDangerText}>⚠ Expandir DB desde assets</ThemedText>
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, paddingTop: 50, backgroundColor: '#0D1B2A' },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16, color: '#E8C97A' },
-  card: { backgroundColor: '#1A2D45', padding: 14, borderRadius: 10, marginBottom: 14, borderWidth: 1, borderColor: '#C9A84C33' },
-  cardTitle: { color: '#C9A84C', fontSize: 15, fontWeight: '700', marginBottom: 10 },
+const s = StyleSheet.create({
+  container: { flex: 1, padding: 16, paddingTop: 50, backgroundColor: C.navy },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16, color: C.goldLight },
+  card: { backgroundColor: C.navyMid, padding: 14, borderRadius: 12, marginBottom: 14, borderWidth: 1, borderColor: C.goldDim },
+  cardTitle: { color: C.gold, fontSize: 15, fontWeight: '700', marginBottom: 10 },
   row: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  input: { backgroundColor: '#0D1B2A', color: '#F0E6CC', fontSize: 15, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#C9A84C55', marginBottom: 10 },
-  btn: { flex: 1, backgroundColor: '#1A2D45', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#C9A84C', alignItems: 'center' },
-  btnSecondary: { flex: 1, backgroundColor: '#243B55', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#C9A84C55', alignItems: 'center' },
-  btnDanger: { backgroundColor: '#4A1A2D', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#E07070', alignItems: 'center', marginTop: 8 },
-  btnText: { color: '#E8C97A', fontWeight: '700', fontSize: 14 },
-  btnDangerText: { color: '#E07070', fontWeight: '700', fontSize: 14 },
-  tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 6, backgroundColor: '#0D1B2A', alignItems: 'center', borderWidth: 1, borderColor: '#C9A84C33' },
-  tabBtnActive: { backgroundColor: '#C9A84C33', borderColor: '#C9A84C' },
-  tabBtnText: { color: '#888', fontWeight: '600', fontSize: 13 },
-  tabBtnTextActive: { color: '#E8C97A' },
-  error: { color: '#E07070', fontSize: 14, textAlign: 'center', marginVertical: 10 },
-  resultText: { color: '#F0E6CC', fontSize: 13, fontFamily: 'monospace', lineHeight: 20 },
-  mono: { color: '#F0E6CC', fontSize: 12, fontFamily: 'monospace', lineHeight: 18 },
+  input: { backgroundColor: C.navy, color: C.text, fontSize: 15, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: C.goldDim, marginBottom: 10 },
+  btn: { flex: 1, backgroundColor: C.navyMid, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: C.gold, alignItems: 'center' },
+  btnSecondary: { flex: 1, backgroundColor: C.navyLight, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: C.goldDim, alignItems: 'center' },
+  btnDanger: { backgroundColor: '#4A1A2D', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: C.error, alignItems: 'center', marginTop: 8 },
+  btnText: { color: C.goldLight, fontWeight: '700', fontSize: 14 },
+  btnDangerText: { color: C.error, fontWeight: '700', fontSize: 14 },
+  error: { color: C.error, fontSize: 14, textAlign: 'center', marginVertical: 10 },
+  resultText: { color: C.text, fontSize: 13, fontFamily: 'monospace', lineHeight: 20 },
+  mono: { color: C.text, fontSize: 12, fontFamily: 'monospace', lineHeight: 18 },
 });

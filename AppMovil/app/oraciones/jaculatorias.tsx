@@ -1,8 +1,9 @@
 import { C } from "@/constants/theme";
 import { ThemedText } from "@/components/themed-text";
+import ScreenHeader from "@/components/ui/screen-header";
 import { router } from "expo-router";
 import React from "react";
-import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import JACULATORIAS from "@/data/jaculatorias";
 
@@ -11,12 +12,7 @@ export default function JaculatoriasScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <ThemedText style={s.backArrow}>←</ThemedText>
-        </TouchableOpacity>
-        <ThemedText style={s.title}>Jaculatorias</ThemedText>
-      </View>
+      <ScreenHeader title="Jaculatorias" showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
         <ThemedText style={s.intro}>
           Oraciones breves para mejor mantenernos en la presencia de Dios a lo largo del día
@@ -48,19 +44,7 @@ export default function JaculatoriasScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
-  header: {
-    flexDirection: "row", alignItems: "center", paddingHorizontal: 16,
-    paddingVertical: Platform.OS === "android" ? 12 : 8,
-    borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid,
-    gap: 10,
-  },
-  backBtn: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: C.navyLight,
-    borderWidth: 1, borderColor: C.goldDim, alignItems: "center", justifyContent: "center",
-  },
-  backArrow: { color: C.gold, fontSize: 20, lineHeight: 22 },
-  title: { color: C.text, fontSize: 18, fontWeight: "700" },
-  content: { padding: 20, paddingBottom: 48 },
+  content: { padding: 16, paddingBottom: 48 },
   intro: { color: C.muted, fontSize: 14, lineHeight: 22, marginBottom: 24, fontStyle: "italic" },
   grupo: { marginBottom: 28 },
   grupoTitulo: { color: C.gold, fontSize: 16, fontWeight: "700", marginBottom: 12 },

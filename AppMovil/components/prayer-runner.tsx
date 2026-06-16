@@ -1,12 +1,12 @@
 import { C } from "@/constants/theme";
 import { ThemedText } from "@/components/themed-text";
+import ScreenHeader from "@/components/ui/screen-header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import FontSizeControl from "@/components/font-size-control";
 import { useFontSize, fs } from "@/contexts/font-size";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -65,18 +65,13 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
     <View style={[s.safe, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
 
-      <View style={s.header}>
-        <TouchableOpacity onPress={onBack} style={s.backBtn}>
-          <ThemedText style={s.backArrow}>←</ThemedText>
-        </TouchableOpacity>
-        <View style={s.headerTextWrap}>
-          <ThemedText style={s.headerTitle}>{title}</ThemedText>
-          <ThemedText style={s.headerProgreso}>
-            Paso {Math.min(stepIndex + 1, total)} de {total}
-          </ThemedText>
-        </View>
-        <FontSizeControl />
-      </View>
+      <ScreenHeader
+        title={title}
+        subtitle={`Paso ${Math.min(stepIndex + 1, total)} de ${total}`}
+        showBack
+        onBack={onBack}
+        rightSlot={<FontSizeControl />}
+      />
 
       {showBeads && (
         <View style={s.beadsContainer}>
@@ -115,7 +110,7 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
       </ScrollView>
 
       {step.id !== "completado" ? (
-        <View style={s.footer}>
+        <View style={[s.footer, { paddingBottom: insets.bottom + 12 }]}>
           <TouchableOpacity
             style={s.nextBtn}
             onPress={handleSiguiente}
@@ -125,7 +120,7 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={s.footer}>
+        <View style={[s.footer, { paddingBottom: insets.bottom + 12 }]}>
           <TouchableOpacity
             style={s.nextBtn}
             onPress={() => setStepIndex(0)}
@@ -141,19 +136,6 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.navy },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: C.goldDim,
-  },
-  backBtn: { paddingRight: 12, paddingVertical: 4 },
-  backArrow: { color: C.gold, fontSize: 22, lineHeight: 24 },
-  headerTextWrap: { flex: 1 },
-  headerTitle: { color: C.gold, fontSize: 18, fontWeight: "700" },
-  headerProgreso: { color: C.muted, fontSize: 12 },
   beadsContainer: {
     alignItems: "center",
     paddingVertical: 12,
@@ -174,7 +156,7 @@ const s = StyleSheet.create({
   footer: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: Platform.OS === "android" ? 16 : 32,
+    paddingBottom: 12,
     backgroundColor: C.navy,
     borderTopWidth: 1,
     borderTopColor: C.goldDim,

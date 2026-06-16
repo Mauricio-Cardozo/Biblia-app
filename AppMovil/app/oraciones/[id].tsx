@@ -1,9 +1,10 @@
 import { C } from "@/constants/theme";
 import { ThemedText } from "@/components/themed-text";
+import ScreenHeader from "@/components/ui/screen-header";
 import { useFontSize, fs } from "@/contexts/font-size";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
-import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ORACIONES from "@/data/vatican-prayers";
 
@@ -16,24 +17,14 @@ export default function OracionDetalleScreen() {
   if (!prayer) {
     return (
       <View style={[s.container, { paddingTop: insets.top }]}>
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ThemedText style={s.backArrow}>←</ThemedText>
-          </TouchableOpacity>
-          <ThemedText style={s.title}>Oración no encontrada</ThemedText>
-        </View>
+        <ScreenHeader title="Oración no encontrada" showBack onBack={() => router.back()} />
       </View>
     );
   }
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <ThemedText style={s.backArrow}>←</ThemedText>
-        </TouchableOpacity>
-        <ThemedText style={s.title}>{prayer.titulo}</ThemedText>
-      </View>
+      <ScreenHeader title={prayer.titulo} showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
         <ThemedText style={[s.texto, { fontSize: fs(16, multiplier), lineHeight: fs(28, multiplier) }]}>
           {prayer.texto}
@@ -45,17 +36,6 @@ export default function OracionDetalleScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
-  header: {
-    flexDirection: "row", alignItems: "center", paddingHorizontal: 16,
-    paddingVertical: Platform.OS === "android" ? 12 : 8,
-    borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid, gap: 10,
-  },
-  backBtn: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: C.navyLight,
-    borderWidth: 1, borderColor: C.goldDim, alignItems: "center", justifyContent: "center",
-  },
-  backArrow: { color: C.gold, fontSize: 20, lineHeight: 22 },
-  title: { color: C.text, fontSize: 18, fontWeight: "700" },
-  content: { padding: 20, paddingBottom: 48 },
+  content: { padding: 16, paddingBottom: 48 },
   texto: { color: C.text, lineHeight: 28 },
 });

@@ -44,30 +44,6 @@ export interface CICSearchResult extends CICNumeral {
   rank?: number;
 }
 
-// ─── YOUCAT ─────────────────────────────────────────────────────────────────────
-
-export interface YoucatQuestion {
-  id: number;
-  pregunta_nro: number;
-  pregunta_texto: string;
-  respuesta_texto: string;
-  parte: string;
-  capitulo: string;
-}
-
-export interface YoucatParte {
-  parte: string;
-  desde: number;
-  hasta: number;
-  preguntas: number;
-}
-
-export interface YoucatPregunta {
-  id: number;
-  pregunta_nro: number;
-  pregunta_texto: string;
-}
-
 // ─── Lecturas ───────────────────────────────────────────────────────────────────
 
 export interface Lectura {
@@ -80,6 +56,42 @@ export interface Lectura {
   aleluia: string;
   evangelio_ref: string;
   evangelio: string;
+}
+
+// ─── Misal Romano ──────────────────────────────────────────────────────────────
+
+export interface MisalPropioEntry {
+  id: number;
+  temporada: string;
+  temporada_label: string;
+  dia: string;
+  colecta: string;
+  oracion_ofrendas: string;
+  postcomunion: string;
+  prefacio: string;
+  antifona_entrada: string;
+  antifona_comunion: string;
+}
+
+export interface MisalOrdinarioBlock {
+  id: number;
+  seccion: string;
+  subseccion: string;
+  rol: string;
+  texto: string;
+  orden: number;
+}
+
+export interface MisalPrefacio {
+  id: number;
+  titulo: string;
+  texto: string;
+}
+
+export interface MisalPlegaria {
+  id: number;
+  nombre: string;
+  texto: string;
 }
 
 // ─── Búsqueda genérica ─────────────────────────────────────────────────────────

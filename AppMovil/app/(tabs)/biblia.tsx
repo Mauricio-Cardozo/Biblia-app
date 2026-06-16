@@ -190,6 +190,7 @@ export default function BibliaScreen() {
 
       {nivel === "libros" && (
         <FlashList
+          key={filtro}
           data={librosFiltrados}
           keyExtractor={(item) => item.libro}
           numColumns={2}

@@ -1,5 +1,6 @@
 import { C } from "@/constants/theme";
 import { ThemedText } from "@/components/themed-text";
+import ScreenHeader from "@/components/ui/screen-header";
 import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
 import { getLecturaDelDia } from "@/db/db";
@@ -100,36 +101,34 @@ export default function EvangelioScreen() {
       style={[s.container, { paddingTop: insets.top }]}
       contentContainerStyle={s.content}
     >
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <ThemedText style={s.backArrow}>←</ThemedText>
-        </TouchableOpacity>
-        <View style={s.headerTextWrap}>
-          <ThemedText style={s.headerTitle}>Evangelio del día</ThemedText>
-          <ThemedText style={s.headerFecha}>{formatoFecha(lectura.fecha)}</ThemedText>
-        </View>
-        <FontSizeControl />
-        <TouchableOpacity onPress={() => router.push("/calendario")} style={{ marginRight: 8 }}>
-          <ThemedText style={{ color: C.gold, fontSize: 20 }}>📅</ThemedText>
-        </TouchableOpacity>
-        <FavBtn
-          favorito={{
-            id: `evangelio-${lectura.fecha}`,
-            tipo: "evangelio",
-            referencia: `Evangelio ${lectura.fecha}`,
-            preview: lectura.evangelio?.slice(0, 80) ?? "",
-            timestamp: Date.now(),
-          }}
-        />
-      </View>
+      <ScreenHeader
+        title="Evangelio del día"
+        subtitle={formatoFecha(lectura.fecha)}
+        showBack
+        onBack={() => router.back()}
+        rightSlot={
+          <View style={s.headerRight}>
+            <FontSizeControl />
+            <TouchableOpacity onPress={() => router.push("/calendario")} style={s.calBtn}>
+              <ThemedText style={{ color: C.gold, fontSize: 20 }}>📅</ThemedText>
+            </TouchableOpacity>
+            <FavBtn
+              favorito={{
+                id: `evangelio-${lectura.fecha}`,
+                tipo: "evangelio",
+                referencia: `Evangelio ${lectura.fecha}`,
+                preview: lectura.evangelio?.slice(0, 80) ?? "",
+                timestamp: Date.now(),
+              }}
+            />
+          </View>
+        }
+      />
 
-      {/* Título de la misa */}
       {lectura.titulo_misa ? (
         <ThemedText style={s.tituloMisa}>{lectura.titulo_misa}</ThemedText>
       ) : null}
 
-      {/* Primera Lectura */}
       {lectura.primera_lectura ? (
         <SeccionLectura
           label="Primera Lectura"
@@ -138,17 +137,14 @@ export default function EvangelioScreen() {
         />
       ) : null}
 
-      {/* Salmo */}
       {lectura.salmo ? (
         <SeccionLectura label="Salmo Responsorial" texto={lectura.salmo} />
       ) : null}
 
-      {/* Aleluya */}
       {lectura.aleluia ? (
         <SeccionLectura label="Aleluya" texto={lectura.aleluia} />
       ) : null}
 
-      {/* Evangelio */}
       {lectura.evangelio ? (
         <SeccionLectura
           label="Evangelio"
@@ -165,33 +161,19 @@ const s = StyleSheet.create({
   content: { paddingBottom: 48 },
   centered: { flex: 1, backgroundColor: C.navy, justifyContent: "center", alignItems: "center", paddingHorizontal: 20 },
   errorText: { color: C.error, fontSize: 15, textAlign: "center", marginBottom: 16 },
-  reintentarBtn: { backgroundColor: C.gold, borderRadius: 10, paddingHorizontal: 24, paddingVertical: 10 },
+  reintentarBtn: { backgroundColor: C.gold, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
   reintentarText: { color: C.navy, fontWeight: "700", fontSize: 14 },
-
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: C.sep,
-  },
-  backBtn: { paddingRight: 12, paddingVertical: 4 },
-  backArrow: { color: C.gold, fontSize: 22, lineHeight: 24 },
-  headerTextWrap: { flex: 1 },
-  headerTitle: { color: C.gold, fontSize: 18, fontWeight: "700" },
-  headerFecha: { color: C.muted, fontSize: 12, marginTop: 2 },
-
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+  calBtn: { padding: 4 },
   tituloMisa: {
     color: C.goldLight,
     fontSize: 20,
     fontWeight: "700",
-    marginHorizontal: 20,
+    marginHorizontal: 16,
     marginTop: 20,
     marginBottom: 8,
   },
-
-  seccion: { marginTop: 24, marginHorizontal: 20 },
+  seccion: { marginTop: 24, marginHorizontal: 16 },
   seccionLabel: {
     color: C.gold,
     fontSize: 12,
