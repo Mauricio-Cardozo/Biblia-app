@@ -5,6 +5,16 @@
       "type": "local",
       "command": ["npx", "-y", "notebooklm-mcp@latest"],
       "enabled": true
+    },
+    "sqlite": {
+      "type": "local",
+      "command": ["npx", "-y", "@mokei/mcp-sqlite@latest", "--db", "/home/mauricionc/Documentos/bible-app/AppMovil/assets/iglesia_digital.db"],
+      "enabled": true
+    },
+    "expo": {
+      "type": "remote",
+      "url": "https://mcp.expo.dev/mcp",
+      "enabled": true
     }
   }
 }
