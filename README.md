@@ -42,11 +42,11 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
 
 | Tecnología | Versión | Uso |
 |---|---|---|
-| Expo | SDK 54 | Framework principal |
-| React Native | 0.76+ | UI nativa |
-| TypeScript | 5.x | Tipado estático |
-| expo-router | 6.x | Navegación basada en archivos (Tabs + Stacks) |
-| expo-sqlite | 15.x | Base de datos local con soporte FTS5 |
+| Expo | SDK 56 | Framework principal |
+| React Native | 0.85.3 | UI nativa |
+| TypeScript | 6.x | Tipado estático |
+| expo-router | 56.x | Navegación basada en archivos (Tabs + Stacks) |
+| expo-sqlite | 56.x | Base de datos local con soporte FTS5 |
 | @shopify/flash-list | latest | Listas de alto rendimiento |
 | react-native-reanimated | latest | Transiciones fluidas |
 | react-native-safe-area-context | latest | Gestión de insets |
@@ -282,20 +282,50 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 
 ## 🗺️ Roadmap
 
+### ✅ Completado
+
 - [x] Biblia del Pueblo de Dios — navegación completa + selector de versión
-- [x] Catecismo CIC — navegación multinivel (4 niveles) + FTS5
+- [x] Catecismo CIC — navegación multinivel (5 niveles) + FTS5
 - [x] Misal Romano — Propio del Tiempo (157 días), Ordinario (202 bloques), 67 Prefacios, 4 Plegarias Eucarísticas
 - [x] Rosario guiado con misterios y rachas 🔥
 - [x] Coronilla de la Divina Misericordia guiada
-- [x] Evangelio del Día desde el leccionario (76 fechas cargadas)
+- [x] Evangelio del Día desde el leccionario
 - [x] Calendario litúrgico mensual
 - [x] Favoritos (versículos, numerales, preguntas)
 - [x] 23 oraciones del Vaticano
 - [x] Jaculatorias agrupadas
 - [x] Modo lectura (fuente ajustable 0.8×–1.5×)
 - [x] Novenas — 18 devociones de 9 días
-- [ ] Sincronización en la nube (Firebase)
-- [ ] Biblia de Jerusalén (pendiente de conseguir texto digital)
+- [x] Expo SDK 54 → 56 (React 19.2.3, RN 0.85.3)
+- [x] Rebranding — nombre, icono personalizado, splash
+
+### 🔴 Corto plazo (alta prioridad)
+
+- [ ] **Notificaciones bíblicas diarias** — evangelio del día a las 7am, versículo aleatorio al mediodía, recordatorio de rachas. Basado en `expo-notifications` + SQLite.
+- [ ] **Split-pane / multi-ventana** — dos paneles simultáneos (Biblia + CIC, o Lecturas + Reflexión). Prioritario en tablets.
+- [ ] **Sistema de etiquetas, highlights y notas** — expandir favs actuales con etiquetas de colores, resaltado de versículos, notas personales.
+
+### 🟡 Mediano plazo
+
+- [ ] **Workspaces** — guardar combinaciones de pantalla (ej. "Devocional matutino" con lectura + salmo)
+- [ ] **Bloc de notas (Study Pad)** — notas personales con referencias bíblicas enlazables
+- [ ] **Text-to-Speech** — botón "Escuchar" en Biblia/lecturas con control de velocidad
+- [ ] **Deep linking** — compartir versículos via `iglesiadigital://biblia/Libro/Capítulo/Versículo`
+- [ ] **Personalización visual** — selección de fuente (serif/sans), interlineado, temas
+- [ ] **Referencias cruzadas** — cross-references clicables entre versículos
+
+### 🟢 Largo plazo
+
+- [ ] **Planes de lectura** — "Biblia en 1 año" con progreso y checkmarks
+- [ ] **Strong's / palabras originales** — griego/hebreo con concordancia (requiere datos en DB)
+- [ ] **Memorización** — modo de ocultar palabras para aprender versículos
+- [ ] **Módulos descargables** — más traducciones bíblicas y comentarios vía descarga
+- [ ] **Cloud Sync** — sincronización de favoritos/notas/rachas
+- [ ] **i18n** — soporte multilingüe (inglés, portugués)
+- [ ] **Integración IA** — "Explicar este pasaje" con API key propia del usuario
+- [ ] **Sincronización en la nube (Firebase)**
+- [ ] **Biblia de Jerusalén** (pendiente de conseguir texto digital)
+- [ ] **Modo discreto** — apariencia alternativa para entornos restringidos
 
 ---
 
@@ -348,3 +378,9 @@ python3 archive/scraper_novenas.py --db assets/db.db   # escribir en DB
 ## 📄 Licencia
 
 Proyecto de uso personal y educativo. Los textos bíblicos y catequéticos pertenecen a sus respectivos propietarios.
+
+---
+
+### 📊 Análisis comparativo
+
+Ver [`analisis-andbible.md`](./analisis-andbible.md) para un análisis detallado de features de [AndBible](https://github.com/AndBible/and-bible) y priorización para Iglesia Digital.
