@@ -12,7 +12,7 @@
     },
     "android": {
       "package": "com.iglesiadigital.app",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#0D1B2A",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
