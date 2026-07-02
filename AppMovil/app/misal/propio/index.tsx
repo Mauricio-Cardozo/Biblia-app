@@ -7,6 +7,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } fro
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ui/screen-header";
 import { getMisalTemporadas, getMisalPropio } from "@/db/db";
+import { SEASON_EMOJI } from "@/utils/seasons";
 import type { MisalPropioEntry } from "@/types";
 
 export default function PropioScreen() {
@@ -71,13 +72,7 @@ export default function PropioScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.cardRow}>
-              <ThemedText style={styles.cardIcon}>
-                {t.temporada === "adviento" ? "🕯️" :
-                 t.temporada === "navidad" ? "⭐" :
-                 t.temporada === "cuaresma" ? "🙏" :
-                 t.temporada === "pascua" ? "✨" :
-                 "🌿"}
-              </ThemedText>
+              <ThemedText style={styles.cardIcon}>{SEASON_EMOJI[t.temporada] ?? "🌿"}</ThemedText>
               <View style={styles.cardTextWrap}>
                 <ThemedText style={styles.cardTitle}>{t.temporada_label}</ThemedText>
                 <ThemedText style={styles.cardSubtitle}>{t.count} días</ThemedText>

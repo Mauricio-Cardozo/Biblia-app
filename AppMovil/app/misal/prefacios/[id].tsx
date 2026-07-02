@@ -18,7 +18,7 @@ export default function PrefacioDetalleScreen() {
 
   useEffect(() => {
     if (!id) return;
-    getMisalPrefacioDetalle(db, Number(id)).then(setPrefacio).finally(() => setLoading(false));
+    getMisalPrefacioDetalle(db, Number(id)).then(setPrefacio).catch(console.error).finally(() => setLoading(false));
   }, [db, id]);
 
   if (loading) {

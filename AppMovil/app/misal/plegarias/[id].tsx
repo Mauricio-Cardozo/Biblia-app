@@ -18,7 +18,7 @@ export default function PlegariaDetalleScreen() {
 
   useEffect(() => {
     if (!id) return;
-    getMisalPlegariaDetalle(db, Number(id)).then(setPlegaria).finally(() => setLoading(false));
+    getMisalPlegariaDetalle(db, Number(id)).then(setPlegaria).catch(console.error).finally(() => setLoading(false));
   }, [db, id]);
 
   if (loading) {

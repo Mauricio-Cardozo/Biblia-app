@@ -52,7 +52,7 @@ export default function CalendarioLiturgico() {
       }
       setLecturas(map);
       setLoading(false);
-    });
+    }).catch(console.error);
   }, [db, ano, mes]);
 
   const mesAnterior = useCallback(() => {

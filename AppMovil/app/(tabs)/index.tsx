@@ -6,6 +6,8 @@ import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { calcularRacha, obtenerStats } from '@/data/streaks';
 
+import { fechaActualLarga } from '@/utils/date';
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
 
@@ -25,13 +27,6 @@ export default function HomeScreen() {
     });
   }, []);
 
-  const obtenerFechaActual = () => {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    const hoy = new Date();
-    return `${dias[hoy.getDay()]}, ${hoy.getDate()} de ${meses[hoy.getMonth()]}`;
-  };
-
   return (
     <ScrollView style={[styles.container, { paddingTop: insets.top + 20 }]}>
       {__DEV__ && (
@@ -41,7 +36,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </Link>
       )}
-      <ThemedText style={styles.dateText}>{obtenerFechaActual()}</ThemedText>
+      <ThemedText style={styles.dateText}>{fechaActualLarga()}</ThemedText>
 
       {/* Evangelio del Día */}
       <TouchableOpacity onPress={() => router.push('/evangelio')} style={styles.card}>

@@ -1,12 +1,14 @@
 import { C } from "@/constants/theme";
 import { ThemedText } from "@/components/themed-text";
+import ScreenHeader from "@/components/ui/screen-header";
+import ReadingSection from "@/components/reading-section";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ScreenHeader from "@/components/ui/screen-header";
 import { getLecturaDelDia, getMisalTemporadas } from "@/db/db";
+import { SEASON_EMOJI } from "@/utils/seasons";
 import type { Lectura } from "@/types";
 
 export default function HoyScreen() {
@@ -43,32 +45,14 @@ export default function HoyScreen() {
         {lectura ? (
           <View style={s.lecturaCard}>
             <ThemedText style={s.lecturaTitle}>{lectura.titulo_misa}</ThemedText>
-            {lectura.primera_lectura && (
-              <View style={s.readingBlock}>
-                <ThemedText style={s.readingLabel}>Primera Lectura</ThemedText>
-                <ThemedText style={s.readingRef}>{lectura.primera_lectura_ref}</ThemedText>
-                <ThemedText style={s.readingText}>{lectura.primera_lectura}</ThemedText>
-              </View>
-            )}
-            {lectura.salmo && (
-              <View style={s.readingBlock}>
-                <ThemedText style={s.readingLabel}>Salmo</ThemedText>
-                <ThemedText style={s.readingText}>{lectura.salmo}</ThemedText>
-              </View>
-            )}
-            {lectura.aleluia && (
-              <View style={s.readingBlock}>
-                <ThemedText style={s.readingLabel}>Aleluia</ThemedText>
-                <ThemedText style={s.readingText}>{lectura.aleluia}</ThemedText>
-              </View>
-            )}
-            {lectura.evangelio && (
-              <View style={s.readingBlock}>
-                <ThemedText style={s.readingLabel}>Evangelio</ThemedText>
-                <ThemedText style={s.readingRef}>{lectura.evangelio_ref}</ThemedText>
-                <ThemedText style={s.readingText}>{lectura.evangelio}</ThemedText>
-              </View>
-            )}
+            {lectura.primera_lectura ? (
+              <ReadingSection label="Primera Lectura" referencia={lectura.primera_lectura_ref} texto={lectura.primera_lectura} />
+            ) : null}
+            {lectura.salmo ? <ReadingSection label="Salmo" texto={lectura.salmo} /> : null}
+            {lectura.aleluia ? <ReadingSection label="Aleluya" texto={lectura.aleluia} /> : null}
+            {lectura.evangelio ? (
+              <ReadingSection label="Evangelio" referencia={lectura.evangelio_ref} texto={lectura.evangelio} />
+            ) : null}
           </View>
         ) : (
           <View style={s.noData}>
@@ -85,13 +69,7 @@ export default function HoyScreen() {
             activeOpacity={0.7}
           >
             <View style={s.cardRow}>
-              <ThemedText style={s.cardIcon}>
-                {t.temporada === "adviento" ? "🕯️" :
-                 t.temporada === "navidad" ? "⭐" :
-                 t.temporada === "cuaresma" ? "🙏" :
-                 t.temporada === "pascua" ? "✨" :
-                 "🌿"}
-              </ThemedText>
+              <ThemedText style={s.cardIcon}>{SEASON_EMOJI[t.temporada] ?? "🌿"}</ThemedText>
               <View style={s.cardTextWrap}>
                 <ThemedText style={s.cardTitle}>{t.temporada_label}</ThemedText>
                 <ThemedText style={s.cardSubtitle}>{t.count} días</ThemedText>
@@ -131,10 +109,6 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
   lecturaTitle: { color: C.gold, fontSize: 16, fontWeight: "700", marginBottom: 12 },
-  readingBlock: { marginBottom: 14 },
-  readingLabel: { color: C.gold, fontSize: 10, fontWeight: "700", letterSpacing: 1, marginBottom: 2 },
-  readingRef: { color: C.muted, fontSize: 11, fontStyle: "italic", marginBottom: 4 },
-  readingText: { color: C.text, fontSize: 14, lineHeight: 22 },
   noData: { padding: 24, alignItems: "center" },
   noDataText: { color: C.muted, fontSize: 14 },
   sectionTitle: { color: C.gold, fontSize: 12, fontWeight: "700", letterSpacing: 1, marginBottom: 10, marginTop: 4 },

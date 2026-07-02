@@ -16,7 +16,7 @@ export default function PrefaciosScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getMisalPrefacios(db).then(setPrefacios).finally(() => setLoading(false));
+    getMisalPrefacios(db).then(setPrefacios).catch(console.error).finally(() => setLoading(false));
   }, [db]);
 
   if (loading) {

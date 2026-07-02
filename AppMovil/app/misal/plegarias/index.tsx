@@ -16,7 +16,7 @@ export default function PlegariasScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getMisalPlegarias(db).then(setPlegarias).finally(() => setLoading(false));
+    getMisalPlegarias(db).then(setPlegarias).catch(console.error).finally(() => setLoading(false));
   }, [db]);
 
   if (loading) {

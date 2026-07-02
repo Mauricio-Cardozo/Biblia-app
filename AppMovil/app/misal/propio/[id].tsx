@@ -18,7 +18,7 @@ export default function PropioDetalleScreen() {
 
   useEffect(() => {
     if (!id) return;
-    getMisalPropioDetalle(db, Number(id)).then(setEntry).finally(() => setLoading(false));
+    getMisalPropioDetalle(db, Number(id)).then(setEntry).catch(console.error).finally(() => setLoading(false));
   }, [db, id]);
 
   if (loading) {
