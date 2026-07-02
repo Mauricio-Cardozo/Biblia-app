@@ -56,32 +56,32 @@ These reflect actual codebase patterns, not aspirational rules:
 ## Notable Gaps & Known Issues
 
 ### Bugs
-- `data/prayers.ts` — `T.letanias` uses literal `\n` (backslash-n, two chars) instead of real newlines. Will render as literal `\n` in `<Text>`.
-- `app/favoritos.tsx` — navigation to `/evangelio` doesn't pass `?fecha=YYYY-MM-DD`. Favorited Gospel entries always open today's reading instead of the saved date.
-- `misal/ordinario/[id].tsx`, `misal/prefacios/[id].tsx`, `misal/plegarias/[id].tsx` — fetch *all* rows then client-side `find()` instead of a direct `WHERE id = ?` query. `db/db.ts` lacks the corresponding detail getter functions.
-- `app/_layout.tsx` — hardcoded `"#D4AF37"` instead of `C.gold`. Breaks if palette changes.
+- ~~`data/prayers.ts` — `T.letanias` uses literal `\n`~~ ✅ fixed (template literal)
+- ~~`app/favoritos.tsx` — navigation to `/evangelio` doesn't pass `?fecha=YYYY-MM-DD`~~ ✅ fixed
+- ~~`misal/ordinario/[id].tsx`, `misal/prefacios/[id].tsx`, `misal/plegarias/[id].tsx` — `find()` client-side~~ ✅ fixed (direct `WHERE id = ?`)
+- ~~`app/_layout.tsx` — hardcoded `"#D4AF37"`~~ ✅ fixed (`C.gold`)
+- ~~`evangelio.tsx` — `catch` uses `any` type~~ ✅ fixed (`instanceof Error`)
 
 ### Dead Code
-- `app/modal.tsx` — Expo template boilerplate, unreachable (no screen pushes to `/modal`), no `C.*` theme import.
-- `components/ui/collapsible.tsx` — zero imports anywhere, uses `Colors` (Expo defaults) instead of `C.*`.
-- `db/init.ts` — `hasColumn` function exported but never called.
+- ~~`app/modal.tsx`~~ ✅ removed
+- ~~`components/ui/collapsible.tsx`~~ ✅ removed
+- ~~`db/init.ts` — `hasColumn` function~~ ✅ removed
 - `data/notifications.ts` — 4-line stub, all functions are no-ops (intentional for v1.0).
 
 ### Design System
-- **No spacing/radius tokens** — `padding`, `margin`, `gap`, `borderRadius` are inlined as raw numbers in every component/screen. Same values recur (`borderRadius: 12` appears 50+ times) but there's no `spacing.ts` / `radius.ts`.
-- **`themed-text.tsx` over-engineered** — `type` prop (5 variants) used with non-default in only 1/29 files (`app/modal.tsx`). Hardcoded `#0a7ea4` link color not in palette. `lightColor`/`darkColor` props never passed.
+- **Spacing/radius tokens** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados pero NO refactorizados en screens. `borderRadius: 12` aparece 50+ veces todavía.
+- **`themed-text.tsx` over-engineered** — `type` prop (5 variants) used with non-default in only 1/29 files (`app/modal.tsx` — which is now removed, so 0/28). Hardcoded `#0a7ea4` link color not in palette. `lightColor`/`darkColor` props never passed.
 - **`themed-view.tsx`** — participates in Expo light/dark system, but the app has a fixed Navy/Gold palette with no theme toggle. All consumers override styles via `C.*`.
 - **Header pattern duplicated** — `borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid` repeated across 10+ screens instead of using `ScreenHeader`.
 
 ### Architecture
-- **`formatoFecha` / `hoy()` duplicated** in `app/evangelio.tsx` and `app/(tabs)/index.tsx` (identical date-formatting logic).
-- **Season emoji map duplicated** in `app/misal/hoy.tsx` and `app/misal/propio/index.tsx`.
-- **Reading section layout duplicated** — `SeccionLectura` in `app/evangelio.tsx` is near-identical to the block rendering in `app/misal/hoy.tsx`.
-- **`getLecturaDelDia` misplaced** in `db/db.ts` — sits under `// MISAL ROMANO` comment block instead of under the existing (empty) `// LECTURAS` block.
-- **`Lectura` type incomplete** in `types/index.ts` — omits `comentario_papal`, `creado_en`, `url` columns (present in DB, invisible to TypeScript).
-- **Missing `.catch()` on DB calls** across multiple screens: `app/calendario.tsx`, `app/misal/propio/index.tsx`, `app/misal/ordinario/index.tsx`, `app/misal/propio/[id].tsx`, `app/misal/prefacios/index.tsx`, `app/misal/prefacios/[id].tsx`, `app/misal/plegarias/index.tsx`, `app/misal/plegarias/[id].tsx`.
+- ~~**`formatoFecha` / `hoy()` duplicated**~~ ✅ extracted to `utils/date.ts`
+- ~~**Season emoji map duplicated**~~ ✅ extracted to `utils/seasons.ts`
+- ~~**Reading section layout duplicated**~~ ✅ extracted to `components/reading-section.tsx`
+- ~~**`getLecturaDelDia` misplaced**~~ ✅ moved to `// LECTURAS` block
+- ~~**`Lectura` type incomplete**~~ ✅ completed (`comentario_papal`, `url`, `creado_en`)
+- ~~**Missing `.catch()` on DB calls**~~ ✅ added to all 8 affected screens
 - **`db/init.ts`** — version gap (v2 no-op skipped without comment); version advances even on migration failure (no rollback).
-- **`evangelio.tsx`** — `catch` uses `any` type. Error type is untyped.
 
 ### Scrapers (`archive/`)
 - 5 scrapers write to correct target: `popular_cic.py`, `scraper_cic.py`, `scraper_youcat.py`, `scraper_vaticano.py`, `scraper_misal.py`.
