@@ -42,7 +42,7 @@ export default function FavoritosScreen() {
           <ListItemCard
             title={item.referencia}
             subtitle={item.preview}
-            onPress={() => router.push(RUTAS[item.tipo])}
+            onPress={() => router.push(item.tipo === "evangelio" ? `/evangelio?fecha=${item.id.replace("evangelio-", "")}` : RUTAS[item.tipo])}
             rightSlot={
               <ThemedText style={styles.cardTipo}>{item.tipo.toUpperCase()}</ThemedText>
             }

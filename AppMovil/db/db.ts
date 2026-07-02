@@ -155,9 +155,30 @@ export async function getMisalPrefacios(db: SQLiteDatabase): Promise<MisalPrefac
   );
 }
 
+export async function getMisalPrefacioDetalle(db: SQLiteDatabase, id: number): Promise<MisalPrefacio | null> {
+  return db.getFirstAsync<MisalPrefacio>(
+    "SELECT id, titulo, texto FROM misal_prefacios WHERE id = ?",
+    [id],
+  );
+}
+
 export async function getMisalPlegarias(db: SQLiteDatabase): Promise<MisalPlegaria[]> {
   return db.getAllAsync<MisalPlegaria>(
     "SELECT id, nombre, texto FROM misal_plegarias ORDER BY id",
+  );
+}
+
+export async function getMisalPlegariaDetalle(db: SQLiteDatabase, id: number): Promise<MisalPlegaria | null> {
+  return db.getFirstAsync<MisalPlegaria>(
+    "SELECT id, nombre, texto FROM misal_plegarias WHERE id = ?",
+    [id],
+  );
+}
+
+export async function getMisalOrdinarioDetalle(db: SQLiteDatabase, id: number): Promise<MisalOrdinarioBlock | null> {
+  return db.getFirstAsync<MisalOrdinarioBlock>(
+    "SELECT id, seccion, subseccion, rol, texto, orden FROM misal_ordinario WHERE id = ?",
+    [id],
   );
 }
 

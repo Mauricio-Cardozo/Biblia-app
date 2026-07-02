@@ -2,6 +2,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { ActivityIndicator, View } from 'react-native';
+import { C } from '@/constants/theme';
 import { ensureDatabaseSchema } from '@/db/init';
 import { FontSizeProvider } from '@/contexts/font-size';
 import { BibliaVersionProvider } from '@/contexts/bible-version';
@@ -22,7 +23,7 @@ function DatabaseInit({ children }: { children: React.ReactNode }) {
   if (!ready) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#D4AF37" />
+        <ActivityIndicator size="large" color={C.gold} />
       </View>
     );
   }

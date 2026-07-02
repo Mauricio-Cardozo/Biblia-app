@@ -23,8 +23,144 @@ export const T = {
   mariamadre:
     "María, Madre de gracia,\nMadre de misericordia.\nDefiéndenos de nuestros enemigos\ny ampáranos ahora\ny en la hora de nuestra muerte.\nAmén.",
   letanias:
-    "Señor, ten piedad.\nCristo, ten piedad.\nSeñor, ten piedad.\n\nDios, Padre celestial,\n十 ten piedad de nosotros.\nDios, Hijo, Redentor del mundo,\n十 ten piedad de nosotros.\nDios, Espíritu Santo,\n十 ten piedad de nosotros.\nSantísima Trinidad, un solo Dios,\n十 ten piedad de nosotros.\n\nSanta María,\n十 ruega por nosotros.\nSanta Madre de Dios,\n十 ruega por nosotros.\nSanta Virgen de las vírgenes,\n十 ruega por nosotros.\nMadre de Cristo,\n十 ruega por nosotros.\nMadre de la Iglesia,\n十 ruega por nosotros.\nMadre de la Misericordia,\n十 ruega por nosotros.\nMadre de la divina gracia,\n十 ruega por nosotros.\nMadre de la esperanza,\n十 ruega por nosotros.\nMadre purísima,\n十 ruega por nosotros.\nMadre castísima,\n十 ruega por nosotros.\nMadre siempre virgen,\n十 ruega por nosotros.\nMadre inmaculada,\n十 ruega por nosotros.\nMadre del buen consejo,\n十 ruega por nosotros.\nMadre del Creador,\n十 ruega por nosotros.\nMadre del Salvador,\n十 ruega por nosotros.\nVirgen prudentísima,\n十 ruega por nosotros.\nVirgen digna de veneración,\n十 ruega por nosotros.\nVirgen digna de alabanza,\n十 ruega por nosotros.\nVirgen poderosa,\n十 ruega por nosotros.\nVirgen clemente,\n十 ruega por nosotros.\nVirgen fiel,\n十 ruega por nosotros.\nEspejo de justicia,\n十 ruega por nosotros.\nTrono de la sabiduría,\n十 ruega por nosotros.\nCausa de nuestra alegría,\n十 ruega por nosotros.\nVaso espiritual,\n十 ruega por nosotros.\nVaso digno de honor,\n十 ruega por nosotros.\nVaso insigne de devoción,\n十 ruega por nosotros.\nRosa mística,\n十 ruega por nosotros.\nTorre de David,\n十 ruega por nosotros.\nTorre de marfil,\n十 ruega por nosotros.\nCasa de oro,\n十 ruega por nosotros.\nArca de la alianza,\n十 ruega por nosotros.\nPuerta del cielo,\n十 ruega por nosotros.\nEstrella de la mañana,\n十 ruega por nosotros.\nSalud de los enfermos,\n十 ruega por nosotros.\nRefugio de los pecadores,\n十 ruega por nosotros.\nConsuelo de los migrantes,\n十 ruega por nosotros.\nConsoladora de los afligidos,\n十 ruega por nosotros.\nPerdón de los pecadores,\n十 ruega por nosotros.\nEsperanza de los cristianos,\n十 ruega por nosotros.\nSalud de los enfermos,\n十 ruega por nosotros.\nRefugio de los pecadores,\n十 ruega por nosotros.\nConsuelo de los migrantes,\n十 ruega por nosotros.\nConsoladora de los afligidos,\n十 ruega por nosotros.\nReina de los Ángeles,\n十 ruega por nosotros.\nReina de los Patriarcas,\n十 ruega por nosotros.\nReina de los Profetas,\n十 ruega por nosotros.\nReina de los Apóstoles,\n十 ruega por nosotros.\nReina de los Mártires,\n十 ruega por nosotros.\nReina de los Confesores,\n十 ruega por nosotros.\nReina de las Vírgenes,\n十 ruega por nosotros.\nReina de todos los Santos,\n十 ruega por nosotros.\nReina concebida sin pecado original,\n十 ruega por nosotros.\nReina elevada al cielo,\n十 ruega por nosotros.\nReina del Santísimo Rosario,\n十 ruega por nosotros.\nReina de la paz,\n十 ruega por nosotros.\n\nCordero de Dios, que quitas el pecado del mundo,\n十 perdónanos, Señor.\nCordero de Dios, que quitas el pecado del mundo,\n十 escúchanos, Señor.\nCordero de Dios, que quitas el pecado del mundo,\n十 ten piedad de nosotros.\n\nRuega por nosotros, Santa Madre de Dios.\nPara que seamos dignos de alcanzar\nlas promesas de Nuestro Señor Jesucristo.\nAmén.",
-  oracionFinal:
+    `Señor, ten piedad.
+Cristo, ten piedad.
+Señor, ten piedad.
+
+Dios, Padre celestial,
+十 ten piedad de nosotros.
+Dios, Hijo, Redentor del mundo,
+十 ten piedad de nosotros.
+Dios, Espíritu Santo,
+十 ten piedad de nosotros.
+Santísima Trinidad, un solo Dios,
+十 ten piedad de nosotros.
+
+Santa María,
+十 ruega por nosotros.
+Santa Madre de Dios,
+十 ruega por nosotros.
+Santa Virgen de las vírgenes,
+十 ruega por nosotros.
+Madre de Cristo,
+十 ruega por nosotros.
+Madre de la Iglesia,
+十 ruega por nosotros.
+Madre de la Misericordia,
+十 ruega por nosotros.
+Madre de la divina gracia,
+十 ruega por nosotros.
+Madre de la esperanza,
+十 ruega por nosotros.
+Madre purísima,
+十 ruega por nosotros.
+Madre castísima,
+十 ruega por nosotros.
+Madre siempre virgen,
+十 ruega por nosotros.
+Madre inmaculada,
+十 ruega por nosotros.
+Madre del buen consejo,
+十 ruega por nosotros.
+Madre del Creador,
+十 ruega por nosotros.
+Madre del Salvador,
+十 ruega por nosotros.
+Virgen prudentísima,
+十 ruega por nosotros.
+Virgen digna de veneración,
+十 ruega por nosotros.
+Virgen digna de alabanza,
+十 ruega por nosotros.
+Virgen poderosa,
+十 ruega por nosotros.
+Virgen clemente,
+十 ruega por nosotros.
+Virgen fiel,
+十 ruega por nosotros.
+Espejo de justicia,
+十 ruega por nosotros.
+Trono de la sabiduría,
+十 ruega por nosotros.
+Causa de nuestra alegría,
+十 ruega por nosotros.
+Vaso espiritual,
+十 ruega por nosotros.
+Vaso digno de honor,
+十 ruega por nosotros.
+Vaso insigne de devoción,
+十 ruega por nosotros.
+Rosa mística,
+十 ruega por nosotros.
+Torre de David,
+十 ruega por nosotros.
+Torre de marfil,
+十 ruega por nosotros.
+Casa de oro,
+十 ruega por nosotros.
+Arca de la alianza,
+十 ruega por nosotros.
+Puerta del cielo,
+十 ruega por nosotros.
+Estrella de la mañana,
+十 ruega por nosotros.
+Salud de los enfermos,
+十 ruega por nosotros.
+Refugio de los pecadores,
+十 ruega por nosotros.
+Consuelo de los migrantes,
+十 ruega por nosotros.
+Consoladora de los afligidos,
+十 ruega por nosotros.
+Perdón de los pecadores,
+十 ruega por nosotros.
+Esperanza de los cristianos,
+十 ruega por nosotros.
+Salud de los enfermos,
+十 ruega por nosotros.
+Refugio de los pecadores,
+十 ruega por nosotros.
+Consuelo de los migrantes,
+十 ruega por nosotros.
+Consoladora de los afligidos,
+十 ruega por nosotros.
+Reina de los Ángeles,
+十 ruega por nosotros.
+Reina de los Patriarcas,
+十 ruega por nosotros.
+Reina de los Profetas,
+十 ruega por nosotros.
+Reina de los Apóstoles,
+十 ruega por nosotros.
+Reina de los Mártires,
+十 ruega por nosotros.
+Reina de los Confesores,
+十 ruega por nosotros.
+Reina de las Vírgenes,
+十 ruega por nosotros.
+Reina de todos los Santos,
+十 ruega por nosotros.
+Reina concebida sin pecado original,
+十 ruega por nosotros.
+Reina elevada al cielo,
+十 ruega por nosotros.
+Reina del Santísimo Rosario,
+十 ruega por nosotros.
+Reina de la paz,
+十 ruega por nosotros.
+
+Cordero de Dios, que quitas el pecado del mundo,
+十 perdónanos, Señor.
+Cordero de Dios, que quitas el pecado del mundo,
+十 escúchanos, Señor.
+Cordero de Dios, que quitas el pecado del mundo,
+十 ten piedad de nosotros.
+
+Ruega por nosotros, Santa Madre de Dios.
+Para que seamos dignos de alcanzar
+las promesas de Nuestro Señor Jesucristo.
+Amén.`,
+    oracionFinal:
     "Te ofrecemos, Señor,\nesta oración del Santo Rosario\nen honor de tu Santísima Madre,\nla Virgen María.\n\nConcédenos,\npor la intercesión de ella,\nvivir en tu amor\ny alcanzar la vida eterna.\nPor Jesucristo, nuestro Señor.\nAmén.",
   padrenuestroPapa:
     "Padre nuestro…\n\n(intenciones del Santo Padre)",

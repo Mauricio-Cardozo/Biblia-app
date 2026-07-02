@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ui/screen-header";
-import { getMisalPlegarias } from "@/db/db";
+import { getMisalPlegariaDetalle } from "@/db/db";
 import type { MisalPlegaria } from "@/types";
 
 export default function PlegariaDetalleScreen() {
@@ -18,10 +18,7 @@ export default function PlegariaDetalleScreen() {
 
   useEffect(() => {
     if (!id) return;
-    getMisalPlegarias(db).then((list) => {
-      const found = list.find((p) => p.id === Number(id));
-      setPlegaria(found ?? null);
-    }).finally(() => setLoading(false));
+    getMisalPlegariaDetalle(db, Number(id)).then(setPlegaria).finally(() => setLoading(false));
   }, [db, id]);
 
   if (loading) {

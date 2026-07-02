@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ui/screen-header";
-import { getMisalOrdinario } from "@/db/db";
+import { getMisalOrdinarioDetalle } from "@/db/db";
 import type { MisalOrdinarioBlock } from "@/types";
 
 export default function OrdinarioDetalleScreen() {
@@ -18,10 +18,7 @@ export default function OrdinarioDetalleScreen() {
 
   useEffect(() => {
     if (!id) return;
-    getMisalOrdinario(db).then((blocks) => {
-      const found = blocks.find((b) => b.id === Number(id));
-      setBlock(found ?? null);
-    }).finally(() => setLoading(false));
+    getMisalOrdinarioDetalle(db, Number(id)).then(setBlock).finally(() => setLoading(false));
   }, [db, id]);
 
   if (loading) {

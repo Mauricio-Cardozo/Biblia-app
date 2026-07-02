@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ui/screen-header";
-import { getMisalPrefacios } from "@/db/db";
+import { getMisalPrefacioDetalle } from "@/db/db";
 import type { MisalPrefacio } from "@/types";
 
 export default function PrefacioDetalleScreen() {
@@ -18,10 +18,7 @@ export default function PrefacioDetalleScreen() {
 
   useEffect(() => {
     if (!id) return;
-    getMisalPrefacios(db).then((list) => {
-      const found = list.find((p) => p.id === Number(id));
-      setPrefacio(found ?? null);
-    }).finally(() => setLoading(false));
+    getMisalPrefacioDetalle(db, Number(id)).then(setPrefacio).finally(() => setLoading(false));
   }, [db, id]);
 
   if (loading) {
