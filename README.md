@@ -6,9 +6,10 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
 
 ## 📱 Capturas de pantalla
 
-| Home | Biblia | Catecismo | Oración |
-|------|--------|-----------|---------|
-| Versículo del día, rachas 🔥 y acceso rápido | Navegación por libros, capítulos y versículos | Navegación multinivel por partes y numerales | Misal Romano completo + Rosario, Coronilla, Oraciones |
+| Home | Biblia | Catecismo | Misal | Oración |
+|------|--------|-----------|-------|---------|
+| <img src="AppMovil/assets/screenshots/home-tsx.jpeg" width="180"> | <img src="AppMovil/assets/screenshots/biblia-tsx.jpeg" width="180"> | <img src="AppMovil/assets/screenshots/catecismo-tsx.jpeg" width="180"> | <img src="AppMovil/assets/screenshots/misal-romano-tsx.jpeg" width="180"> | <img src="AppMovil/assets/screenshots/oracion-tsx.jpeg" width="180"> |
+| Versículo del día, rachas 🔥 y acceso rápido | Navegación por libros, capítulos y versículos | Navegación multinivel por partes y numerales | Misal Romano: Propio, Ordinario, Prefacios, Plegarias | Rosario, Coronilla, Oraciones del Vaticano, Novenas |
 
 ---
 
@@ -291,9 +292,12 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] Coronilla de la Divina Misericordia guiada
 - [x] Evangelio del Día desde el leccionario
 - [x] Calendario litúrgico mensual
-- [x] Favoritos (versículos, numerales, preguntas)
+- [x] Favoritos (versículos bíblicos + numerales CIC)
 - [x] 23 oraciones del Vaticano
 - [x] Jaculatorias agrupadas
+- [x] Versículo del Día — pasaje destacado en la pantalla principal
+- [x] Misa de hoy — lecturas diarias del leccionario con acceso al Propio del Tiempo
+- [x] CIC capítulo/artículo poblado — 2359/2865 caps, 1964/2865 arts extraídos vía `popular_cic.py`
 - [x] Modo lectura (fuente ajustable 0.8×–1.5×)
 - [x] Novenas — 18 devociones de 9 días
 - [x] Expo SDK 54 → 56 (React 19.2.3, RN 0.85.3)
@@ -301,12 +305,20 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 
 ### 🔴 Corto plazo (alta prioridad)
 
+- [ ] **Design System formal** — tokens de spacing, radius, shadows en archivos separados (`spacing.ts`, `radius.ts`, `shadow.ts`). Unificar radios (8/16/24/32) y espaciados (4/8/12/16/20/24/32/40/48) en toda la app.
+- [ ] **Rediseño de Home** — hero section con saludo ("Buenos días hermano/hijo"), santo del día, color litúrgico, evangelio destacado, acceso rápido a rachas. Inspirado en Lummen.
+- [ ] **Bugs conocidos** — corregir `\n` literal en letanías, pasar `?fecha` en favoritos a evangelio, reemplazar `find()` cliente por query directa en detalle de ordinario/prefacios/plegarias, agregar `.catch()` faltantes en consultas DB, reemplazar `#D4AF37` hardcoded por `C.gold`.
 - [ ] **Notificaciones bíblicas diarias** — evangelio del día a las 7am, versículo aleatorio al mediodía, recordatorio de rachas. Basado en `expo-notifications` + SQLite.
 - [ ] **Split-pane / multi-ventana** — dos paneles simultáneos (Biblia + CIC, o Lecturas + Reflexión). Prioritario en tablets.
 - [ ] **Sistema de etiquetas, highlights y notas** — expandir favs actuales con etiquetas de colores, resaltado de versículos, notas personales.
 
 ### 🟡 Mediano plazo
 
+- [ ] **Limpieza de deuda técnica** — eliminar `modal.tsx`, `collapsible.tsx`, `hasColumn`. Mover `getLecturaDelDia` al bloque correcto en `db/db.ts`. Completar tipo `Lectura` con columnas faltantes. Eliminar código muerto de `themed-text.tsx` (variante `type` no usada) y `themed-view.tsx`.
+- [ ] **Eliminar duplicación** — `formatoFecha`/`hoy()`, mapa de emojis de temporadas, layout de sección de lecturas. Extraer a funciones/componentes compartidos.
+- [ ] **Animaciones y transiciones** — shared elements, hero animations, fade, scale, skeletons, microinteracciones. Inspirado en Lummen.
+- [ ] **Widget Android** — versículo del día, racha y acceso rápido desde la pantalla de inicio.
+- [ ] **Estadísticas de oración** — gráficos de rachas, total de rosarios/coronillas, calor semanal, promedio diario.
 - [ ] **Workspaces** — guardar combinaciones de pantalla (ej. "Devocional matutino" con lectura + salmo)
 - [ ] **Bloc de notas (Study Pad)** — notas personales con referencias bíblicas enlazables
 - [ ] **Text-to-Speech** — botón "Escuchar" en Biblia/lecturas con control de velocidad

@@ -17,7 +17,7 @@ No tsc/typecheck command available — `npm run lint` is the only static check.
 ## Architecture
 
 - **Entrypoint**: `expo-router/entry` (in `package.json` `main` field). Routes in `app/`.
-- **Stack**: Expo SDK 54 / RN 0.81.5 / TS 5.9 / Fabric (`newArchEnabled: true`) / React Compiler (`experiments.reactCompiler: true`) / `edgeToEdgeEnabled` on Android.
+- **Stack**: Expo SDK 56 / RN 0.85.3 / TS 5.9 / Fabric (`newArchEnabled: true`) / React Compiler (`experiments.reactCompiler: true`) / `edgeToEdgeEnabled` on Android.
 - **Routing**: expo-router 6 file-based. `app/_layout.tsx` = root layout (SQLiteProvider + DatabaseInit + FontSizeProvider + BibliaVersionProvider + Stack). `app/(tabs)/_layout.tsx` = JS tab navigator (Home/Biblia/Catecismo/Misal/Oración). Routes inside `(tabs)` get the tab bar; routes outside (`evangelio.tsx`, `calendario.tsx`, `rosario/`, `oraciones/`, `favoritos.tsx`, `modal.tsx`, `test.tsx`, `misal/`) don't.
 - **DB**: Single `iglesia_digital.db` shipped in `AppMovil/assets/`, copied via `SQLiteProvider databaseName assetSource` with `useSuspense`. `metro.config.js` adds `db` to `assetExts` so Metro resolves `.db` files.
 - **DB Migrations**: `db/init.ts` uses `PRAGMA user_version`. Runs on every app launch. `CURRENT_VERSION = 5`. V1 recreates FTS tables as standalone (drops triggers, re-inserts data). V2 adds `youcat.parte` column (no-op since youcat dropped). V3 creates `novenas` + `novena_dias` tables. V4 drops YOUCAT tables. V5 creates `misal_propio`, `misal_ordinario`, `misal_prefacios`, `misal_plegarias` tables. FTS creation is skipped if source columns are missing; use the "Rebuild FTS" button on `/test` to retry.
@@ -45,16 +45,53 @@ These reflect actual codebase patterns, not aspirational rules:
 |-------|---------|-------------|
 | `biblia_pueblo_dios` | Bible verses | `id`, `libro`, `capitulo`, `versiculo`, `texto`, `testamento` |
 | `catecismo_cic` | CIC | `id` (numeral), `parte`, `seccion`, `capitulo`, `articulo`, `texto` |
-| `lecturas` | Daily readings | `fecha` (UNIQUE), `titulo_misa`, `primera_lectura`, `salmo`, `aleluia`, `evangelio` |
-| `misal_propio` | Proper of Time | `id`, `temporada`, `dia`, `titulo`, `entrada`, `oracion`, `ofrendas`, `comunion`, `poscomunion`, `unico` |
-| `misal_ordinario` | Ordinary of Mass | `id`, `seccion`, `titulo`, `contenido`, `orden` |
+| `lecturas` | Daily readings | `fecha` (UNIQUE), `titulo_misa`, `primera_lectura_ref`, `primera_lectura`, `salmo`, `aleluia`, `evangelio_ref`, `evangelio`, `comentario_papal`, `url` |
+| `misal_propio` | Proper of Time | `id`, `temporada`, `temporada_label`, `dia`, `colecta`, `oracion_ofrendas`, `postcomunion`, `prefacio`, `antifona_entrada`, `antifona_comunion` |
+| `misal_ordinario` | Ordinary of Mass | `id`, `seccion`, `subseccion`, `rol`, `texto`, `orden` |
 | `misal_prefacios` | Prefaces | `id`, `titulo`, `texto` |
-| `misal_plegarias` | Eucharistic Prayers | `id`, `titulo`, `texto` |
+| `misal_plegarias` | Eucharistic Prayers | `id`, `nombre`, `texto` |
 | `novenas` | Novenas list | `id`, `titulo`, `url` |
 | `novena_dias` | Novena day prayers | `id`, `novena_id`, `dia`, `titulo`, `texto` |
 
-## Notable Gaps
+## Notable Gaps & Known Issues
 
+### Bugs
+- `data/prayers.ts` — `T.letanias` uses literal `\n` (backslash-n, two chars) instead of real newlines. Will render as literal `\n` in `<Text>`.
+- `app/favoritos.tsx` — navigation to `/evangelio` doesn't pass `?fecha=YYYY-MM-DD`. Favorited Gospel entries always open today's reading instead of the saved date.
+- `misal/ordinario/[id].tsx`, `misal/prefacios/[id].tsx`, `misal/plegarias/[id].tsx` — fetch *all* rows then client-side `find()` instead of a direct `WHERE id = ?` query. `db/db.ts` lacks the corresponding detail getter functions.
+- `app/_layout.tsx` — hardcoded `"#D4AF37"` instead of `C.gold`. Breaks if palette changes.
+
+### Dead Code
+- `app/modal.tsx` — Expo template boilerplate, unreachable (no screen pushes to `/modal`), no `C.*` theme import.
+- `components/ui/collapsible.tsx` — zero imports anywhere, uses `Colors` (Expo defaults) instead of `C.*`.
+- `db/init.ts` — `hasColumn` function exported but never called.
+- `data/notifications.ts` — 4-line stub, all functions are no-ops (intentional for v1.0).
+
+### Design System
+- **No spacing/radius tokens** — `padding`, `margin`, `gap`, `borderRadius` are inlined as raw numbers in every component/screen. Same values recur (`borderRadius: 12` appears 50+ times) but there's no `spacing.ts` / `radius.ts`.
+- **`themed-text.tsx` over-engineered** — `type` prop (5 variants) used with non-default in only 1/29 files (`app/modal.tsx`). Hardcoded `#0a7ea4` link color not in palette. `lightColor`/`darkColor` props never passed.
+- **`themed-view.tsx`** — participates in Expo light/dark system, but the app has a fixed Navy/Gold palette with no theme toggle. All consumers override styles via `C.*`.
+- **Header pattern duplicated** — `borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid` repeated across 10+ screens instead of using `ScreenHeader`.
+
+### Architecture
+- **`formatoFecha` / `hoy()` duplicated** in `app/evangelio.tsx` and `app/(tabs)/index.tsx` (identical date-formatting logic).
+- **Season emoji map duplicated** in `app/misal/hoy.tsx` and `app/misal/propio/index.tsx`.
+- **Reading section layout duplicated** — `SeccionLectura` in `app/evangelio.tsx` is near-identical to the block rendering in `app/misal/hoy.tsx`.
+- **`getLecturaDelDia` misplaced** in `db/db.ts` — sits under `// MISAL ROMANO` comment block instead of under the existing (empty) `// LECTURAS` block.
+- **`Lectura` type incomplete** in `types/index.ts` — omits `comentario_papal`, `creado_en`, `url` columns (present in DB, invisible to TypeScript).
+- **Missing `.catch()` on DB calls** across multiple screens: `app/calendario.tsx`, `app/misal/propio/index.tsx`, `app/misal/ordinario/index.tsx`, `app/misal/propio/[id].tsx`, `app/misal/prefacios/index.tsx`, `app/misal/prefacios/[id].tsx`, `app/misal/plegarias/index.tsx`, `app/misal/plegarias/[id].tsx`.
+- **`db/init.ts`** — version gap (v2 no-op skipped without comment); version advances even on migration failure (no rollback).
+- **`evangelio.tsx`** — `catch` uses `any` type. Error type is untyped.
+
+### Scrapers (`archive/`)
+- 5 scrapers write to correct target: `popular_cic.py`, `scraper_cic.py`, `scraper_youcat.py`, `scraper_vaticano.py`, `scraper_misal.py`.
+- 3 scripts reference `iglesia_digital.db` via relative CWD (`cat.py`, `extract_youcat.py`, `migrate_bible_to_unified.py`) — fragile, fail if CWD ≠ repo root.
+- 6 scripts target legacy `biblia_pueblo_dios.db` or intermediate DBs — pipeline artifacts.
+- `scraper_novenas.py` requires explicit `--db` flag (no default guardrail).
+- `scraper_oraciones_vatican.py` outputs to stdout only (not integrated with DB).
+- Only 2/18 files (`scraper_cic.py`, `scraper_youcat.py`) document `pdfplumber` dependency with error message.
+
+### Other
 - `app/evangelio.tsx` — fully working, accepts `?fecha=YYYY-MM-DD`. Uses `getLecturaDelDia`.
 - Streak cards on Home (`🔥 N días`) — real data from `data/streaks.ts` via AsyncStorage (`racha_rosario_ultima`, `racha_coronilla_ultima`). `calcularRacha()` counts consecutive days backwards.
 - No pagination on list screens — all data fits in memory.
