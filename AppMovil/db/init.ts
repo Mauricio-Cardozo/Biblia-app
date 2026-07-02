@@ -14,14 +14,6 @@ async function setVersion(db: SQLiteDatabase, v: number): Promise<void> {
   try { await db.runAsync(`PRAGMA user_version = ${v}`); } catch { /* ok */ }
 }
 
-/** Check if a column exists in a table */
-async function hasColumn(db: SQLiteDatabase, table: string, column: string): Promise<boolean> {
-  try {
-    const cols = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${table})`);
-    return cols.some((c) => c.name === column);
-  } catch { return false; }
-}
-
 export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
   const version = await getVersion(db);
 
