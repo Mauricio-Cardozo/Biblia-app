@@ -40,7 +40,14 @@
         }
       ],
       "expo-sqlite",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-navigation-bar",
+        {
+          "hidden": true,
+          "style": "light"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,7 +1,8 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, StatusBar, View } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
 import { C } from '@/constants/theme';
 import { ensureDatabaseSchema } from '@/db/init';
 import { FontSizeProvider } from '@/contexts/font-size';
@@ -32,8 +33,13 @@ function DatabaseInit({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    NavigationBar.setHidden(true);
+  }, []);
+
   return (
     <Suspense fallback={<ActivityIndicator size="large" style={{ flex: 1 }} />}>
+      <StatusBar hidden />
       <SQLiteProvider 
         databaseName="iglesia_digital.db" 
         assetSource={{ assetId: require('../assets/iglesia_digital.db') }}
@@ -44,7 +50,6 @@ export default function RootLayout() {
             <BibliaVersionProvider>
               <Stack>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: false }} />
                 <Stack.Screen name="evangelio" options={{ headerShown: false }} />
                 <Stack.Screen name="calendario" options={{ headerShown: false }} />
                 <Stack.Screen name="favoritos" options={{ headerShown: false }} />
