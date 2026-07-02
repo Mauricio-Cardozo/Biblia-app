@@ -66,8 +66,8 @@ export default function EvangelioScreen() {
       const targetDate = fechaParam ?? hoy();
       const data = await getLecturaDelDia(db, targetDate);
       setLectura(data);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error desconocido");
     } finally {
       setLoading(false);
     }

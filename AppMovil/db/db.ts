@@ -106,6 +106,16 @@ export async function searchCIC(
 // LECTURAS (Evangelio del día)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export async function getLecturaDelDia(
+  db: SQLiteDatabase,
+  fecha: string,
+): Promise<Lectura | null> {
+  return db.getFirstAsync<Lectura>(
+    "SELECT * FROM lecturas WHERE fecha = ?",
+    [fecha],
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // MISAL ROMANO
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -179,15 +189,5 @@ export async function getMisalOrdinarioDetalle(db: SQLiteDatabase, id: number): 
   return db.getFirstAsync<MisalOrdinarioBlock>(
     "SELECT id, seccion, subseccion, rol, texto, orden FROM misal_ordinario WHERE id = ?",
     [id],
-  );
-}
-
-export async function getLecturaDelDia(
-  db: SQLiteDatabase,
-  fecha: string,
-): Promise<Lectura | null> {
-  return db.getFirstAsync<Lectura>(
-    "SELECT * FROM lecturas WHERE fecha = ?",
-    [fecha],
   );
 }

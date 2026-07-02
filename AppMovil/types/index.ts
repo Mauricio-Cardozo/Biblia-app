@@ -56,6 +56,9 @@ export interface Lectura {
   aleluia: string | null;
   evangelio_ref: string | null;
   evangelio: string | null;
+  comentario_papal: string | null;
+  url: string | null;
+  creado_en: string | null;
 }
 
 // ─── Misal Romano ──────────────────────────────────────────────────────────────
