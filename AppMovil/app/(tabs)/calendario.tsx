@@ -4,9 +4,10 @@ import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Platform,
   ScrollView,
   StyleSheet,
@@ -14,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { tabBarScrollY } from "@/utils/scroll-state";
 
 interface DiaLectura {
   fecha: string;
@@ -93,6 +95,11 @@ export default function CalendarioLiturgico() {
     );
   }
 
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: tabBarScrollY } } }],
+    { useNativeDriver: true },
+  );
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ThemedText style={styles.title}>Calendario Litúrgico</ThemedText>
@@ -110,7 +117,7 @@ export default function CalendarioLiturgico() {
       {loading ? (
         <ActivityIndicator size="large" color={C.gold} style={{ marginTop: S.huge }} />
       ) : (
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} onScroll={handleScroll} scrollEventThrottle={16}>
           <View style={styles.semanaRow}>
             {DIAS_SEMANA.map((d) => (
               <View key={d} style={styles.semanaCelda}>

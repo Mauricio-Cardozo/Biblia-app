@@ -1,9 +1,12 @@
 import { C } from "@/constants/theme";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { Animated, TouchableOpacity, View, StyleSheet } from "react-native";
 import { IconSymbol } from "./icon-symbol";
+import { tabBarScrollY } from "@/utils/scroll-state";
+import { useEffect, useRef } from "react";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
 const VISIBLE_TABS = ["index", "biblia", "calendario", "oracion"];
+const HIDE_THRESHOLD = 50;
 const ICONS: Record<string, string> = {
   index: "house.fill",
   biblia: "book.closed.fill",
@@ -12,10 +15,29 @@ const ICONS: Record<string, string> = {
 };
 
 export default function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const translateY = useRef(new Animated.Value(0)).current;
+  const prevScrollY = useRef(0);
+  const hidden = useRef(false);
+
+  useEffect(() => {
+    const listener = tabBarScrollY.addListener(({ value }) => {
+      const diff = value - prevScrollY.current;
+      if (value > HIDE_THRESHOLD && diff > 3 && !hidden.current) {
+        hidden.current = true;
+        Animated.timing(translateY, { toValue: 100, duration: 200, useNativeDriver: true }).start();
+      } else if ((diff < -3 || value < HIDE_THRESHOLD) && hidden.current) {
+        hidden.current = false;
+        Animated.timing(translateY, { toValue: 0, duration: 200, useNativeDriver: true }).start();
+      }
+      prevScrollY.current = value;
+    });
+    return () => tabBarScrollY.removeListener(listener);
+  }, []);
+
   return (
-    <View style={s.outer}>
+    <Animated.View style={[s.outer, { transform: [{ translateY }] }]}>
       <View style={s.inner}>
-        {state.routes.filter((r) => VISIBLE_TABS.includes(r.name)).map((route, index) => {
+        {state.routes.filter((r) => VISIBLE_TABS.includes(r.name)).map((route) => {
           const isFocused = state.index === state.routes.findIndex((r) => r.name === route.name);
           const iconName = ICONS[route.name];
 
@@ -32,7 +54,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
           );
         })}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

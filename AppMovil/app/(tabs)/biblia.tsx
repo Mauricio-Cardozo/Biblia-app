@@ -6,6 +6,7 @@ import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { useSQLiteContext } from "expo-sqlite";
 import { useBibliaVersion } from "@/contexts/bible-version";
+import { tabBarScrollY } from "@/utils/scroll-state";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator, Animated, ImageBackground, StatusBar,
@@ -207,6 +208,11 @@ export default function BibliaScreen() {
     </ThemedView>
   );
 
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: tabBarScrollY } } }],
+    { useNativeDriver: true },
+  );
+
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
@@ -221,6 +227,7 @@ export default function BibliaScreen() {
           numColumns={2}
           contentContainerStyle={s.gridContainer}
           showsVerticalScrollIndicator={false}
+          onScroll={handleScroll} scrollEventThrottle={16}
           ListHeaderComponent={
             <View>
               {renderHeader()}
@@ -252,6 +259,7 @@ export default function BibliaScreen() {
       {nivel === "capitulos" && (
         <FlashList data={capitulos} keyExtractor={(item) => String(item.capitulo)} numColumns={5}
           contentContainerStyle={s.capGrid} showsVerticalScrollIndicator={false}
+          onScroll={handleScroll} scrollEventThrottle={16}
           renderItem={({ item }) => (
             <TouchableOpacity style={s.capCard} onPress={() => seleccionarCapitulo(item.capitulo)} activeOpacity={0.75}>
               <ThemedText style={s.capNum}>{item.capitulo}</ThemedText>
@@ -263,6 +271,7 @@ export default function BibliaScreen() {
       {nivel === "versiculos" && (
         <FlashList data={versiculos} keyExtractor={(item) => String(item.id)} contentContainerStyle={s.list}
           showsVerticalScrollIndicator={false} ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          onScroll={handleScroll} scrollEventThrottle={16}
           renderItem={({ item }) => (
             <TouchableOpacity style={s.versRow} onLongPress={() => toggleFav(item)} activeOpacity={0.85} delayLongPress={400}>
               <ThemedText style={s.versNum}>{item.versiculo}</ThemedText>

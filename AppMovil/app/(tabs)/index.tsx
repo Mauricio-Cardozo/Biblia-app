@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Link, router } from 'expo-router';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
+import { tabBarScrollY } from '@/utils/scroll-state';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { calcularRacha, obtenerStats } from '@/data/streaks';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -12,8 +13,6 @@ import { getLecturaDelDia, getMisalTemporadas, getMisalPropioPorSemana } from '@
 import { fechaActualLarga, hoy } from '@/utils/date';
 import { detectSeason, parseWeekNumber, isSunday, SEASON_EMOJI } from '@/utils/seasons';
 import type { Lectura, MisalPropioEntry } from '@/types';
-
-const HEADER_HIDE_THRESHOLD = 50;
 
 export default function LiturgiaScreen() {
   const insets = useSafeAreaInsets();
@@ -25,10 +24,6 @@ export default function LiturgiaScreen() {
   const [lectura, setLectura] = useState<Lectura | null>(null);
   const [temporadas, setTemporadas] = useState<{ temporada: string; temporada_label: string; count: number }[]>([]);
   const [propio, setPropio] = useState<MisalPropioEntry | null>(null);
-
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const headerVisible = useRef(new Animated.Value(1)).current;
-  const prevScrollY = useRef(0);
 
   useEffect(() => {
     Promise.all([
@@ -59,29 +54,12 @@ export default function LiturgiaScreen() {
   const seasonData = season ? temporadas.find((t) => t.temporada === season) : null;
 
   const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    {
-      useNativeDriver: true,
-      listener: ({ nativeEvent }: { nativeEvent: { contentOffset: { y: number } } }) => {
-        const currentY = nativeEvent.contentOffset.y;
-        if (currentY > HEADER_HIDE_THRESHOLD && currentY > prevScrollY.current) {
-          Animated.timing(headerVisible, { toValue: 0, duration: 200, useNativeDriver: true }).start();
-        } else if (currentY < prevScrollY.current || currentY < HEADER_HIDE_THRESHOLD) {
-          Animated.timing(headerVisible, { toValue: 1, duration: 200, useNativeDriver: true }).start();
-        }
-        prevScrollY.current = currentY;
-      },
-    },
+    [{ nativeEvent: { contentOffset: { y: tabBarScrollY } } }],
+    { useNativeDriver: true },
   );
-
-  const headerTranslateY = headerVisible.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-120, 0],
-  });
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
-      <Animated.View style={{ transform: [{ translateY: headerTranslateY }] }}>
         {__DEV__ && (
           <Link href="/test" style={styles.debugLink} asChild>
             <TouchableOpacity activeOpacity={0.7}>
@@ -93,13 +71,8 @@ export default function LiturgiaScreen() {
         <ThemedText style={styles.pageTitle}>Liturgia</ThemedText>
         <ThemedText style={styles.dateText}>{fechaActualLarga()}</ThemedText>
         {misaTitle ? <ThemedText style={styles.misaTitle}>{misaTitle}</ThemedText> : null}
-      </Animated.View>
 
-      <Animated.ScrollView
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView onScroll={handleScroll} scrollEventThrottle={16} showsVerticalScrollIndicator={false}>
         {/* Evangelio del Día */}
         <TouchableOpacity onPress={() => router.push('/evangelio')} style={styles.card}>
           <ThemedText style={styles.cardLabel}>EVANGELIO DEL DÍA</ThemedText>
@@ -187,7 +160,7 @@ export default function LiturgiaScreen() {
           </TouchableOpacity>
         ) : null}
 
-      </Animated.ScrollView>
+      </ScrollView>
     </View>
   );
 }

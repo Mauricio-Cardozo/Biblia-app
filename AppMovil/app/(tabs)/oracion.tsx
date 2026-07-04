@@ -3,11 +3,12 @@ import { S } from '@/constants/spacing';
 import { ThemedText } from '@/components/themed-text';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCICPartes } from '@/db/db';
 import type { CICParte } from '@/types';
+import { tabBarScrollY } from "@/utils/scroll-state";
 
 type Pill = 'oraciones' | 'catecismo' | 'misal';
 
@@ -34,6 +35,11 @@ export default function OracionScreen() {
   const [pill, setPill] = useState<Pill>('oraciones');
   const [partes, setPartes] = useState<CICParte[]>([]);
 
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: tabBarScrollY } } }],
+    { useNativeDriver: true },
+  );
+
   useEffect(() => {
     if (pill === 'catecismo') {
       getCICPartes(db).then(setPartes).catch(() => {});
@@ -41,7 +47,7 @@ export default function OracionScreen() {
   }, [pill, db]);
 
   return (
-    <ScrollView style={[styles.container, { paddingTop: insets.top + 16 }]} contentContainerStyle={styles.content}>
+    <ScrollView onScroll={handleScroll} scrollEventThrottle={16} style={[styles.container, { paddingTop: insets.top + 16 }]} contentContainerStyle={styles.content}>
       <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
       <ThemedText style={styles.title}>Oración</ThemedText>
 
