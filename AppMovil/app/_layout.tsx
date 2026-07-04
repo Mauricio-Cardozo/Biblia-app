@@ -2,7 +2,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { ActivityIndicator, StatusBar, View } from 'react-native';
-import * as NavigationBar from 'expo-navigation-bar';
+import { NavigationBar } from 'expo-navigation-bar';
 import { C } from '@/constants/theme';
 import { ensureDatabaseSchema } from '@/db/init';
 import { FontSizeProvider } from '@/contexts/font-size';

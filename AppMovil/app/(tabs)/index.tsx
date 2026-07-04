@@ -5,25 +5,31 @@ import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { calcularRacha, obtenerStats } from '@/data/streaks';
-
-import { fechaActualLarga } from '@/utils/date';
+import { useSQLiteContext } from 'expo-sqlite';
+import { getLecturaDelDia } from '@/db/db';
+import { fechaActualLarga, hoy } from '@/utils/date';
+import type { Lectura } from '@/types';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const db = useSQLiteContext();
 
   const [rachaRosario, setRachaRosario] = useState(0);
   const [rachaCoronilla, setRachaCoronilla] = useState(0);
   const [stats, setStats] = useState({ rosario_total: 0, coronilla_total: 0 });
+  const [lectura, setLectura] = useState<Lectura | null>(null);
 
   useEffect(() => {
     Promise.all([
       calcularRacha("racha_rosario_ultima"),
       calcularRacha("racha_coronilla_ultima"),
       obtenerStats(),
-    ]).then(([rr, rc, st]) => {
+      getLecturaDelDia(db, hoy()),
+    ]).then(([rr, rc, st, lec]) => {
       setRachaRosario(rr);
       setRachaCoronilla(rc);
       setStats({ rosario_total: st.rosario_total, coronilla_total: st.coronilla_total });
+      setLectura(lec);
     });
   }, []);
 
@@ -41,8 +47,20 @@ export default function HomeScreen() {
       {/* Evangelio del Día */}
       <TouchableOpacity onPress={() => router.push('/evangelio')} style={styles.card}>
         <ThemedText style={styles.cardLabel}>EVANGELIO DEL DÍA</ThemedText>
-        <ThemedText style={styles.verseText}>{'\u201C'}Yo soy el camino, la verdad y la vida.{'\u201D'}</ThemedText>
-        <ThemedText style={styles.verseRef}>— Juan 14:6</ThemedText>
+        {lectura?.evangelio ? (
+          <>
+            <ThemedText style={styles.verseText} numberOfLines={3}>
+              {'\u201C'}{lectura.evangelio}{'\u201D'}
+            </ThemedText>
+            {lectura.evangelio_ref ? (
+              <ThemedText style={styles.verseRef}>{lectura.evangelio_ref}</ThemedText>
+            ) : null}
+          </>
+        ) : (
+          <ThemedText style={styles.verseText}>
+            {'\u201C'}Yo soy el camino, la verdad y la vida.{'\u201D'}
+          </ThemedText>
+        )}
       </TouchableOpacity>
 
       {/* Rachas */}
