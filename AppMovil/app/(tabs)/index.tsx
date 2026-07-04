@@ -3,8 +3,8 @@ import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from '@/components/themed-text';
 import { Link, router } from 'expo-router';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { calcularRacha, obtenerStats } from '@/data/streaks';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -12,6 +12,8 @@ import { getLecturaDelDia, getMisalTemporadas, getMisalPropioPorSemana } from '@
 import { fechaActualLarga, hoy } from '@/utils/date';
 import { detectSeason, parseWeekNumber, isSunday, SEASON_EMOJI } from '@/utils/seasons';
 import type { Lectura, MisalPropioEntry } from '@/types';
+
+const HEADER_HIDE_THRESHOLD = 50;
 
 export default function LiturgiaScreen() {
   const insets = useSafeAreaInsets();
@@ -23,6 +25,10 @@ export default function LiturgiaScreen() {
   const [lectura, setLectura] = useState<Lectura | null>(null);
   const [temporadas, setTemporadas] = useState<{ temporada: string; temporada_label: string; count: number }[]>([]);
   const [propio, setPropio] = useState<MisalPropioEntry | null>(null);
+
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const headerVisible = useRef(new Animated.Value(1)).current;
+  const prevScrollY = useRef(0);
 
   useEffect(() => {
     Promise.all([
@@ -52,108 +58,137 @@ export default function LiturgiaScreen() {
   const season = misaTitle ? detectSeason(misaTitle) : null;
   const seasonData = season ? temporadas.find((t) => t.temporada === season) : null;
 
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    {
+      useNativeDriver: true,
+      listener: ({ nativeEvent }: { nativeEvent: { contentOffset: { y: number } } }) => {
+        const currentY = nativeEvent.contentOffset.y;
+        if (currentY > HEADER_HIDE_THRESHOLD && currentY > prevScrollY.current) {
+          Animated.timing(headerVisible, { toValue: 0, duration: 200, useNativeDriver: true }).start();
+        } else if (currentY < prevScrollY.current || currentY < HEADER_HIDE_THRESHOLD) {
+          Animated.timing(headerVisible, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+        }
+        prevScrollY.current = currentY;
+      },
+    },
+  );
+
+  const headerTranslateY = headerVisible.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-120, 0],
+  });
+
   return (
-    <ScrollView style={[styles.container, { paddingTop: insets.top + 20 }]}>
-      {__DEV__ && (
-        <Link href="/test" style={styles.debugLink} asChild>
-          <TouchableOpacity activeOpacity={0.7}>
-            <ThemedText style={styles.debugText}>[Debug] Test Database</ThemedText>
-          </TouchableOpacity>
-        </Link>
-      )}
-      <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
-      <ThemedText style={styles.pageTitle}>Liturgia</ThemedText>
-      <ThemedText style={styles.dateText}>{fechaActualLarga()}</ThemedText>
-      {misaTitle ? <ThemedText style={styles.misaTitle}>{misaTitle}</ThemedText> : null}
-
-      {/* Evangelio del Día */}
-      <TouchableOpacity onPress={() => router.push('/evangelio')} style={styles.card}>
-        <ThemedText style={styles.cardLabel}>EVANGELIO DEL DÍA</ThemedText>
-        {lectura?.evangelio ? (
-          <>
-            <ThemedText style={styles.verseText} numberOfLines={3}>
-              {'\u201C'}{lectura.evangelio}{'\u201D'}
-            </ThemedText>
-            {lectura.evangelio_ref ? (
-              <ThemedText style={styles.verseRef}>{lectura.evangelio_ref}</ThemedText>
-            ) : null}
-          </>
-        ) : (
-          <ThemedText style={styles.verseText}>
-            {'\u201C'}Yo soy el camino, la verdad y la vida.{'\u201D'}
-          </ThemedText>
+    <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
+      <Animated.View style={{ transform: [{ translateY: headerTranslateY }] }}>
+        {__DEV__ && (
+          <Link href="/test" style={styles.debugLink} asChild>
+            <TouchableOpacity activeOpacity={0.7}>
+              <ThemedText style={styles.debugText}>[Debug] Test Database</ThemedText>
+            </TouchableOpacity>
+          </Link>
         )}
-      </TouchableOpacity>
+        <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
+        <ThemedText style={styles.pageTitle}>Liturgia</ThemedText>
+        <ThemedText style={styles.dateText}>{fechaActualLarga()}</ThemedText>
+        {misaTitle ? <ThemedText style={styles.misaTitle}>{misaTitle}</ThemedText> : null}
+      </Animated.View>
 
-      {/* Oración — Rachas */}
-      <View style={styles.streakRow}>
-        <TouchableOpacity onPress={() => router.push('/rosario/guia')} style={[styles.cardSm, { flex: 0.48, marginHorizontal: 0 }]}>
-          <ThemedText style={styles.cardLabel}>ROSARIO</ThemedText>
-          <ThemedText style={styles.streakText}>🕊️ {stats.rosario_total}</ThemedText>
-          {rachaRosario > 0 && <ThemedText style={styles.streakSub}>🔥 {rachaRosario} días seguidos</ThemedText>}
+      <Animated.ScrollView
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Evangelio del Día */}
+        <TouchableOpacity onPress={() => router.push('/evangelio')} style={styles.card}>
+          <ThemedText style={styles.cardLabel}>EVANGELIO DEL DÍA</ThemedText>
+          {lectura?.evangelio ? (
+            <>
+              <ThemedText style={styles.verseText} numberOfLines={3}>
+                {'\u201C'}{lectura.evangelio}{'\u201D'}
+              </ThemedText>
+              {lectura.evangelio_ref ? (
+                <ThemedText style={styles.verseRef}>{lectura.evangelio_ref}</ThemedText>
+              ) : null}
+            </>
+          ) : (
+            <ThemedText style={styles.verseText}>
+              {'\u201C'}Yo soy el camino, la verdad y la vida.{'\u201D'}
+            </ThemedText>
+          )}
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/rosario/coronilla')} style={[styles.cardSm, { flex: 0.48, marginHorizontal: 0 }]}>
-          <ThemedText style={styles.cardLabel}>CORONILLA</ThemedText>
-          <ThemedText style={styles.streakText}>🕊️ {stats.coronilla_total}</ThemedText>
-          {rachaCoronilla > 0 && <ThemedText style={styles.streakSub}>🔥 {rachaCoronilla} días seguidos</ThemedText>}
-        </TouchableOpacity>
-      </View>
 
-      {/* Propio del Tiempo */}
-      {propio ? (
-        <View style={styles.propioSection}>
-          <ThemedText style={styles.sectionLabel}>PROPIO DEL TIEMPO</ThemedText>
-          <ThemedText style={styles.propioDia}>{seasonData?.temporada_label ?? ''} — {propio.dia}</ThemedText>
-
-          {propio.antifona_entrada ? (
-            <View style={styles.propioCard}>
-              <ThemedText style={styles.propioLabel}>Antífona de entrada</ThemedText>
-              <ThemedText style={styles.propioText}>{propio.antifona_entrada}</ThemedText>
-            </View>
-          ) : null}
-
-          {propio.colecta ? (
-            <View style={styles.propioCard}>
-              <ThemedText style={styles.propioLabel}>Oración colecta</ThemedText>
-              <ThemedText style={styles.propioText}>{propio.colecta}</ThemedText>
-            </View>
-          ) : null}
-
-          {propio.oracion_ofrendas ? (
-            <View style={styles.propioCard}>
-              <ThemedText style={styles.propioLabel}>Oración sobre las ofrendas</ThemedText>
-              <ThemedText style={styles.propioText}>{propio.oracion_ofrendas}</ThemedText>
-            </View>
-          ) : null}
-
-          {propio.postcomunion ? (
-            <View style={styles.propioCard}>
-              <ThemedText style={styles.propioLabel}>Postcomunión</ThemedText>
-              <ThemedText style={styles.propioText}>{propio.postcomunion}</ThemedText>
-            </View>
-          ) : null}
-
-          {propio.antifona_comunion ? (
-            <View style={styles.propioCard}>
-              <ThemedText style={styles.propioLabel}>Antífona de comunión</ThemedText>
-              <ThemedText style={styles.propioText}>{propio.antifona_comunion}</ThemedText>
-            </View>
-          ) : null}
+        {/* Oración — Rachas */}
+        <View style={styles.streakRow}>
+          <TouchableOpacity onPress={() => router.push('/rosario/guia')} style={[styles.cardSm, { flex: 0.48, marginHorizontal: 0 }]}>
+            <ThemedText style={styles.cardLabel}>ROSARIO</ThemedText>
+            <ThemedText style={styles.streakText}>🕊️ {stats.rosario_total}</ThemedText>
+            {rachaRosario > 0 && <ThemedText style={styles.streakSub}>🔥 {rachaRosario} días seguidos</ThemedText>}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/rosario/coronilla')} style={[styles.cardSm, { flex: 0.48, marginHorizontal: 0 }]}>
+            <ThemedText style={styles.cardLabel}>CORONILLA</ThemedText>
+            <ThemedText style={styles.streakText}>🕊️ {stats.coronilla_total}</ThemedText>
+            {rachaCoronilla > 0 && <ThemedText style={styles.streakSub}>🔥 {rachaCoronilla} días seguidos</ThemedText>}
+          </TouchableOpacity>
         </View>
-      ) : seasonData ? (
-        <TouchableOpacity style={styles.card} onPress={() => router.push('/misal/propio')} activeOpacity={0.7}>
-          <View style={styles.cardRow}>
-            <ThemedText style={styles.cardIcon}>{SEASON_EMOJI[seasonData.temporada] ?? '🌿'}</ThemedText>
-            <View style={styles.cardTextWrap}>
-              <ThemedText style={styles.cardLabel}>PROPIO DEL TIEMPO</ThemedText>
-              <ThemedText style={styles.cardTitle}>{seasonData.temporada_label}</ThemedText>
-            </View>
-            <ThemedText style={styles.chevron}>›</ThemedText>
-          </View>
-        </TouchableOpacity>
-      ) : null}
 
-    </ScrollView>
+        {/* Propio del Tiempo */}
+        {propio ? (
+          <View style={styles.propioSection}>
+            <ThemedText style={styles.sectionLabel}>PROPIO DEL TIEMPO</ThemedText>
+            <ThemedText style={styles.propioDia}>{seasonData?.temporada_label ?? ''} — {propio.dia}</ThemedText>
+
+            {propio.antifona_entrada ? (
+              <View style={styles.propioCard}>
+                <ThemedText style={styles.propioLabel}>Antífona de entrada</ThemedText>
+                <ThemedText style={styles.propioText}>{propio.antifona_entrada}</ThemedText>
+              </View>
+            ) : null}
+
+            {propio.colecta ? (
+              <View style={styles.propioCard}>
+                <ThemedText style={styles.propioLabel}>Oración colecta</ThemedText>
+                <ThemedText style={styles.propioText}>{propio.colecta}</ThemedText>
+              </View>
+            ) : null}
+
+            {propio.oracion_ofrendas ? (
+              <View style={styles.propioCard}>
+                <ThemedText style={styles.propioLabel}>Oración sobre las ofrendas</ThemedText>
+                <ThemedText style={styles.propioText}>{propio.oracion_ofrendas}</ThemedText>
+              </View>
+            ) : null}
+
+            {propio.postcomunion ? (
+              <View style={styles.propioCard}>
+                <ThemedText style={styles.propioLabel}>Postcomunión</ThemedText>
+                <ThemedText style={styles.propioText}>{propio.postcomunion}</ThemedText>
+              </View>
+            ) : null}
+
+            {propio.antifona_comunion ? (
+              <View style={styles.propioCard}>
+                <ThemedText style={styles.propioLabel}>Antífona de comunión</ThemedText>
+                <ThemedText style={styles.propioText}>{propio.antifona_comunion}</ThemedText>
+              </View>
+            ) : null}
+          </View>
+        ) : seasonData ? (
+          <TouchableOpacity style={styles.card} onPress={() => router.push('/misal/propio')} activeOpacity={0.7}>
+            <View style={styles.cardRow}>
+              <ThemedText style={styles.cardIcon}>{SEASON_EMOJI[seasonData.temporada] ?? '🌿'}</ThemedText>
+              <View style={styles.cardTextWrap}>
+                <ThemedText style={styles.cardLabel}>PROPIO DEL TIEMPO</ThemedText>
+                <ThemedText style={styles.cardTitle}>{seasonData.temporada_label}</ThemedText>
+              </View>
+              <ThemedText style={styles.chevron}>›</ThemedText>
+            </View>
+          </TouchableOpacity>
+        ) : null}
+
+      </Animated.ScrollView>
+    </View>
   );
 }
 

@@ -16,7 +16,6 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
     <View style={s.outer}>
       <View style={s.inner}>
         {state.routes.filter((r) => VISIBLE_TABS.includes(r.name)).map((route, index) => {
-          const { options } = descriptors[route.key];
           const isFocused = state.index === state.routes.findIndex((r) => r.name === route.name);
           const iconName = ICONS[route.name];
 

@@ -39,11 +39,6 @@ export interface CICSeccion {
 
 export type CICNumeralPreview = Pick<CICNumeral, 'id' | 'articulo' | 'texto'>;
 
-export interface CICSearchResult extends CICNumeral {
-  highlight?: string;
-  rank?: number;
-}
-
 // ─── Lecturas ───────────────────────────────────────────────────────────────────
 
 export interface Lectura {
@@ -98,9 +93,3 @@ export interface MisalPlegaria {
 }
 
 // ─── Búsqueda genérica ─────────────────────────────────────────────────────────
-
-export interface FTS5Query {
-  term: string;
-  limit?: number;
-  offset?: number;
-}

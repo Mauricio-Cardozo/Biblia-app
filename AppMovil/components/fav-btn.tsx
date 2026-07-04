@@ -1,3 +1,5 @@
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
 import { ThemedText } from "@/components/themed-text";
 import { addFavorito, isFavorito, removeFavorito, type Favorito } from "@/data/favoritos";
 import React, { useCallback, useEffect, useState } from "react";

@@ -129,7 +129,7 @@ export async function forceReCopy(): Promise<void> {
 }
 
 /** Quick check: are FTS5 tables available for search? */
-export async function areFTSReady(db: SQLiteDatabase): Promise<{ cic: boolean }> {
+async function areFTSReady(db: SQLiteDatabase): Promise<{ cic: boolean }> {
   const tables = await db.getAllAsync<{ name: string }>(
     "SELECT name FROM sqlite_master WHERE type='table' AND name = 'catecismo_cic_fts'",
   );

@@ -155,12 +155,6 @@ export async function getMisalPropioPorSemana(db: SQLiteDatabase, temporada: str
   return null;
 }
 
-export async function getMisalOrdinario(db: SQLiteDatabase): Promise<MisalOrdinarioBlock[]> {
-  return db.getAllAsync<MisalOrdinarioBlock>(
-    "SELECT id, seccion, subseccion, rol, texto, orden FROM misal_ordinario ORDER BY orden",
-  );
-}
-
 export async function getMisalOrdinarioPorSeccion(db: SQLiteDatabase, seccion: string): Promise<MisalOrdinarioBlock[]> {
   return db.getAllAsync<MisalOrdinarioBlock>(
     "SELECT id, seccion, subseccion, rol, texto, orden FROM misal_ordinario WHERE seccion = ? ORDER BY orden",

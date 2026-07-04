@@ -1,1 +1,0 @@
-// ponytail: unused after ThemedText/ThemedView simplification
