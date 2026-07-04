@@ -156,7 +156,7 @@ export default function BibliaScreen() {
 
   const renderHeader = () => {
     if (nivel === "libros") {
-      const imgSrc = libroActual?.testamento === "Nuevo"
+      const imgSrc = filtro === "Nuevo"
         ? require("@/assets/images/biblia-nuevo.jpg")
         : require("@/assets/images/biblia-antiguo.jpg");
 
