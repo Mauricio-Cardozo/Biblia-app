@@ -316,8 +316,9 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [ ] **Split-pane / multi-ventana** — dos paneles simultáneos (Biblia + CIC, o Lecturas + Reflexión). Prioritario en tablets.
 - [ ] **Sistema de etiquetas, highlights y notas** — expandir favs actuales con etiquetas de colores, resaltado de versículos, notas personales.
 
+- [x] **Evangelio del día en Home** — preview en vivo con truncado por numberOfLines, se adapta al tamaño de fuente.
+
 ### 🟡 Mediano plazo
-- [ ] **Evangelio del día en Home** — preview de la lectura del día en la pantalla principal, truncado automáticamente según espacio y tamaño de fuente.
 - [ ] **Animaciones y transiciones** — shared elements, hero animations, fade, scale, skeletons, microinteracciones. Inspirado en Lummen.
 - [ ] **Widget Android** — versículo del día, racha y acceso rápido desde la pantalla de inicio.
 - [ ] **Search global** — buscar en Biblia + CIC + Misal desde un campo unificado (FTS5 ya existe).
