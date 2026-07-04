@@ -23,6 +23,7 @@ const MAPPING = {
   'text.book.closed.fill': 'library-books',
   'questionmark.text.page.fill': 'school',
   'hands.sparkles': 'volunteer-activism',
+  'calendar': 'calendar-month',
 } as IconMapping;
 
 /**

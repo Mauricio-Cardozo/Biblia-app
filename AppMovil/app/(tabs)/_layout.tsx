@@ -1,54 +1,68 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { HapticTab } from '@/components/haptic-tab';
+import { TouchableOpacity, View, StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import FloatingTabBar from '@/components/ui/floating-tab-bar';
+import { C } from '@/constants/theme';
+import { router } from 'expo-router';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
+
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="biblia"
-        options={{
-          title: 'Biblia',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="book.closed.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="catecismo"
-        options={{
-          title: 'Catecismo',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="text.book.closed.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="misal"
-        options={{
-          title: 'Misal',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="oracion"
-        options={{
-          title: 'Oración',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="hands.sparkles" color={color} />,
-        }}
-      />
-    </Tabs>
+    <View style={{ flex: 1 }}>
+      <Tabs
+        tabBar={(props) => (
+          <View style={{ marginBottom: insets.bottom }}>
+            <FloatingTabBar {...props} />
+          </View>
+        )}
+        screenOptions={{ headerShown: false }}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{ title: 'Liturgia' }}
+        />
+        <Tabs.Screen
+          name="biblia"
+          options={{ title: 'Biblia' }}
+        />
+        <Tabs.Screen
+          name="calendario"
+          options={{ title: 'Calendario' }}
+        />
+        <Tabs.Screen
+          name="oracion"
+          options={{ title: 'Oración' }}
+        />
+        <Tabs.Screen
+          name="catecismo"
+          options={{ href: null }}
+        />
+        <Tabs.Screen
+          name="misal"
+          options={{ href: null }}
+        />
+      </Tabs>
+
+      <TouchableOpacity
+        style={[s.fab, { bottom: insets.bottom + 80 }]}
+        onPress={() => router.push('/ajustes')}
+        activeOpacity={0.8}
+      >
+        <IconSymbol name="questionmark.text.page.fill" size={24} color={C.navy} />
+      </TouchableOpacity>
+    </View>
   );
 }
+
+const s = StyleSheet.create({
+  fab: {
+    position: 'absolute', right: 20,
+    width: 52, height: 52, borderRadius: 26,
+    backgroundColor: C.gold,
+    alignItems: 'center', justifyContent: 'center',
+    ...Platform.select({ android: { elevation: 6 } }),
+  },
+});

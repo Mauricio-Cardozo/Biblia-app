@@ -307,6 +307,8 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] **Eliminar duplicación** — `formatoFecha`/`hoy()`, mapa de emojis de temporadas, layout de sección de lecturas extraídos a `utils/date.ts`, `utils/seasons.ts`, `components/reading-section.tsx`.
 - [x] **Tokens de diseño** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados (pendiente refactorizar screens).
 - [x] **StatusBar + NavigationBar ocultos** en toda la app vía `expo-navigation-bar`
+- [x] **Evangelio del día en Home** — preview en vivo con truncado por numberOfLines, se adapta al tamaño de fuente.
+- [x] **Rediseño navegación** — tab bar flotante redondeada, FAB de ajustes, calendario como tab, Home renombrado a Liturgia, Catecismo+Misal como sub-secciones de Oración.
 
 ### 🔴 Corto plazo (alta prioridad)
 
@@ -319,6 +321,7 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] **Evangelio del día en Home** — preview en vivo con truncado por numberOfLines, se adapta al tamaño de fuente.
 
 ### 🟡 Mediano plazo
+- [ ] **Configuraciones funcionales** — tema claro/oscuro real, notificaciones push (expo-notifications), ayuda integrada.
 - [ ] **Animaciones y transiciones** — shared elements, hero animations, fade, scale, skeletons, microinteracciones. Inspirado en Lummen.
 - [ ] **Widget Android** — versículo del día, racha y acceso rápido desde la pantalla de inicio.
 - [ ] **Search global** — buscar en Biblia + CIC + Misal desde un campo unificado (FTS5 ya existe).

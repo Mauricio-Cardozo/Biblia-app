@@ -10,7 +10,7 @@ import { getLecturaDelDia } from '@/db/db';
 import { fechaActualLarga, hoy } from '@/utils/date';
 import type { Lectura } from '@/types';
 
-export default function HomeScreen() {
+export default function LiturgiaScreen() {
   const insets = useSafeAreaInsets();
   const db = useSQLiteContext();
 
@@ -42,6 +42,8 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </Link>
       )}
+      <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
+      <ThemedText style={styles.pageTitle}>Liturgia</ThemedText>
       <ThemedText style={styles.dateText}>{fechaActualLarga()}</ThemedText>
 
       {/* Evangelio del Día */}
@@ -92,7 +94,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   debugLink: { backgroundColor: '#8B0000', marginBottom: 10, borderRadius: 8, marginHorizontal: 20, padding: 10, alignItems: 'center' },
   debugText: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  dateText: { color: C.gold, fontSize: 22, fontWeight: 'bold', marginBottom: 20, marginHorizontal: 20 },
+  brand: { color: C.gold, fontSize: 12, fontWeight: '700', letterSpacing: 2, marginBottom: 4, marginHorizontal: 20 },
+  pageTitle: { color: C.text, fontSize: 28, fontWeight: '700', marginBottom: 4, marginHorizontal: 20 },
+  dateText: { color: C.gold, fontSize: 18, marginBottom: 20, marginHorizontal: 20 },
   card: { backgroundColor: C.navyMid, padding: 20, borderRadius: 12, marginBottom: 15, marginHorizontal: 20 },
   cardLabel: { color: C.gold, fontSize: 12, fontWeight: 'bold', marginBottom: 10 },
   verseText: { color: C.text, fontSize: 18, fontStyle: 'italic' },
