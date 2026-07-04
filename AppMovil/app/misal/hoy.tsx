@@ -1,4 +1,6 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import ReadingSection from "@/components/reading-section";
@@ -80,7 +82,7 @@ export default function HoyScreen() {
         ))}
 
         <TouchableOpacity
-          style={[s.card, { marginTop: 8 }]}
+          style={[s.card, { marginTop: S.sm }]}
           onPress={() => router.push("/misal/prefacios")}
           activeOpacity={0.7}
         >
@@ -101,25 +103,25 @@ export default function HoyScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   center: { alignItems: "center", justifyContent: "center" },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: S.lg, paddingBottom: S.huge },
   lecturaCard: {
     backgroundColor: C.navyMid,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: R.lg,
+    padding: S.lg,
+    marginBottom: S.lg,
   },
-  lecturaTitle: { color: C.gold, fontSize: 16, fontWeight: "700", marginBottom: 12 },
-  noData: { padding: 24, alignItems: "center" },
+  lecturaTitle: { color: C.gold, fontSize: 16, fontWeight: "700", marginBottom: S.md },
+  noData: { padding: S.xxl, alignItems: "center" },
   noDataText: { color: C.muted, fontSize: 14 },
-  sectionTitle: { color: C.gold, fontSize: 12, fontWeight: "700", letterSpacing: 1, marginBottom: 10, marginTop: 4 },
+  sectionTitle: { color: C.gold, fontSize: 12, fontWeight: "700", letterSpacing: 1, marginBottom: 10, marginTop: S.xs },
   card: {
     backgroundColor: C.navyMid,
-    borderRadius: 12,
+    borderRadius: R.lg,
     padding: 14,
     marginBottom: 6,
   },
   cardRow: { flexDirection: "row", alignItems: "center" },
-  cardIcon: { fontSize: 24, marginRight: 12 },
+  cardIcon: { fontSize: 24, marginRight: S.md },
   cardTextWrap: { flex: 1 },
   cardTitle: { color: C.text, fontSize: 14, fontWeight: "600" },
   cardSubtitle: { color: C.muted, fontSize: 11, marginTop: 2 },

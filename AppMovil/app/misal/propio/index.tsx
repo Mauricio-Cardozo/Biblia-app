@@ -1,4 +1,6 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
@@ -109,17 +111,17 @@ export default function PropioScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   center: { alignItems: "center", justifyContent: "center" },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: S.lg, paddingBottom: S.huge },
   card: {
     backgroundColor: C.navyMid,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
+    borderRadius: R.lg,
+    padding: S.lg,
+    marginBottom: S.sm,
   },
   cardRow: { flexDirection: "row", alignItems: "center" },
   cardIcon: { fontSize: 28, marginRight: 14 },
   cardTextWrap: { flex: 1 },
   cardTitle: { color: C.text, fontSize: 15, fontWeight: "600" },
-  cardSubtitle: { color: C.muted, fontSize: 12, marginTop: 4, lineHeight: 17 },
-  chevron: { color: C.gold, fontSize: 22, marginLeft: 8 },
+  cardSubtitle: { color: C.muted, fontSize: 12, marginTop: S.xs, lineHeight: 17 },
+  chevron: { color: C.gold, fontSize: 22, marginLeft: S.sm },
 });

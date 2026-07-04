@@ -1,4 +1,5 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { useFontSize } from "@/contexts/font-size";
 import React from "react";
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
   btn: {
     width: 30,
     height: 30,
-    borderRadius: 8,
+    borderRadius: R.md,
     backgroundColor: C.navyLight,
     borderWidth: 1,
     borderColor: C.goldDim,
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
   valBtn: {
     paddingHorizontal: 8,
     height: 24,
-    borderRadius: 6,
+    borderRadius: R.sm,
     backgroundColor: C.navyLight,
     alignItems: "center",
     justifyContent: "center",

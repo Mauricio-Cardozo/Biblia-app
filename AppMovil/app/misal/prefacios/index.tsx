@@ -1,4 +1,6 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
@@ -50,12 +52,12 @@ export default function PrefaciosScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   center: { alignItems: "center", justifyContent: "center" },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: S.lg, paddingBottom: S.huge },
   card: {
     backgroundColor: C.navyMid,
-    borderRadius: 12,
+    borderRadius: R.lg,
     padding: 14,
-    marginBottom: 8,
+    marginBottom: S.sm,
   },
   title: { color: C.gold, fontSize: 14, fontWeight: "600", marginBottom: 6 },
   preview: { color: C.text, fontSize: 13, lineHeight: 20 },

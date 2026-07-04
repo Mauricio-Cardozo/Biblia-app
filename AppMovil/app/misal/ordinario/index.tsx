@@ -1,4 +1,6 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
@@ -98,29 +100,29 @@ export default function OrdinarioScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   center: { alignItems: "center", justifyContent: "center" },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: S.lg, paddingBottom: S.huge },
   card: {
     backgroundColor: C.navyMid,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
+    borderRadius: R.lg,
+    padding: S.lg,
+    marginBottom: S.sm,
   },
   cardRow: { flexDirection: "row", alignItems: "center" },
   cardTextWrap: { flex: 1 },
   cardTitle: { color: C.text, fontSize: 15, fontWeight: "600" },
   cardSubtitle: { color: C.muted, fontSize: 12, marginTop: 2 },
-  chevron: { color: C.gold, fontSize: 22, marginLeft: 8 },
+  chevron: { color: C.gold, fontSize: 22, marginLeft: S.sm },
   block: {
     backgroundColor: C.navyMid,
-    borderRadius: 12,
+    borderRadius: R.lg,
     padding: 14,
-    marginBottom: 8,
+    marginBottom: S.sm,
   },
   blockHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 6,
-    gap: 8,
+    gap: S.sm,
   },
   rol: {
     color: C.gold,

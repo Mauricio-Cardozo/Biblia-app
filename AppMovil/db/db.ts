@@ -140,6 +140,21 @@ export async function getMisalPropioDetalle(db: SQLiteDatabase, id: number): Pro
   );
 }
 
+export async function getMisalPropioPorSemana(db: SQLiteDatabase, temporada: string, semana: number, esDomingo: boolean): Promise<MisalPropioEntry | null> {
+  if (temporada === 'ordinario' && semana > 0 && semana <= 34) {
+    const R = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI','XXII','XXIII','XXIV','XXV','XXVI','XXVII','XXVIII','XXIX','XXX','XXXI','XXXII','XXXIII','XXXIV'];
+    const n = R[semana - 1];
+    const dom = await db.getFirstAsync<MisalPropioEntry>(
+      "SELECT * FROM misal_propio WHERE temporada = 'ordinario' AND dia = ?", [`${n} DOMINGO DEL TIEMPO ORDINARIO`]
+    );
+    if (dom) return dom;
+    return db.getFirstAsync<MisalPropioEntry>(
+      "SELECT * FROM misal_propio WHERE temporada = 'ordinario' AND dia = ?", [`${n} SEMANA DEL TIEMPO ORDINARIO`]
+    );
+  }
+  return null;
+}
+
 export async function getMisalOrdinario(db: SQLiteDatabase): Promise<MisalOrdinarioBlock[]> {
   return db.getAllAsync<MisalOrdinarioBlock>(
     "SELECT id, seccion, subseccion, rol, texto, orden FROM misal_ordinario ORDER BY orden",

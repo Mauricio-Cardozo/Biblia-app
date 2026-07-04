@@ -1,4 +1,5 @@
 import { C } from "@/constants/theme";
+import { S } from '@/constants/spacing';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import { useFontSize, fs } from "@/contexts/font-size";
@@ -36,6 +37,6 @@ export default function OracionDetalleScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
-  content: { padding: 16, paddingBottom: 48 },
+  content: { padding: S.lg, paddingBottom: S.massive },
   texto: { color: C.text, lineHeight: 28 },
 });

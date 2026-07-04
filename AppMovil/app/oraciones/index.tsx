@@ -1,4 +1,5 @@
 import { C } from "@/constants/theme";
+import { S } from '@/constants/spacing';
 import ScreenHeader from "@/components/ui/screen-header";
 import ListItemCard from "@/components/ui/list-item-card";
 import { router } from "expo-router";
@@ -28,5 +29,5 @@ export default function OracionesScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
-  content: { padding: 16, paddingBottom: 48 },
+  content: { padding: S.lg, paddingBottom: S.massive },
 });

@@ -1,4 +1,6 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
@@ -106,7 +108,7 @@ export default function CalendarioLiturgico() {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color={C.gold} style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color={C.gold} style={{ marginTop: S.huge }} />
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.semanaRow}>
@@ -128,21 +130,21 @@ const CELDA = 44;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
-  title: { color: C.text, fontSize: 22, fontWeight: '700', marginHorizontal: 20, marginBottom: 8 },
-  mesNav: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 20, marginVertical: 12 },
+  title: { color: C.text, fontSize: 22, fontWeight: '700', marginHorizontal: S.xl, marginBottom: S.sm },
+  mesNav: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: S.xl, marginVertical: S.md },
   mesBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.navyLight, alignItems: "center", justifyContent: "center" },
   mesBtnText: { color: C.gold, fontSize: 24, fontWeight: "700", marginTop: Platform.OS === "android" ? -2 : -3 },
   mesLabel: { color: C.text, fontSize: 18, fontWeight: "600", minWidth: 150, textAlign: "center" },
-  scrollContent: { paddingHorizontal: 12, paddingBottom: 100 },
+  scrollContent: { paddingHorizontal: S.md, paddingBottom: 100 },
   semanaRow: { flexDirection: "row" },
   semanaCelda: { width: CELDA, height: 28, alignItems: "center", justifyContent: "center" },
   semanaLabel: { color: C.muted, fontSize: 12, fontWeight: "700" },
   grid: { flexDirection: "row", flexWrap: "wrap" },
   celda: { width: CELDA, height: CELDA, alignItems: "center", justifyContent: "center" },
-  celdaHoy: { backgroundColor: C.goldDim, borderRadius: 8 },
+  celdaHoy: { backgroundColor: C.goldDim, borderRadius: R.md },
   diaNum: { fontSize: 15, fontWeight: "600", color: C.text },
   diaNumHoy: { color: C.navy },
   diaNumVacio: { color: C.muted, opacity: 0.4 },
   diaDot: { color: C.gold, fontSize: 10, marginTop: 1 },
-  leyenda: { color: C.muted, fontSize: 12, textAlign: "center", marginTop: 16 },
+  leyenda: { color: C.muted, fontSize: 12, textAlign: "center", marginTop: S.lg },
 });

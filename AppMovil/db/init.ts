@@ -24,15 +24,17 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
   // ── v1: Drop old content-sync triggers + FTS tables ───────────────────
   if (version < 1) {
     if (__DEV__) console.log("Migration v1: cleaning old content-sync triggers…");
-    for (const t of [
-      "catecismo_cic_ai", "catecismo_cic_ad", "catecismo_cic_au",
-    ]) {
-      try { await db.runAsync(`DROP TRIGGER IF EXISTS ${t}`); } catch { /* ok */ }
-    }
-    for (const t of ["catecismo_cic_fts"]) {
-      try { await db.runAsync(`DROP TABLE IF EXISTS ${t}`); } catch { /* ok */ }
-    }
-    await setVersion(db, 1);
+    try {
+      for (const t of [
+        "catecismo_cic_ai", "catecismo_cic_ad", "catecismo_cic_au",
+      ]) {
+        await db.runAsync(`DROP TRIGGER IF EXISTS ${t}`);
+      }
+      for (const t of ["catecismo_cic_fts"]) {
+        await db.runAsync(`DROP TABLE IF EXISTS ${t}`);
+      }
+      await setVersion(db, 1);
+    } catch { /* retry on next launch */ }
   }
 
   // ── v3: Add `novenas` + `novena_dias` tables if missing ──────────────
@@ -45,10 +47,10 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
       await db.runAsync(
         "CREATE TABLE IF NOT EXISTS novena_dias (id INTEGER PRIMARY KEY AUTOINCREMENT, novena_id INTEGER NOT NULL, dia INTEGER NOT NULL, titulo TEXT, texto TEXT NOT NULL, FOREIGN KEY (novena_id) REFERENCES novenas(id))",
       );
+      await setVersion(db, 3);
     } catch (e) {
       if (__DEV__) console.warn("Migration v3 failed:", e);
     }
-    await setVersion(db, 3);
   }
 
   // ── v4: Add `lecturas` table if missing ─────────────────────────────
@@ -58,10 +60,10 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
       await db.runAsync(
         "CREATE TABLE IF NOT EXISTS lecturas (id INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT NOT NULL UNIQUE, url TEXT, titulo_misa TEXT, primera_lectura_ref TEXT, primera_lectura TEXT, salmo TEXT, aleluia TEXT, evangelio_ref TEXT, evangelio TEXT, comentario_papal TEXT, creado_en TEXT DEFAULT (datetime('now','localtime')))",
       );
+      await setVersion(db, 4);
     } catch (e) {
       if (__DEV__) console.warn("Migration v4 failed:", e);
     }
-    await setVersion(db, 4);
   }
 
   // ── v5: Add Misal Romano tables ──────────────────────────────────
@@ -72,10 +74,10 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
       await db.runAsync("CREATE TABLE IF NOT EXISTS misal_propio (id INTEGER PRIMARY KEY AUTOINCREMENT, temporada TEXT NOT NULL, temporada_label TEXT, dia TEXT, colecta TEXT, oracion_ofrendas TEXT, postcomunion TEXT, prefacio TEXT, antifona_entrada TEXT, antifona_comunion TEXT)");
       await db.runAsync("CREATE TABLE IF NOT EXISTS misal_prefacios (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT NOT NULL, texto TEXT NOT NULL)");
       await db.runAsync("CREATE TABLE IF NOT EXISTS misal_plegarias (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, texto TEXT NOT NULL)");
+      await setVersion(db, 5);
     } catch (e) {
       if (__DEV__) console.warn("Migration v5 failed:", e);
     }
-    await setVersion(db, 5);
   }
 
   // ══════════════════════════════════════════════════════════════════════════

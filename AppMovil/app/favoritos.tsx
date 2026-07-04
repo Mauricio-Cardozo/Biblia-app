@@ -1,4 +1,5 @@
 import { C } from "@/constants/theme";
+import { S } from '@/constants/spacing';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import ListItemCard from "@/components/ui/list-item-card";
@@ -55,7 +56,7 @@ export default function FavoritosScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
-  list: { padding: 16 },
-  empty: { color: C.muted, fontSize: 14, textAlign: "center", paddingVertical: 40 },
+  list: { padding: S.lg },
+  empty: { color: C.muted, fontSize: 14, textAlign: "center", paddingVertical: S.huge },
   cardTipo: { color: C.gold, fontSize: 10, fontWeight: "700", letterSpacing: 1 },
 });

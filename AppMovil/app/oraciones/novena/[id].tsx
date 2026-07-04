@@ -1,4 +1,5 @@
 import { C } from "@/constants/theme";
+import { S } from '@/constants/spacing';
 import { ThemedText } from "@/components/themed-text";
 import { useFontSize, fs } from "@/contexts/font-size";
 import { router, useLocalSearchParams } from "expo-router";
@@ -87,7 +88,7 @@ export default function NovenaDetalleScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   header: {
-    flexDirection: "row", alignItems: "center", paddingHorizontal: 16,
+    flexDirection: "row", alignItems: "center", paddingHorizontal: S.lg,
     paddingVertical: Platform.OS === "android" ? 12 : 8,
     borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid, gap: 10,
   },
@@ -99,18 +100,18 @@ const s = StyleSheet.create({
   title: { color: C.text, fontSize: 18, fontWeight: "700", flex: 1 },
   diaRow: {
     borderBottomWidth: 1, borderBottomColor: C.sep, backgroundColor: C.navyMid,
-    paddingVertical: 8,
+    paddingVertical: S.sm,
   },
-  diaScroll: { paddingHorizontal: 16, gap: 8 },
+  diaScroll: { paddingHorizontal: S.lg, gap: S.sm },
   diaBtn: {
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+    paddingHorizontal: 14, paddingVertical: S.sm, borderRadius: 20,
     backgroundColor: C.navyLight, borderWidth: 1, borderColor: C.sep,
   },
   diaBtnActive: { backgroundColor: C.gold, borderColor: C.gold },
   diaBtnText: { color: C.muted, fontSize: 13, fontWeight: "600" },
   diaBtnTextActive: { color: C.navy },
-  content: { padding: 20, paddingBottom: 48 },
-  loading: { color: C.muted, fontSize: 15, textAlign: "center", marginTop: 40 },
-  diaTitulo: { color: C.gold, fontSize: 18, fontWeight: "700", marginBottom: 16 },
+  content: { padding: S.xl, paddingBottom: S.massive },
+  loading: { color: C.muted, fontSize: 15, textAlign: "center", marginTop: S.huge },
+  diaTitulo: { color: C.gold, fontSize: 18, fontWeight: "700", marginBottom: S.lg },
   texto: { color: C.text, lineHeight: 28 },
 });

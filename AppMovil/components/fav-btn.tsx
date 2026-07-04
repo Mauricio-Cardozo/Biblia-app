@@ -34,7 +34,7 @@ export default function FavBtn({ favorito }: Props) {
 }
 
 const styles = StyleSheet.create({
-  btn: { padding: 4 },
+  btn: { padding: S.xs },
   icon: { fontSize: 20, lineHeight: 24 },
   activo: {},
 });

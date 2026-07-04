@@ -1,4 +1,6 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
@@ -57,12 +59,12 @@ export default function PlegariaDetalleScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   center: { alignItems: "center", justifyContent: "center" },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: S.lg, paddingBottom: S.huge },
   errorText: { color: C.gold, fontSize: 16 },
   block: {
     backgroundColor: C.navyMid,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: R.lg,
+    padding: S.lg,
   },
   text: { color: C.text, fontSize: 14, lineHeight: 22 },
 });

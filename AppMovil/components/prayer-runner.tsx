@@ -1,4 +1,5 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -201,7 +202,7 @@ const s = StyleSheet.create({
   beadInactivo: { backgroundColor: C.navyLight, borderColor: C.goldDim },
   contentArea: { flex: 1 },
   contentInner: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingVertical: 20 },
-  stepBadge: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 16 },
+  stepBadge: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: R.md, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 16 },
   stepBadgeText: { color: C.goldLight, fontSize: 13, fontWeight: "800", letterSpacing: 0.5 },
   subtitle: { color: C.muted, fontSize: 12, fontStyle: "italic", marginBottom: 12 },
   prayerText: { color: C.text, fontSize: 17, lineHeight: 30, textAlign: "center" },
@@ -215,7 +216,7 @@ const s = StyleSheet.create({
   },
   nextBtn: {
     backgroundColor: C.goldDim,
-    borderRadius: 12,
+    borderRadius: R.lg,
     paddingVertical: 16,
     alignItems: "center",
     borderWidth: 1,

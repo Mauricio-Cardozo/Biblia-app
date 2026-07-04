@@ -1,4 +1,6 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import React, { useRef } from "react";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "@/components/themed-text";
@@ -86,7 +88,7 @@ export default function ListItemCard({
 const s = StyleSheet.create({
   card: {
     backgroundColor: C.navyMid,
-    borderRadius: 12,
+    borderRadius: R.lg,
     borderWidth: 1,
     borderColor: C.sep,
     marginBottom: 6,
@@ -95,14 +97,14 @@ const s = StyleSheet.create({
   inner: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    gap: 12,
+    paddingVertical: S.md,
+    paddingHorizontal: S.md,
+    gap: S.md,
   },
   badge: {
     width: 34,
     height: 34,
-    borderRadius: 8,
+    borderRadius: R.md,
     backgroundColor: C.goldDim,
     alignItems: "center",
     justifyContent: "center",

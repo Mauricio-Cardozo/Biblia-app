@@ -1,4 +1,6 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import ReadingSection from "@/components/reading-section";
@@ -127,19 +129,19 @@ export default function EvangelioScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
-  content: { paddingBottom: 48 },
-  centered: { flex: 1, backgroundColor: C.navy, justifyContent: "center", alignItems: "center", paddingHorizontal: 20 },
-  errorText: { color: C.error, fontSize: 15, textAlign: "center", marginBottom: 16 },
-  reintentarBtn: { backgroundColor: C.gold, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
+  content: { paddingBottom: S.massive },
+  centered: { flex: 1, backgroundColor: C.navy, justifyContent: "center", alignItems: "center", paddingHorizontal: S.xl },
+  errorText: { color: C.error, fontSize: 15, textAlign: "center", marginBottom: S.lg },
+  reintentarBtn: { backgroundColor: C.gold, borderRadius: R.lg, paddingHorizontal: S.xxl, paddingVertical: 10 },
   reintentarText: { color: C.navy, fontWeight: "700", fontSize: 14 },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
-  calBtn: { padding: 4 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: S.sm },
+  calBtn: { padding: S.xs },
   tituloMisa: {
     color: C.goldLight,
     fontSize: 20,
     fontWeight: "700",
-    marginHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 8,
+    marginHorizontal: S.lg,
+    marginTop: S.xl,
+    marginBottom: S.sm,
   },
 });

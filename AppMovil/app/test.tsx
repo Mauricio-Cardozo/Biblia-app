@@ -1,4 +1,6 @@
 import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { ThemedText } from '@/components/themed-text';
 import { useCallback, useRef, useState } from 'react';
 import {
@@ -133,7 +135,7 @@ export default function TestDatabase() {
         </View>
       </View>
 
-      {searchLoading && <ActivityIndicator size="large" color={C.gold} style={{ marginVertical: 20 }} />}
+      {searchLoading && <ActivityIndicator size="large" color={C.gold} style={{ marginVertical: S.xl }} />}
       {searchError && <ThemedText style={s.error}>{searchError}</ThemedText>}
       {searchResults !== '' && !searchLoading && (
         <View style={s.card}>
@@ -144,7 +146,7 @@ export default function TestDatabase() {
       <TouchableOpacity style={s.btn} onPress={ejecutarDiagnosis}>
         <ThemedText style={s.btnText}>🔬 Diagnosticar DB</ThemedText>
       </TouchableOpacity>
-      {diagnosisLoading && <ActivityIndicator size="small" color={C.gold} style={{ marginVertical: 12 }} />}
+      {diagnosisLoading && <ActivityIndicator size="small" color={C.gold} style={{ marginVertical: S.md }} />}
       {diagnosis !== '' && (
         <View style={s.card}>
           <ThemedText style={s.cardTitle}>Diagnóstico</ThemedText>
@@ -160,15 +162,15 @@ export default function TestDatabase() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, padding: 16, paddingTop: 50, backgroundColor: C.navy },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16, color: C.goldLight },
-  card: { backgroundColor: C.navyMid, padding: 14, borderRadius: 12, marginBottom: 14, borderWidth: 1, borderColor: C.goldDim },
+  container: { flex: 1, padding: S.lg, paddingTop: 50, backgroundColor: C.navy },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: S.lg, color: C.goldLight },
+  card: { backgroundColor: C.navyMid, padding: 14, borderRadius: R.lg, marginBottom: 14, borderWidth: 1, borderColor: C.goldDim },
   cardTitle: { color: C.gold, fontSize: 15, fontWeight: '700', marginBottom: 10 },
   row: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  input: { backgroundColor: C.navy, color: C.text, fontSize: 15, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: C.goldDim, marginBottom: 10 },
-  btn: { flex: 1, backgroundColor: C.navyMid, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: C.gold, alignItems: 'center' },
-  btnSecondary: { flex: 1, backgroundColor: C.navyLight, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: C.goldDim, alignItems: 'center' },
-  btnDanger: { backgroundColor: '#4A1A2D', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: C.error, alignItems: 'center', marginTop: 8 },
+  input: { backgroundColor: C.navy, color: C.text, fontSize: 15, paddingHorizontal: 14, paddingVertical: 10, borderRadius: R.md, borderWidth: 1, borderColor: C.goldDim, marginBottom: 10 },
+  btn: { flex: 1, backgroundColor: C.navyMid, padding: S.md, borderRadius: R.md, borderWidth: 1, borderColor: C.gold, alignItems: 'center' },
+  btnSecondary: { flex: 1, backgroundColor: C.navyLight, padding: S.md, borderRadius: R.md, borderWidth: 1, borderColor: C.goldDim, alignItems: 'center' },
+  btnDanger: { backgroundColor: '#4A1A2D', padding: S.md, borderRadius: R.md, borderWidth: 1, borderColor: C.error, alignItems: 'center', marginTop: S.sm },
   btnText: { color: C.goldLight, fontWeight: '700', fontSize: 14 },
   btnDangerText: { color: C.error, fontWeight: '700', fontSize: 14 },
   error: { color: C.error, fontSize: 14, textAlign: 'center', marginVertical: 10 },

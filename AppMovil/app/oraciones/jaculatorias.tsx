@@ -1,4 +1,5 @@
 import { C } from "@/constants/theme";
+import { S } from '@/constants/spacing';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import { router } from "expo-router";
@@ -44,11 +45,11 @@ export default function JaculatoriasScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
-  content: { padding: 16, paddingBottom: 48 },
-  intro: { color: C.muted, fontSize: 14, lineHeight: 22, marginBottom: 24, fontStyle: "italic" },
+  content: { padding: S.lg, paddingBottom: S.massive },
+  intro: { color: C.muted, fontSize: 14, lineHeight: 22, marginBottom: S.xxl, fontStyle: "italic" },
   grupo: { marginBottom: 28 },
-  grupoTitulo: { color: C.gold, fontSize: 16, fontWeight: "700", marginBottom: 12 },
-  item: { marginBottom: 12, paddingLeft: 8 },
+  grupoTitulo: { color: C.gold, fontSize: 16, fontWeight: "700", marginBottom: S.md },
+  item: { marginBottom: S.md, paddingLeft: S.sm },
   invocacion: { color: C.text, fontSize: 15, lineHeight: 22 },
   respuesta: { color: C.goldLight, fontSize: 15, lineHeight: 22, marginTop: 2 },
   v: { color: C.gold, fontWeight: "700" },

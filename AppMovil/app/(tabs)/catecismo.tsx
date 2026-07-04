@@ -1,6 +1,8 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import ScreenHeader from "@/components/ui/screen-header";
 import ListItemCard from "@/components/ui/list-item-card";
 import FavBtn from "@/components/fav-btn";
@@ -378,36 +380,36 @@ export default function CatecismoScreen() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.navy },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, backgroundColor: C.navy },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: S.md, backgroundColor: C.navy },
   muted: { color: C.muted, fontSize: 14 },
-  mutedCenter: { color: C.muted, fontSize: 14, textAlign: "center", paddingVertical: 40 },
-  errorText: { color: C.error, fontSize: 14, textAlign: "center", paddingHorizontal: 20 },
-  retryBtn: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: C.navyLight, borderRadius: 8, borderWidth: 1, borderColor: C.goldDim },
+  mutedCenter: { color: C.muted, fontSize: 14, textAlign: "center", paddingVertical: S.huge },
+  errorText: { color: C.error, fontSize: 14, textAlign: "center", paddingHorizontal: S.xl },
+  retryBtn: { paddingHorizontal: S.xl, paddingVertical: 10, backgroundColor: C.navyLight, borderRadius: R.md, borderWidth: 1, borderColor: C.goldDim },
   retryText: { color: C.goldLight, fontWeight: "600" },
-  buscadorRow: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 16, marginVertical: 10 },
+  buscadorRow: { flexDirection: "row", alignItems: "center", gap: S.sm, marginHorizontal: S.lg, marginVertical: 10 },
   buscador: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: C.navyMid, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, paddingHorizontal: 14 },
-  input: { flex: 1, color: C.text, fontSize: 15, paddingVertical: 12 },
-  clearBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: C.navyLight, alignItems: "center", justifyContent: "center", marginLeft: 8 },
+  input: { flex: 1, color: C.text, fontSize: 15, paddingVertical: S.md },
+  clearBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: C.navyLight, alignItems: "center", justifyContent: "center", marginLeft: S.sm },
   clearText: { color: C.muted, fontSize: 12 },
   jumpBox: { width: 52, height: 44, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, backgroundColor: C.navyMid, alignItems: "center", justifyContent: "center" },
   jumpInput: { color: C.gold, fontSize: 16, fontWeight: "700", textAlign: "center", width: "100%", padding: 0 },
-  list: { padding: 16 },
-  sep: { height: 1, backgroundColor: C.sep, marginHorizontal: 8 },
-  nivelInfo: { color: C.muted, fontSize: 12, paddingBottom: 8, paddingHorizontal: 4 },
-  detalleContent: { padding: 20, paddingBottom: 40 },
+  list: { padding: S.lg },
+  sep: { height: 1, backgroundColor: C.sep, marginHorizontal: S.sm },
+  nivelInfo: { color: C.muted, fontSize: 12, paddingBottom: S.sm, paddingHorizontal: S.xs },
+  detalleContent: { padding: S.xl, paddingBottom: S.huge },
   nroBadgeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
-  nroBadge: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },
+  nroBadge: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: R.md, paddingHorizontal: 14, paddingVertical: 6 },
   nroBadgeText: { color: C.goldLight, fontSize: 14, fontWeight: "800", letterSpacing: 1 },
-  jerarquia: { gap: 4, marginBottom: 16 },
+  jerarquia: { gap: S.xs, marginBottom: S.lg },
   jerarquiaItem: { color: C.muted, fontSize: 13, lineHeight: 20 },
-  divider: { height: 2, backgroundColor: C.goldDim, borderRadius: 1, marginBottom: 20 },
+  divider: { height: 2, backgroundColor: C.goldDim, borderRadius: 1, marginBottom: S.xl },
   detalleTexto: { color: C.text, fontSize: 16, lineHeight: 28, textAlign: "justify" },
-  prevNextRow: { flexDirection: "row", gap: 10, marginTop: 24 },
-  prevNextBtn: { flex: 1, paddingVertical: 12, backgroundColor: C.navyLight, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, alignItems: "center" },
+  prevNextRow: { flexDirection: "row", gap: 10, marginTop: S.xxl },
+  prevNextBtn: { flex: 1, paddingVertical: S.md, backgroundColor: C.navyLight, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, alignItems: "center" },
   prevNextDisabled: { opacity: 0.35 },
   prevNextText: { color: C.goldLight, fontWeight: "600", fontSize: 14 },
-  jumpDetailRow: { marginTop: 12 },
-  jumpDetailInput: { backgroundColor: C.navyLight, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, paddingVertical: 12, paddingHorizontal: 16, color: C.text, fontSize: 15, textAlign: "center" },
-  volverBtn: { marginTop: 16, paddingVertical: 12, paddingHorizontal: 20, backgroundColor: C.navyLight, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, alignItems: "center" },
+  jumpDetailRow: { marginTop: S.md },
+  jumpDetailInput: { backgroundColor: C.navyLight, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, paddingVertical: S.md, paddingHorizontal: S.lg, color: C.text, fontSize: 15, textAlign: "center" },
+  volverBtn: { marginTop: S.lg, paddingVertical: S.md, paddingHorizontal: S.xl, backgroundColor: C.navyLight, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, alignItems: "center" },
   volverBtnText: { color: C.goldLight, fontWeight: "600", fontSize: 15 },
 });

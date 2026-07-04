@@ -1,4 +1,5 @@
 import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
 import { ThemedText } from '@/components/themed-text';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -105,21 +106,21 @@ export default function OracionScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   content: { paddingBottom: 100 },
-  brand: { color: C.gold, fontSize: 12, fontWeight: '700', letterSpacing: 2, marginBottom: 4, marginHorizontal: 20 },
-  title: { color: C.text, fontSize: 28, fontWeight: '700', marginBottom: 24, marginHorizontal: 20 },
-  pillRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginBottom: 20 },
+  brand: { color: C.gold, fontSize: 12, fontWeight: '700', letterSpacing: 2, marginBottom: S.xs, marginHorizontal: S.xl },
+  title: { color: C.text, fontSize: 28, fontWeight: '700', marginBottom: S.xxl, marginHorizontal: S.xl },
+  pillRow: { flexDirection: 'row', gap: S.sm, paddingHorizontal: S.xl, marginBottom: S.xl },
   pill: { flex: 1, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: C.goldDim, alignItems: 'center' },
   pillActive: { backgroundColor: C.gold, borderColor: C.gold },
   pillText: { color: C.gold, fontSize: 13, fontWeight: '600' },
   pillTextActive: { color: C.navy },
-  subHeader: { color: C.muted, fontSize: 12, marginBottom: 8, marginHorizontal: 20 },
-  card: { marginHorizontal: 20, marginBottom: 12, padding: 18, borderRadius: 15, backgroundColor: C.navyMid },
+  subHeader: { color: C.muted, fontSize: 12, marginBottom: S.sm, marginHorizontal: S.xl },
+  card: { marginHorizontal: S.xl, marginBottom: S.md, padding: 18, borderRadius: 15, backgroundColor: C.navyMid },
   cardRow: { flexDirection: 'row', alignItems: 'center' },
-  cardIcon: { fontSize: 32, marginRight: 16 },
+  cardIcon: { fontSize: 32, marginRight: S.lg },
   cardTextWrap: { flex: 1 },
   cardTitle: { color: C.text, fontSize: 16, fontWeight: '600' },
   cardSubtitle: { color: C.muted, fontSize: 13, marginTop: 2 },
-  chevron: { color: C.gold, fontSize: 24, marginLeft: 8 },
+  chevron: { color: C.gold, fontSize: 24, marginLeft: S.sm },
   indexBadge: { width: 32, height: 32, borderRadius: 16, backgroundColor: C.goldDim, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   indexBadgeText: { color: C.goldLight, fontSize: 14, fontWeight: '800' },
 });

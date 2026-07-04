@@ -21,7 +21,7 @@ No tsc/typecheck command available — `npm run lint` is the only static check.
 - **Routing**: expo-router 6 file-based. `app/_layout.tsx` = root layout (SQLiteProvider + DatabaseInit + FontSizeProvider + BibliaVersionProvider + Stack). `app/(tabs)/_layout.tsx` = JS tab navigator (Home/Biblia/Catecismo/Misal/Oración). Routes inside `(tabs)` get the tab bar; routes outside (`evangelio.tsx`, `calendario.tsx`, `rosario/`, `oraciones/`, `favoritos.tsx`, `modal.tsx`, `test.tsx`, `misal/`) don't.
 - **DB**: Single `iglesia_digital.db` shipped in `AppMovil/assets/`, copied via `SQLiteProvider databaseName assetSource` with `useSuspense`. `metro.config.js` adds `db` to `assetExts` so Metro resolves `.db` files.
 - **DB Migrations**: `db/init.ts` uses `PRAGMA user_version`. Runs on every app launch. `CURRENT_VERSION = 5`. V1 recreates FTS tables as standalone (drops triggers, re-inserts data). V2 adds `youcat.parte` column (no-op since youcat dropped). V3 creates `novenas` + `novena_dias` tables. V4 drops YOUCAT tables. V5 creates `misal_propio`, `misal_ordinario`, `misal_prefacios`, `misal_plegarias` tables. FTS creation is skipped if source columns are missing; use the "Rebuild FTS" button on `/test` to retry.
-- **DB API** (v16 `expo-sqlite`): `db.getAllAsync<T>`, `db.getFirstAsync<T>`, `db.runAsync`. FTS5 join: `JOIN table_fts f ON source.rowid = f.rowid WHERE table_fts MATCH ? ORDER BY f.rank` (⚠️ use `rowid`, NOT `id`). `GROUP BY ... ORDER BY MIN(id)` for dedup. `forceReCopy()` in `db/init.ts` uses `expo-file-system` File/Paths API (NOT raw `documentDirectory` strings).
+- **DB API** (v16 `expo-sqlite`): `db.getAllAsync<T>`, `db.getFirstAsync<T>`, `db.runAsync`. FTS5 join: `JOIN table_fts f ON source.rowid = f.rowid WHERE table_fts MATCH ? ORDER BY f.rank` (⚠️ use `rowid`, NOT `id`). `GROUP BY ... ORDER BY MIN(id)` for dedup. `forceReCopy()` in `db/init.ts` uses `expo-file-system` File/Paths API (NOT raw `documentDirectory` strings). `getMisalPropioPorSemana()` matches liturgical day to misal_propio by season + week number + isSunday.
 - **Color palette**: `import { C, Colors, Fonts } from '@/constants/theme'`. `C.*` = Navy/Gold (`#0D1B2A` / `#C9A84C`) — use for all UI. `Colors` = Expo light/dark defaults — only used for tab tint in `(tabs)/_layout.tsx`. `Fonts` = platform-aware font families (`.serif`, `.sans`, `.rounded`, `.mono`).
 - **Icons**: Dual-platform files. `components/ui/icon-symbol.ios.tsx` (SF Symbols via `expo-symbols`), `components/ui/icon-symbol.tsx` (MaterialIcons fallback for Android/web). Both export `IconSymbol({ name, size, color })`. SF→Material mapping dict in `icon-symbol.tsx`.
 - **State**: No state management lib. `useState`/`useCallback` + `useSQLiteContext()` for DB access. FontSizeContext and BibliaVersionContext for global UI state.
@@ -76,7 +76,7 @@ These reflect actual codebase patterns, not aspirational rules:
 
 ### Architecture
 - ~~**`formatoFecha` / `hoy()` duplicated**~~ ✅ extracted to `utils/date.ts`
-- ~~**Season emoji map duplicated**~~ ✅ extracted to `utils/seasons.ts`
+- ~~**Season emoji map + season/day detection helpers**~~ ✅ extracted to `utils/seasons.ts`
 - ~~**Reading section layout duplicated**~~ ✅ extracted to `components/reading-section.tsx`
 - ~~**`getLecturaDelDia` misplaced**~~ ✅ moved to `// LECTURAS` block
 - ~~**`Lectura` type incomplete**~~ ✅ completed (`comentario_papal`, `url`, `creado_en`)
@@ -84,12 +84,14 @@ These reflect actual codebase patterns, not aspirational rules:
 - **`db/init.ts`** — version gap (v2 no-op skipped without comment); version advances even on migration failure (no rollback).
 
 ### Scrapers (`archive/`)
-- 5 scrapers write to correct target: `popular_cic.py`, `scraper_cic.py`, `scraper_youcat.py`, `scraper_vaticano.py`, `scraper_misal.py`.
-- 3 scripts reference `iglesia_digital.db` via relative CWD (`cat.py`, `extract_youcat.py`, `migrate_bible_to_unified.py`) — fragile, fail if CWD ≠ repo root.
-- 6 scripts target legacy `biblia_pueblo_dios.db` or intermediate DBs — pipeline artifacts.
+- 6 Python scrapers: `popular_cic.py`, `scraper_cic.py`, `scraper_vaticano.py` (writes directly to AppMovil/assets/iglesia_digital.db), `scraper_misal.py`, `scraper_novenas.py`, `scraper_oraciones_vatican.py`.
 - `scraper_novenas.py` requires explicit `--db` flag (no default guardrail).
 - `scraper_oraciones_vatican.py` outputs to stdout only (not integrated with DB).
-- Only 2/18 files (`scraper_cic.py`, `scraper_youcat.py`) document `pdfplumber` dependency with error message.
+- `scraper_cic.py`/`scraper_misal.py` require `pdfplumber` (documented).
+- `youcat.pdf` + `catecismoDeLaIglesia.pdf` are source PDFs for scrapers — keep.
+- `misal_pdfs/` contains 17 source PDFs for `scraper_misal.py`.
+- `biblia_pueblo_dios.db` is the pre-scraper legacy Bible DB — keep for reference.
+- All pipeline artifacts (10+ files targeting intermediate DBs, youcat files) deleted.
 
 ### Other
 - `app/evangelio.tsx` — fully working, accepts `?fecha=YYYY-MM-DD`. Uses `getLecturaDelDia`.
@@ -99,6 +101,7 @@ These reflect actual codebase patterns, not aspirational rules:
 - Novenas: 18 scraped from `devocionario.com` (single-page format); ~28 more exist on devocionario.com with multi-page or numeric-day format — not yet scraped.
 - CIC `capitulo`/`articulo` populated (2359/2865 caps, 1964/2865 arts) via `archive/popular_cic.py`. Asset DB has no FTS triggers (dropped before UPDATE; app recreates them on first launch via migration v1).
 - FTS on `catecismo_cic` is created by migration v1 at app launch — the asset DB does NOT include the `catecismo_cic_fts` table (it's created on first run).
+- Lecturas coverage: current data through 2026-09-02 (via Vatican scraper). Run `python3 archive/scraper_vaticano.py` to extend.
 
 ## Key Components
 
@@ -154,7 +157,7 @@ eas build --platform android --profile production
 ## Python Scrapers (`archive/`)
 
 ```bash
-python3 archive/scraper_vaticano.py                    # current + next month (no deps)
+python3 archive/scraper_vaticano.py                    # current + next month (no deps) — writes to AppMovil/assets/iglesia_digital.db
 python3 archive/scraper_vaticano.py --fecha 2026-06-12 # single date
 pip install pdfplumber --break-system-packages          # only for scraper_cic.py / scraper_misal.py
 python3 archive/scraper_misal.py --preview           # Misal Romano: 157 propios, 202 ordinario, 67 prefacios, 4 plegarias
@@ -165,7 +168,7 @@ python3 archive/scraper_novenas.py --preview            # scrape novenas from de
 python3 archive/scraper_novenas.py --db path/to/db.db   # write novenas to existing DB
 ```
 
-Vatican scraper: 0.5s sleep between requests, parses 5 HTML `<h2>` sections. Default range = 15d before current month → end of next month.
+Vatican scraper: 0.5s sleep between requests, parses 5 HTML `<h2>` sections. Default range = 15d before current month → end of next month. Writes directly to `AppMovil/assets/iglesia_digital.db`.
 
 **Misal Romano scraper** (17 PDFs from LiturgiaPapal México):
 ```bash

@@ -1,4 +1,6 @@
-import { C } from "@/constants/theme";
+import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { router } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
@@ -58,7 +60,7 @@ export default function NovenaListScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   header: {
-    flexDirection: "row", alignItems: "center", paddingHorizontal: 16,
+    flexDirection: "row", alignItems: "center", paddingHorizontal: S.lg,
     paddingVertical: Platform.OS === "android" ? 12 : 8,
     borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid, gap: 10,
   },
@@ -68,15 +70,15 @@ const s = StyleSheet.create({
   },
   backArrow: { color: C.gold, fontSize: 20, lineHeight: 22 },
   title: { color: C.text, fontSize: 18, fontWeight: "700" },
-  content: { padding: 16, paddingBottom: 48 },
-  intro: { color: C.muted, fontSize: 14, marginBottom: 16 },
+  content: { padding: S.lg, paddingBottom: S.massive },
+  intro: { color: C.muted, fontSize: 14, marginBottom: S.lg },
   card: {
     flexDirection: "row", alignItems: "center", backgroundColor: C.navyMid,
-    borderRadius: 12, paddingVertical: 14, paddingHorizontal: 16,
-    marginBottom: 8, borderWidth: 1, borderColor: C.sep,
+    borderRadius: R.lg, paddingVertical: 14, paddingHorizontal: S.lg,
+    marginBottom: S.sm, borderWidth: 1, borderColor: C.sep,
   },
   cardTextWrap: { flex: 1 },
   cardTitle: { color: C.text, fontSize: 15, fontWeight: "600" },
   cardSub: { color: C.muted, fontSize: 12, marginTop: 2 },
-  chevron: { color: C.gold, fontSize: 22, marginLeft: 8 },
+  chevron: { color: C.gold, fontSize: 22, marginLeft: S.sm },
 });

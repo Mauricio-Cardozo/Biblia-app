@@ -1,11 +1,14 @@
+import ScreenHeader from "@/components/ui/screen-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { C } from "@/constants/theme";
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { useSQLiteContext } from "expo-sqlite";
 import { useBibliaVersion } from "@/contexts/bible-version";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, Animated, ImageBackground, Platform, StatusBar,
+  ActivityIndicator, Animated, ImageBackground, StatusBar,
   StyleSheet, TouchableOpacity, View,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
@@ -174,26 +177,20 @@ export default function BibliaScreen() {
     }
 
     return (
-      <View style={s.header}>
-        {nivel !== "libros" && (
-          <TouchableOpacity onPress={volver} style={s.backBtn} activeOpacity={0.7}>
-            <ThemedText style={s.backArrow}>←</ThemedText>
-          </TouchableOpacity>
-        )}
-        <View style={{ flex: 1 }}>
+      <ScreenHeader
+        superLabel={`✝ ${version.nombre.toUpperCase()}`}
+        title={nivel === "capitulos" ? (libroActual?.libro ?? "") : `${libroActual?.libro ?? ""} ${capActual ?? ""}`}
+        subtitle={nivel === "capitulos" ? `${libroActual?.testamento} Testamento` : `${libroActual?.libro ?? ""} › Cap. ${capActual ?? ""}`}
+        showBack
+        onBack={volver}
+        rightSlot={
           <TouchableOpacity onPress={() => setMostrarVersiones(true)}>
-            <ThemedText style={s.headerSuper}>✝ {version.nombre.toUpperCase()}</ThemedText>
-          </TouchableOpacity>
-          <ThemedText style={s.headerTitle} numberOfLines={1}>
-            {nivel === "libros" ? "Libros" : nivel === "capitulos" ? libroActual?.libro : `${libroActual?.libro} ${capActual}`}
-          </ThemedText>
-          {nivel !== "libros" && (
-            <ThemedText style={s.breadcrumb}>
-              {nivel === "capitulos" ? `${libroActual?.testamento} Testamento` : `${libroActual?.libro} › Cap. ${capActual}`}
+            <ThemedText style={{ color: C.gold, fontSize: 10, letterSpacing: 1, fontWeight: "700" }}>
+              CAMBIAR
             </ThemedText>
-          )}
-        </View>
-      </View>
+          </TouchableOpacity>
+        }
+      />
     );
   };
 
@@ -307,22 +304,22 @@ export default function BibliaScreen() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.navy },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: S.md },
   muted: { color: C.muted, fontSize: 14 },
-  errorText: { color: "#E07070", fontSize: 14, textAlign: "center", padding: 20 },
+  errorText: { color: "#E07070", fontSize: 14, textAlign: "center", padding: S.xl },
 
   heroImg: { width: "100%", height: 220 },
   heroOverlay: {
     flex: 1, backgroundColor: "rgba(13,27,42,0.65)",
-    justifyContent: "center", alignItems: "center", paddingHorizontal: 20,
+    justifyContent: "center", alignItems: "center", paddingHorizontal: S.xl,
   },
-  heroSuper: { color: C.gold, fontSize: 10, letterSpacing: 2, fontWeight: "600", marginBottom: 8 },
+  heroSuper: { color: C.gold, fontSize: 10, letterSpacing: 2, fontWeight: "600", marginBottom: S.sm },
   heroTitle: { color: C.text, fontSize: 26, fontWeight: "700", textAlign: "center" },
   heroSub: { color: C.muted, fontSize: 14, marginTop: 6 },
 
-  pillRow: { flexDirection: "row", gap: 8, paddingHorizontal: 12, paddingVertical: 12 },
+  pillRow: { flexDirection: "row", gap: S.sm, paddingHorizontal: S.md, paddingVertical: S.md },
   pill: {
-    flex: 1, paddingVertical: 8, borderRadius: 20,
+    flex: 1, paddingVertical: S.sm, borderRadius: 20,
     borderWidth: 1, borderColor: C.goldDim,
     alignItems: "center",
   },
@@ -330,26 +327,19 @@ const s = StyleSheet.create({
   pillText: { color: C.gold, fontSize: 13, fontWeight: "600" },
   pillTextActive: { color: C.navy },
 
-  gridContainer: { paddingHorizontal: 8, paddingBottom: 24 },
+  gridContainer: { paddingHorizontal: S.sm, paddingBottom: S.xxl },
   libroCardWrapper: { flex: 1, margin: 6 },
   libroCard: {
-    backgroundColor: C.navyMid, borderRadius: 12,
+    backgroundColor: C.navyMid, borderRadius: R.lg,
     borderWidth: 1, borderColor: C.sep,
     height: 90, alignItems: "center", justifyContent: "center",
-    paddingHorizontal: 8,
+    paddingHorizontal: S.sm,
   },
   libroAbr: { color: C.gold, fontSize: 28, fontWeight: "800" },
-  libroNombre: { color: C.muted, fontSize: 13, marginTop: 4, textAlign: "center" },
+  libroNombre: { color: C.muted, fontSize: 13, marginTop: S.xs, textAlign: "center" },
 
-  header: { flexDirection: "row", alignItems: "center", backgroundColor: C.navyMid, paddingHorizontal: 16, paddingTop: Platform.OS === "android" ? 12 : 8, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: C.goldDim, gap: 10 },
-  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.navyLight, borderWidth: 1, borderColor: C.goldDim, alignItems: "center", justifyContent: "center" },
-  backArrow: { color: C.gold, fontSize: 20, lineHeight: 22 },
-  headerSuper: { color: C.gold, fontSize: 10, letterSpacing: 2, fontWeight: "600" },
-  headerTitle: { color: C.text, fontSize: 20, fontWeight: "700", marginTop: 2 },
-  breadcrumb: { color: C.muted, fontSize: 12, marginTop: 2 },
-
-  list: { padding: 12 },
-  capGrid: { padding: 12 },
+  list: { padding: S.md },
+  capGrid: { padding: S.md },
   capCard: { flex: 1, margin: 5, backgroundColor: C.navyMid, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.goldDim, paddingVertical: 10, paddingHorizontal: 6, minHeight: 48 },
   capNum: { color: C.goldLight, fontSize: 15, fontWeight: "700" },
   versRow: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
@@ -362,18 +352,18 @@ const s = StyleSheet.create({
   versionSheet: {
     position: "absolute", bottom: 0, left: 0, right: 0,
     backgroundColor: C.navyMid, borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    padding: 20, paddingBottom: 40,
+    padding: S.xl, paddingBottom: S.huge,
   },
-  versionTitle: { color: C.text, fontSize: 18, fontWeight: "700", marginBottom: 16 },
+  versionTitle: { color: C.text, fontSize: 18, fontWeight: "700", marginBottom: S.lg },
   versionOption: {
-    paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12,
-    marginBottom: 8, borderWidth: 1, borderColor: C.sep,
+    paddingVertical: 14, paddingHorizontal: S.lg, borderRadius: R.lg,
+    marginBottom: S.sm, borderWidth: 1, borderColor: C.sep,
   },
   versionOptionActive: { borderColor: C.gold, backgroundColor: C.navyLight },
   versionName: { color: C.text, fontSize: 15, fontWeight: "600" },
   versionNameActive: { color: C.gold },
   versionDesc: { color: C.muted, fontSize: 12, marginTop: 3, lineHeight: 16 },
   versionCheck: { color: C.gold, fontSize: 18, position: "absolute", right: 16, top: 14 },
-  versionCerrar: { marginTop: 8, paddingVertical: 12, alignItems: "center" },
+  versionCerrar: { marginTop: S.sm, paddingVertical: S.md, alignItems: "center" },
   versionCerrarText: { color: C.muted, fontSize: 14 },
 });

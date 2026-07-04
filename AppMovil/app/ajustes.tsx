@@ -1,4 +1,6 @@
 import { C } from '@/constants/theme';
+import { S } from '@/constants/spacing';
+import { R } from '@/constants/radius';
 import { ThemedText } from '@/components/themed-text';
 import ScreenHeader from '@/components/ui/screen-header';
 import FontSizeControl from '@/components/font-size-control';
@@ -97,9 +99,9 @@ export default function AjustesScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
-  content: { padding: 16, paddingBottom: 40 },
-  seccionTitulo: { color: C.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8, marginTop: 16, marginHorizontal: 4 },
-  card: { backgroundColor: C.navyMid, borderRadius: 12, padding: 16, marginBottom: 8 },
+  content: { padding: S.lg, paddingBottom: S.huge },
+  seccionTitulo: { color: C.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: S.sm, marginTop: S.lg, marginHorizontal: S.xs },
+  card: { backgroundColor: C.navyMid, borderRadius: R.lg, padding: S.lg, marginBottom: S.sm },
   fila: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   filaLabel: { color: C.text, fontSize: 15, fontWeight: '600' },
   filaSub: { color: C.muted, fontSize: 12, marginTop: 2, maxWidth: 240 },
