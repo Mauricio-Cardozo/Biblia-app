@@ -28,6 +28,7 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
   const { multiplier } = useFontSize();
 
   const [stepIndex, setStepIndex] = useState(0);
+  const [ready, setReady] = useState(false);
   const [completado, setCompletado] = useState(false);
 
   const step = pasos[stepIndex];
@@ -43,6 +44,31 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
       setStepIndex((i) => i + 1);
     }
   }, [stepIndex, total]);
+
+  useEffect(() => {
+    const hoy = new Date();
+    const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+    AsyncStorage.getItem(storageKey + "_saved_date").then((savedDate) => {
+      if (savedDate === fecha) {
+        return AsyncStorage.getItem(storageKey + "_saved_step");
+      }
+      return null;
+    }).then((savedStep) => {
+      if (savedStep) {
+        const idx = parseInt(savedStep, 10);
+        if (idx > 0 && idx < total) setStepIndex(idx);
+      }
+    }).finally(() => setReady(true)).catch(() => setReady(true));
+  }, []);
+
+  useEffect(() => {
+    if (ready && !completado) {
+      const hoy = new Date();
+      const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+      AsyncStorage.setItem(storageKey + "_saved_date", fecha).catch(() => {});
+      AsyncStorage.setItem(storageKey + "_saved_step", String(stepIndex)).catch(() => {});
+    }
+  }, [stepIndex, ready, completado]);
 
   useEffect(() => {
     if (step.id === "completado" && !completado) {
@@ -75,9 +101,14 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
         const statsVal = await AsyncStorage.getItem(statsKey);
         const newTotal = statsVal ? parseInt(statsVal, 10) + 1 : 1;
         await AsyncStorage.setItem(statsKey, String(newTotal));
+
+        await AsyncStorage.removeItem(storageKey + "_saved_step");
+        await AsyncStorage.removeItem(storageKey + "_saved_date");
       })().catch(() => {});
     }
   }, [step.id, completado, storageKey]);
+
+  if (!ready) return null;
 
   const showBeads = currentMystery >= 0 && step.id !== "completado";
   const mysteryLabel = showBeads && step.subtitle ? step.subtitle : "";

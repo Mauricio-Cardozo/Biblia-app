@@ -67,13 +67,13 @@ export default function HomeScreen() {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <TouchableOpacity onPress={() => router.push('/rosario/guia')} style={[styles.card, { flex: 0.48 }]}>
           <ThemedText style={styles.cardLabel}>ROSARIO</ThemedText>
-          <ThemedText style={styles.streakText}>🔥 {rachaRosario} días</ThemedText>
-          {stats.rosario_total > 0 && <ThemedText style={styles.streakSub}>Total: {stats.rosario_total}</ThemedText>}
+          <ThemedText style={styles.streakText}>🕊️ {stats.rosario_total}</ThemedText>
+          {rachaRosario > 0 && <ThemedText style={styles.streakSub}>🔥 {rachaRosario} días seguidos</ThemedText>}
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/rosario/coronilla')} style={[styles.card, { flex: 0.48 }]}>
           <ThemedText style={styles.cardLabel}>CORONILLA</ThemedText>
-          <ThemedText style={styles.streakText}>🔥 {rachaCoronilla} días</ThemedText>
-          {stats.coronilla_total > 0 && <ThemedText style={styles.streakSub}>Total: {stats.coronilla_total}</ThemedText>}
+          <ThemedText style={styles.streakText}>🕊️ {stats.coronilla_total}</ThemedText>
+          {rachaCoronilla > 0 && <ThemedText style={styles.streakSub}>🔥 {rachaCoronilla} días seguidos</ThemedText>}
         </TouchableOpacity>
       </View>
 
