@@ -6,9 +6,9 @@ import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { calcularRacha, obtenerStats } from '@/data/streaks';
 import { useSQLiteContext } from 'expo-sqlite';
-import { getLecturaDelDia, getMisalTemporadas } from '@/db/db';
+import { getLecturaDelDia } from '@/db/db';
 import { fechaActualLarga, hoy } from '@/utils/date';
-import { SEASON_EMOJI } from '@/utils/seasons';
+import { SEASON_EMOJI, detectSeason } from '@/utils/seasons';
 import type { Lectura } from '@/types';
 
 export default function LiturgiaScreen() {
@@ -27,7 +27,7 @@ export default function LiturgiaScreen() {
       calcularRacha("racha_coronilla_ultima"),
       obtenerStats(),
       getLecturaDelDia(db, hoy()),
-      getMisalTemporadas(db),
+      import('@/db/db').then((m) => m.getMisalTemporadas(db)),
     ]).then(([rr, rc, st, lec, temps]) => {
       setRachaRosario(rr);
       setRachaCoronilla(rc);
@@ -38,7 +38,8 @@ export default function LiturgiaScreen() {
   }, []);
 
   const misaTitle = lectura?.titulo_misa;
-  const isFeast = misaTitle && (misaTitle.includes("San ") || misaTitle.includes("Santa ") || misaTitle.includes("Santo ") || misaTitle.includes("Fiesta") || misaTitle.includes("Solemnidad") || misaTitle.includes("Memoria"));
+  const season = misaTitle ? detectSeason(misaTitle) : null;
+  const seasonData = season ? temporadas.find((t) => t.temporada === season) : null;
 
   return (
     <ScrollView style={[styles.container, { paddingTop: insets.top + 20 }]}>
@@ -52,10 +53,7 @@ export default function LiturgiaScreen() {
       <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
       <ThemedText style={styles.pageTitle}>Liturgia</ThemedText>
       <ThemedText style={styles.dateText}>{fechaActualLarga()}</ThemedText>
-
-      {misaTitle && (
-        <ThemedText style={styles.misaTitle}>{isFeast ? '🕊️ ' : ''}{misaTitle}</ThemedText>
-      )}
+      {misaTitle ? <ThemedText style={styles.misaTitle}>{misaTitle}</ThemedText> : null}
 
       {/* Evangelio del Día */}
       <TouchableOpacity onPress={() => router.push('/evangelio')} style={styles.card}>
@@ -76,44 +74,53 @@ export default function LiturgiaScreen() {
         )}
       </TouchableOpacity>
 
-      {/* Propio del Tiempo */}
-      {temporadas.length > 0 && (
-        <View>
-          <ThemedText style={styles.sectionTitle}>PROPIO DEL TIEMPO</ThemedText>
-          {temporadas.map((t) => (
-            <TouchableOpacity
-              key={t.temporada}
-              style={styles.card}
-              onPress={() => router.push('/misal/propio')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.cardRow}>
-                <ThemedText style={styles.cardIcon}>{SEASON_EMOJI[t.temporada] ?? '🌿'}</ThemedText>
-                <View style={styles.cardTextWrap}>
-                  <ThemedText style={styles.cardTitle}>{t.temporada_label}</ThemedText>
-                  <ThemedText style={styles.cardSubtitle}>{t.count} días</ThemedText>
-                </View>
-                <ThemedText style={styles.chevron}>›</ThemedText>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {/* Rachas */}
-      <ThemedText style={styles.sectionTitle}>ORACIÓN</ThemedText>
+      {/* Oración — Rachas */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <TouchableOpacity onPress={() => router.push('/rosario/guia')} style={[styles.card, { flex: 0.48 }]}>
+        <TouchableOpacity onPress={() => router.push('/rosario/guia')} style={[styles.cardSm, { flex: 0.48 }]}>
           <ThemedText style={styles.cardLabel}>ROSARIO</ThemedText>
           <ThemedText style={styles.streakText}>🕊️ {stats.rosario_total}</ThemedText>
           {rachaRosario > 0 && <ThemedText style={styles.streakSub}>🔥 {rachaRosario} días seguidos</ThemedText>}
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/rosario/coronilla')} style={[styles.card, { flex: 0.48 }]}>
+        <TouchableOpacity onPress={() => router.push('/rosario/coronilla')} style={[styles.cardSm, { flex: 0.48 }]}>
           <ThemedText style={styles.cardLabel}>CORONILLA</ThemedText>
           <ThemedText style={styles.streakText}>🕊️ {stats.coronilla_total}</ThemedText>
           {rachaCoronilla > 0 && <ThemedText style={styles.streakSub}>🔥 {rachaCoronilla} días seguidos</ThemedText>}
         </TouchableOpacity>
       </View>
+
+      {/* Propio del Tiempo — temporada actual */}
+      {seasonData ? (
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => router.push('/misal/propio')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.cardRow}>
+            <ThemedText style={styles.cardIcon}>{SEASON_EMOJI[seasonData.temporada] ?? '🌿'}</ThemedText>
+            <View style={styles.cardTextWrap}>
+              <ThemedText style={styles.cardLabel}>PROPIO DEL TIEMPO</ThemedText>
+              <ThemedText style={styles.cardTitle}>{seasonData.temporada_label}</ThemedText>
+              <ThemedText style={styles.cardSubtitle}>{seasonData.count} días</ThemedText>
+            </View>
+            <ThemedText style={styles.chevron}>›</ThemedText>
+          </View>
+        </TouchableOpacity>
+      ) : temporadas.length > 0 ? (
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => router.push('/misal/propio')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.cardRow}>
+            <ThemedText style={styles.cardIcon}>📅</ThemedText>
+            <View style={styles.cardTextWrap}>
+              <ThemedText style={styles.cardLabel}>PROPIO DEL TIEMPO</ThemedText>
+              <ThemedText style={styles.cardTitle}>{temporadas.length} temporadas litúrgicas</ThemedText>
+            </View>
+            <ThemedText style={styles.chevron}>›</ThemedText>
+          </View>
+        </TouchableOpacity>
+      ) : null}
 
     </ScrollView>
   );
@@ -128,16 +135,16 @@ const styles = StyleSheet.create({
   dateText: { color: C.gold, fontSize: 18, marginBottom: 4, marginHorizontal: 20 },
   misaTitle: { color: C.goldLight, fontSize: 13, fontStyle: 'italic', marginBottom: 20, marginHorizontal: 20 },
   card: { backgroundColor: C.navyMid, padding: 20, borderRadius: 12, marginBottom: 15, marginHorizontal: 20 },
+  cardSm: { padding: 18, borderRadius: 12, backgroundColor: C.navyMid, marginBottom: 15, marginHorizontal: 20 },
   cardRow: { flexDirection: 'row', alignItems: 'center' },
-  cardIcon: { fontSize: 24, marginRight: 12 },
+  cardIcon: { fontSize: 28, marginRight: 14 },
   cardTextWrap: { flex: 1 },
-  cardTitle: { color: C.text, fontSize: 14, fontWeight: '600' },
-  cardSubtitle: { color: C.muted, fontSize: 11, marginTop: 2 },
-  chevron: { color: C.gold, fontSize: 20, marginLeft: 6 },
-  cardLabel: { color: C.gold, fontSize: 12, fontWeight: 'bold', marginBottom: 10 },
+  cardTitle: { color: C.text, fontSize: 16, fontWeight: '600' },
+  cardSubtitle: { color: C.muted, fontSize: 12, marginTop: 2 },
+  chevron: { color: C.gold, fontSize: 24, marginLeft: 6 },
+  cardLabel: { color: C.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 4 },
   verseText: { color: C.text, fontSize: 18, fontStyle: 'italic' },
   verseRef: { color: C.muted, marginTop: 10, textAlign: 'right' },
-  streakText: { color: C.text, fontSize: 16, fontWeight: 'bold' },
+  streakText: { color: C.text, fontSize: 22, fontWeight: 'bold' },
   streakSub: { color: C.muted, fontSize: 11, marginTop: 2 },
-  sectionTitle: { color: C.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8, marginHorizontal: 20, marginTop: 8 },
 });

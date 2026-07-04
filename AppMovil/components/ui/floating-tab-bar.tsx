@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { IconSymbol } from "./icon-symbol";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
+const VISIBLE_TABS = ["index", "biblia", "calendario", "oracion"];
 const ICONS: Record<string, string> = {
   index: "house.fill",
   biblia: "book.closed.fill",
@@ -14,11 +15,10 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
   return (
     <View style={s.outer}>
       <View style={s.inner}>
-        {state.routes.map((route, index) => {
+        {state.routes.filter((r) => VISIBLE_TABS.includes(r.name)).map((route, index) => {
           const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
-          const label = options.title ?? route.name;
-          const iconName = ICONS[route.name] || "house.fill";
+          const isFocused = state.index === state.routes.findIndex((r) => r.name === route.name);
+          const iconName = ICONS[route.name];
 
           const onPress = () => {
             const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
