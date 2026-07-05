@@ -3,8 +3,8 @@ import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from '@/components/themed-text';
 import { Link, router } from 'expo-router';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { tabBarScrollY } from '@/utils/scroll-state';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { calcularRacha, obtenerStats } from '@/data/streaks';
@@ -53,10 +53,9 @@ export default function LiturgiaScreen() {
   const season = misaTitle ? detectSeason(misaTitle) : null;
   const seasonData = season ? temporadas.find((t) => t.temporada === season) : null;
 
-  const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: tabBarScrollY } } }],
-    { useNativeDriver: true },
-  );
+  const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+    tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 20 }]}>

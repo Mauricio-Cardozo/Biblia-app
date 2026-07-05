@@ -208,10 +208,9 @@ export default function BibliaScreen() {
     </ThemedView>
   );
 
-  const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: tabBarScrollY } } }],
-    { useNativeDriver: true },
-  );
+  const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+    tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
+  };
 
   return (
     <SafeAreaView style={s.safe}>

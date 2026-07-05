@@ -7,7 +7,6 @@ import { router } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Animated,
   Platform,
   ScrollView,
   StyleSheet,
@@ -95,10 +94,9 @@ export default function CalendarioLiturgico() {
     );
   }
 
-  const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: tabBarScrollY } } }],
-    { useNativeDriver: true },
-  );
+  const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+    tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>

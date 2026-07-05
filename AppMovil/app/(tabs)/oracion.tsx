@@ -3,7 +3,7 @@ import { S } from '@/constants/spacing';
 import { ThemedText } from '@/components/themed-text';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCICPartes } from '@/db/db';
@@ -35,10 +35,9 @@ export default function OracionScreen() {
   const [pill, setPill] = useState<Pill>('oraciones');
   const [partes, setPartes] = useState<CICParte[]>([]);
 
-  const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: tabBarScrollY } } }],
-    { useNativeDriver: true },
-  );
+  const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+    tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
+  };
 
   useEffect(() => {
     if (pill === 'catecismo') {
