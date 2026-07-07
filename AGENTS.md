@@ -22,7 +22,7 @@ No tsc/typecheck command available — `npm run lint` is the only static check.
 - **DB**: Single `iglesia_digital.db` shipped in `AppMovil/assets/`, copied via `SQLiteProvider databaseName assetSource` with `useSuspense`. `metro.config.js` adds `db` to `assetExts` so Metro resolves `.db` files.
 - **DB Migrations**: `db/init.ts` uses `PRAGMA user_version`. Runs on every app launch. `CURRENT_VERSION = 5`. V1 recreates FTS tables as standalone (drops triggers, re-inserts data). V2 adds `youcat.parte` column (no-op since youcat dropped). V3 creates `novenas` + `novena_dias` tables. V4 drops YOUCAT tables. V5 creates `misal_propio`, `misal_ordinario`, `misal_prefacios`, `misal_plegarias` tables. FTS creation is skipped if source columns are missing; use the "Rebuild FTS" button on `/test` to retry.
 - **DB API** (v16 `expo-sqlite`): `db.getAllAsync<T>`, `db.getFirstAsync<T>`, `db.runAsync`. FTS5 join: `JOIN table_fts f ON source.rowid = f.rowid WHERE table_fts MATCH ? ORDER BY f.rank` (⚠️ use `rowid`, NOT `id`). `GROUP BY ... ORDER BY MIN(id)` for dedup. `forceReCopy()` in `db/init.ts` uses `expo-file-system` File/Paths API (NOT raw `documentDirectory` strings). `getMisalPropioPorSemana()` matches liturgical day to misal_propio by season + week number + isSunday.
-- **Color palette**: `import { C, Colors, Fonts } from '@/constants/theme'`. `C.*` = Navy/Gold (`#0D1B2A` / `#C9A84C`) — use for all UI. `Colors` = Expo light/dark defaults — only used for tab tint in `(tabs)/_layout.tsx`. `Fonts` = platform-aware font families (`.serif`, `.sans`, `.rounded`, `.mono`).
+- **Color palette**: `import { C } from '@/constants/theme'`. `C.*` = Navy/Gold (`#0D1B2A` / `#C9A84C`) — use for all UI. `Fonts` and `Colors` were removed (no theme toggle, fixed palette).
 - **Icons**: Dual-platform files. `components/ui/icon-symbol.ios.tsx` (SF Symbols via `expo-symbols`), `components/ui/icon-symbol.tsx` (MaterialIcons fallback for Android/web). Both export `IconSymbol({ name, size, color })`. SF→Material mapping dict in `icon-symbol.tsx`.
 - **State**: No state management lib. `useState`/`useCallback` + `useSQLiteContext()` for DB access. FontSizeContext and BibliaVersionContext for global UI state.
 - **TS path alias**: `@/` → `AppMovil/` (e.g. `@/db/db`, `@/constants/theme`).
@@ -66,12 +66,18 @@ These reflect actual codebase patterns, not aspirational rules:
 - ~~`app/modal.tsx`~~ ✅ removed
 - ~~`components/ui/collapsible.tsx`~~ ✅ removed
 - ~~`db/init.ts` — `hasColumn` function~~ ✅ removed
+- ~~`hooks/use-color-scheme.ts`, `hooks/use-color-scheme.web.ts`, `hooks/use-theme-color.ts`~~ ✅ removed (no consumers)
+- ~~`assets/images/react-logo*`, `assets/images/partial-react-logo.png`, `assets/screenshots/`~~ ✅ removed (template/legacy)
+- ~~`constants/theme.ts` — `Colors`, `Fonts` exports~~ ✅ removed (app has fixed palette)
+- ~~`types/index.ts` — `CICSearchResult`, `FTS5Query`~~ ✅ removed (unused)
+- ~~`db/db.ts` — `getMisalOrdinario` export~~ ✅ removed (unused)
+- ~~`db/init.ts` — `areFTSReady`, `logTables` exports~~ ✅ removed (internal only)
 - `data/notifications.ts` — 4-line stub, all functions are no-ops (intentional for v1.0).
 
 ### Design System
-- **Spacing/radius tokens** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados pero NO refactorizados en screens. `borderRadius: 12` aparece 50+ veces todavía.
-- **`themed-text.tsx` over-engineered** — `type` prop (5 variants) used with non-default in only 1/29 files (`app/modal.tsx` — which is now removed, so 0/28). Hardcoded `#0a7ea4` link color not in palette. `lightColor`/`darkColor` props never passed.
-- **`themed-view.tsx`** — participates in Expo light/dark system, but the app has a fixed Navy/Gold palette with no theme toggle. All consumers override styles via `C.*`.
+- **Spacing/radius tokens** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados y refactorizados en ~25 archivos (Home, Biblia, Catecismo, Misal, Oración, componentes). `borderRadius: 12` aparece aún en algunos archivos menores.
+- **`themed-text.tsx` simplified** — `type` prop (5 variants), `lightColor`/`darkColor` props, `useThemeColor` dependency, y hardcoded `#0a7ea4` link color removed.
+- **`themed-view.tsx` simplified** — removed `lightColor`/`darkColor`/`useThemeColor`. Now a plain `<View style={style}>`.
 - **Header pattern duplicated** — `borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid` repeated across 10+ screens instead of using `ScreenHeader`.
 
 ### Architecture
@@ -81,7 +87,7 @@ These reflect actual codebase patterns, not aspirational rules:
 - ~~**`getLecturaDelDia` misplaced**~~ ✅ moved to `// LECTURAS` block
 - ~~**`Lectura` type incomplete**~~ ✅ completed (`comentario_papal`, `url`, `creado_en`)
 - ~~**Missing `.catch()` on DB calls**~~ ✅ added to all 8 affected screens
-- **`db/init.ts`** — version gap (v2 no-op skipped without comment); version advances even on migration failure (no rollback).
+- **`db/init.ts`** — version gap (v2 no-op skipped without comment); ~~version advances even on migration failure (no rollback)~~ ✅ fixed (`setVersion` inside try/catch in v1, v3, v4, v5).
 
 ### Scrapers (`archive/`)
 - 6 Python scrapers: `popular_cic.py`, `scraper_cic.py`, `scraper_vaticano.py` (writes directly to AppMovil/assets/iglesia_digital.db), `scraper_misal.py`, `scraper_novenas.py`, `scraper_oraciones_vatican.py`.
@@ -102,6 +108,45 @@ These reflect actual codebase patterns, not aspirational rules:
 - CIC `capitulo`/`articulo` populated (2359/2865 caps, 1964/2865 arts) via `archive/popular_cic.py`. Asset DB has no FTS triggers (dropped before UPDATE; app recreates them on first launch via migration v1).
 - FTS on `catecismo_cic` is created by migration v1 at app launch — the asset DB does NOT include the `catecismo_cic_fts` table (it's created on first run).
 - Lecturas coverage: current data through 2026-09-02 (via Vatican scraper). Run `python3 archive/scraper_vaticano.py` to extend.
+
+## Floating Tab Bar
+
+- `components/ui/floating-tab-bar.tsx` — absolute-positioned bottom bar with SF Symbols (iOS) / MaterialIcons (Android).
+- 4 visible tabs (index, biblia, calendario, oracion). Catecismo and Misal are hidden (`href: null`).
+- **Scroll-to-hide**: On scroll > 50px down, the bar slides down out of view via `translateY`. On scroll up, it reappears.
+- Scroll position shared across screens via `utils/scroll-state.ts` (module-level `Animated.Value`). Each screen writes to it via `Animated.event` or `tabBarScrollY.setValue()`.
+- ⚠️ `Animated.event` with `useNativeDriver: true` returns an object, not a function, on RN 0.85 Fabric. All screens currently use `tabBarScrollY.setValue()` directly to avoid this.
+
+## React Compiler Violations
+
+The project has `experiments.reactCompiler: true` in app.json. `npm run lint` reports 27 errors:
+
+| Error | Files affected | Fix |
+|-------|---------------|-----|
+| `Cannot access refs during render` | `biblia.tsx`, `floating-tab-bar.tsx`, `list-item-card.tsx` | Access `.current` only in handlers, not render body |
+| `Calling setState() within an effect` | 10+ screens (biblia, calendario, catecismo, evangelio, favoritos, misal, novenas) | Inline async in useEffect instead of useCallback→useEffect→setState |
+| `Cannot call impure function during render` | `catecismo.tsx`, `evangelio.tsx` (Date.now()) | Use `useRef(Date.now())` for stable value |
+
+See GitHub issues #1, #2, #3.
+
+## GitHub Issues
+
+12 issues created at https://github.com/Mauricio-Cardozo/Biblia-app/issues:
+
+| # | Title | Type |
+|---|-------|------|
+| 1 | React Compiler: useRef().current en render | Bug |
+| 2 | React Compiler: setState en useEffect | Bug |
+| 3 | React Compiler: Date.now() en render | Bug |
+| 4 | Lint warnings: imports, missing deps | Chore |
+| 5 | Migrar headers a ScreenHeader | Design |
+| 6 | Completar tokens S/R | Design |
+| 7 | CIC metadata faltante | Content |
+| 8 | Automatizar scraper lecturas | Content |
+| 9 | db/init.ts docs + rollback | Chore |
+| 10 | notifications.ts stub | Chore |
+| 11 | FTS5 en tablas misal | Feature |
+| 12 | Scrape 28 novenas | Content |
 
 ## Key Components
 
