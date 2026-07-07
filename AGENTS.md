@@ -131,7 +131,7 @@ See GitHub issues #1, #2, #3.
 
 ## GitHub Issues
 
-17 issues created at https://github.com/Mauricio-Cardozo/Biblia-app/issues:
+18 issues created at https://github.com/Mauricio-Cardozo/Biblia-app/issues:
 
 | # | Title | Type |
 |---|-------|------|
@@ -152,6 +152,7 @@ See GitHub issues #1, #2, #3.
 | 15 | Tests y CI pipeline | CI |
 | 16 | Compartir versículos | Feature |
 | 17 | README desactualizado | Docs |
+| 18 | Export/import AsyncStorage | Feature |
 
 ## Key Components
 
