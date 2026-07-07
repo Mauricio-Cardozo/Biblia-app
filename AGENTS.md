@@ -131,7 +131,7 @@ See GitHub issues #1, #2, #3.
 
 ## GitHub Issues
 
-12 issues created at https://github.com/Mauricio-Cardozo/Biblia-app/issues:
+17 issues created at https://github.com/Mauricio-Cardozo/Biblia-app/issues:
 
 | # | Title | Type |
 |---|-------|------|
@@ -147,6 +147,11 @@ See GitHub issues #1, #2, #3.
 | 10 | notifications.ts stub | Chore |
 | 11 | FTS5 en tablas misal | Feature |
 | 12 | Scrape 28 novenas | Content |
+| 13 | Licencia y copyright de textos | Legal |
+| 14 | Accesibilidad (VoiceOver/TalkBack) | Feature |
+| 15 | Tests y CI pipeline | CI |
+| 16 | Compartir versículos | Feature |
+| 17 | README desactualizado | Docs |
 
 ## Key Components
 
