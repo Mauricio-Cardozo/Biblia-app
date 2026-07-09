@@ -23,7 +23,7 @@ export default function JaculatoriasScreen() {
           <View key={grupo.titulo} style={s.grupo}>
             <ThemedText style={s.grupoTitulo}>{grupo.titulo}</ThemedText>
             {grupo.items.map((item, idx) => (
-              <View key={idx} style={s.item}>
+              <View key={item.invocacion} style={s.item}>
                 <ThemedText style={s.invocacion}>
                   <ThemedText style={s.v}>V. </ThemedText>
                   {item.invocacion}

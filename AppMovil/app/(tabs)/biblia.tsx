@@ -21,6 +21,10 @@ import type { Book, Chapter, Verse } from "@/types";
 type Nivel = "libros" | "capitulos" | "versiculos";
 type Filtro = "Antiguo" | "Nuevo" | "Todos";
 
+const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+  tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
+};
+
 const ABREVIATURAS: Record<string, string> = {
   "Génesis": "Gn", "Éxodo": "Éx", "Levítico": "Lv", "Números": "Nm",
   "Deuteronomio": "Dt", "Josué": "Jos", "Jueces": "Jue", "Rut": "Rut",
@@ -207,10 +211,6 @@ export default function BibliaScreen() {
       <ThemedText style={s.errorText}>{error}</ThemedText>
     </ThemedView>
   );
-
-  const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
-    tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
-  };
 
   return (
     <SafeAreaView style={s.safe}>

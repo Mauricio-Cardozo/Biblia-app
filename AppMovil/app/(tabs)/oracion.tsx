@@ -1,6 +1,7 @@
 import { C } from '@/constants/theme';
 import { R } from '@/constants/radius';
 import { S } from '@/constants/spacing';
+import { tabBarScrollY } from '@/utils/scroll-state';
 import { ThemedText } from '@/components/themed-text';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -9,7 +10,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCICPartes } from '@/db/db';
 import type { CICParte } from '@/types';
-import { tabBarScrollY } from "@/utils/scroll-state";
+
+const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+  tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
+};
 
 type Pill = 'oraciones' | 'catecismo' | 'misal';
 
@@ -35,10 +39,6 @@ export default function OracionScreen() {
   const db = useSQLiteContext();
   const [pill, setPill] = useState<Pill>('oraciones');
   const [partes, setPartes] = useState<CICParte[]>([]);
-
-  const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
-    tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
-  };
 
   useEffect(() => {
     if (pill === 'catecismo') {

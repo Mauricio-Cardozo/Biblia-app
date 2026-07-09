@@ -14,6 +14,10 @@ import { fechaActualLarga, hoy } from '@/utils/date';
 import { detectSeason, parseWeekNumber, isSunday, SEASON_EMOJI } from '@/utils/seasons';
 import type { Lectura, MisalPropioEntry } from '@/types';
 
+const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+  tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
+};
+
 export default function LiturgiaScreen() {
   const insets = useSafeAreaInsets();
   const db = useSQLiteContext();
@@ -52,10 +56,6 @@ export default function LiturgiaScreen() {
   const misaTitle = lectura?.titulo_misa;
   const season = misaTitle ? detectSeason(misaTitle) : null;
   const seasonData = season ? temporadas.find((t) => t.temporada === season) : null;
-
-  const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
-    tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
-  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 20 }]}>

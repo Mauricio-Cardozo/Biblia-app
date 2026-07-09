@@ -16,6 +16,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { tabBarScrollY } from "@/utils/scroll-state";
 
+const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+  tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
+};
+
 interface DiaLectura {
   fecha: string;
   titulo_misa: string;
@@ -92,10 +96,6 @@ export default function CalendarioLiturgico() {
       </TouchableOpacity>
     );
   }
-
-  const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
-    tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
-  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>

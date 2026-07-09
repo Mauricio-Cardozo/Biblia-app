@@ -212,7 +212,7 @@ interface MisalSearchResult {
   preview: string;
 }
 
-export async function searchMisal(
+async function searchMisal(
   db: SQLiteDatabase,
   termino: string,
 ): Promise<MisalSearchResult[]> {
