@@ -9,7 +9,7 @@ import { useBibliaVersion } from "@/contexts/bible-version";
 import { tabBarScrollY } from "@/utils/scroll-state";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator, Animated, ImageBackground, StatusBar,
+  ActivityIndicator, Animated, ImageBackground, Share, StatusBar,
   StyleSheet, TouchableOpacity, View,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
@@ -275,6 +275,9 @@ export default function BibliaScreen() {
             <TouchableOpacity style={s.versRow} onLongPress={() => toggleFav(item)} activeOpacity={0.85} delayLongPress={400}>
               <ThemedText style={s.versNum}>{item.versiculo}</ThemedText>
               <ThemedText style={s.versTexto}>{item.texto}</ThemedText>
+              <TouchableOpacity onPress={() => Share.share({ message: `${item.libro} ${item.capitulo}:${item.versiculo}\n${item.texto}` })} style={s.shareBtn}>
+                <ThemedText style={s.shareIcon}>↗</ThemedText>
+              </TouchableOpacity>
               <ThemedText style={s.versFav}>{favs.has(item.id) ? "♥" : ""}</ThemedText>
             </TouchableOpacity>
           )}
@@ -353,6 +356,8 @@ const s = StyleSheet.create({
   versRow: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
   versNum: { color: C.gold, fontSize: 13, fontWeight: "700", minWidth: 28, paddingTop: 2, textAlign: "right" },
   versTexto: { flex: 1, color: C.text, fontSize: 15, lineHeight: 24 },
+  shareBtn: { paddingHorizontal: S.xs },
+  shareIcon: { color: C.muted, fontSize: 16 },
   versFav: { color: C.error, fontSize: 16, minWidth: 20, textAlign: "center", paddingTop: 2 },
 
   versionOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 100 },

@@ -14,6 +14,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
+  Share,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -97,6 +98,21 @@ export default function EvangelioScreen() {
             <TouchableOpacity onPress={() => router.push("/calendario")} style={s.calBtn}>
               <ThemedText style={{ color: C.gold, fontSize: 20 }}>📅</ThemedText>
             </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                const lines = [
+                  lectura.titulo_misa,
+                  "",
+                  ...(lectura.primera_lectura ? [`${lectura.primera_lectura_ref}:\n${lectura.primera_lectura}`] : []),
+                  ...(lectura.salmo ? [`Salmo:\n${lectura.salmo}`] : []),
+                  ...(lectura.evangelio ? [`${lectura.evangelio_ref}:\n${lectura.evangelio}`] : []),
+                ];
+                Share.share({ message: lines.filter(Boolean).join("\n\n") });
+              }}
+              style={s.shareBtn}
+            >
+              <ThemedText style={{ color: C.gold, fontSize: 20 }}>↗</ThemedText>
+            </TouchableOpacity>
             <FavBtn
               favorito={{
                 id: `evangelio-${lectura.fecha}`,
@@ -150,6 +166,7 @@ const s = StyleSheet.create({
   reintentarText: { color: C.navy, fontWeight: "700", fontSize: 14 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: S.sm },
   calBtn: { padding: S.xs },
+  shareBtn: { padding: S.xs },
   tituloMisa: {
     color: C.goldLight,
     fontSize: 20,
