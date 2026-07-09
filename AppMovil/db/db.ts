@@ -200,3 +200,66 @@ export async function getMisalOrdinarioDetalle(db: SQLiteDatabase, id: number): 
     [id],
   );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FTS5 Search
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface MisalSearchResult {
+  tabla: string;
+  id: number;
+  titulo: string;
+  preview: string;
+}
+
+export async function searchMisal(
+  db: SQLiteDatabase,
+  termino: string,
+): Promise<MisalSearchResult[]> {
+  const results: MisalSearchResult[] = [];
+
+  const propio = await db.getAllAsync<any>(
+    `SELECT p.id, p.dia as titulo, snippet(mpf, 1, '<mark>', '</mark>', '...', 8) as preview
+     FROM misal_propio p JOIN misal_propio_fts mpf ON p.rowid = mpf.rowid
+     WHERE mpf MATCH ? ORDER BY mpf.rank LIMIT 10`,
+    [termino],
+  );
+  for (const r of propio) {
+    results.push({ tabla: "Propio del Tiempo", id: r.id, titulo: r.titulo ?? "", preview: r.preview });
+  }
+
+  const ordinario = await db.getAllAsync<any>(
+    `SELECT o.id, o.seccion as titulo, snippet(mof, 2, '<mark>', '</mark>', '...', 8) as preview
+     FROM misal_ordinario o JOIN misal_ordinario_fts mof ON o.rowid = mof.rowid
+     WHERE mof MATCH ? ORDER BY mof.rank LIMIT 10`,
+    [termino],
+  );
+  for (const r of ordinario) {
+    results.push({ tabla: "Ordinario de la Misa", id: r.id, titulo: r.titulo ?? "", preview: r.preview });
+  }
+
+  const prefacios = await db.getAllAsync<any>(
+    `SELECT p.id, p.titulo, snippet(mpf, 1, '<mark>', '</mark>', '...', 8) as preview
+     FROM misal_prefacios p JOIN misal_prefacios_fts mpf ON p.rowid = mpf.rowid
+     WHERE mpf MATCH ? ORDER BY mpf.rank LIMIT 10`,
+    [termino],
+  );
+  for (const r of prefacios) {
+    results.push({ tabla: "Prefacios", id: r.id, titulo: r.titulo, preview: r.preview });
+  }
+
+  const plegarias = await db.getAllAsync<any>(
+    `SELECT p.id, p.nombre as titulo, snippet(mpf, 1, '<mark>', '</mark>', '...', 8) as preview
+     FROM misal_plegarias p JOIN misal_plegarias_fts mpf ON p.rowid = mpf.rowid
+     WHERE mpf MATCH ? ORDER BY mpf.rank LIMIT 10`,
+    [termino],
+  );
+  for (const r of plegarias) {
+    results.push({ tabla: "Plegarias Eucarísticas", id: r.id, titulo: r.titulo ?? "", preview: r.preview });
+  }
+
+  results.sort((a, b) => a.tabla.localeCompare(b.tabla));
+  return results;
+}
+
+export type { MisalSearchResult };

@@ -110,6 +110,74 @@ async function ensureFTS(db: SQLiteDatabase): Promise<void> {
       if (__DEV__) console.warn("Failed to rebuild catecismo_cic_fts:", e);
     }
   }
+
+  if (!fts.misalPropio) {
+    if (__DEV__) console.log("Rebuilding misal_propio_fts (missing)…");
+    try {
+      await db.runAsync("DROP TABLE IF EXISTS misal_propio_fts");
+      await db.runAsync(
+        "CREATE VIRTUAL TABLE IF NOT EXISTS misal_propio_fts USING fts5(id, dia, colecta, oracion_ofrendas, postcomunion, prefacio, antifona_entrada, antifona_comunion)",
+      );
+      const rows = await db.getAllAsync<any>("SELECT rowid as id, dia, colecta, oracion_ofrendas, postcomunion, prefacio, antifona_entrada, antifona_comunion FROM misal_propio");
+      for (const r of rows) {
+        await db.runAsync("INSERT INTO misal_propio_fts(rowid, id, dia, colecta, oracion_ofrendas, postcomunion, prefacio, antifona_entrada, antifona_comunion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          [r.id, r.id, r.dia, r.colecta, r.oracion_ofrendas, r.postcomunion, r.prefacio, r.antifona_entrada, r.antifona_comunion]);
+      }
+    } catch (e) {
+      if (__DEV__) console.warn("Failed to rebuild misal_propio_fts:", e);
+    }
+  }
+
+  if (!fts.misalOrdinario) {
+    if (__DEV__) console.log("Rebuilding misal_ordinario_fts (missing)…");
+    try {
+      await db.runAsync("DROP TABLE IF EXISTS misal_ordinario_fts");
+      await db.runAsync(
+        "CREATE VIRTUAL TABLE IF NOT EXISTS misal_ordinario_fts USING fts5(id, seccion, subseccion, texto)",
+      );
+      const rows = await db.getAllAsync<any>("SELECT rowid as id, seccion, subseccion, texto FROM misal_ordinario");
+      for (const r of rows) {
+        await db.runAsync("INSERT INTO misal_ordinario_fts(rowid, id, seccion, subseccion, texto) VALUES (?, ?, ?, ?, ?)",
+          [r.id, r.id, r.seccion, r.subseccion, r.texto]);
+      }
+    } catch (e) {
+      if (__DEV__) console.warn("Failed to rebuild misal_ordinario_fts:", e);
+    }
+  }
+
+  if (!fts.misalPrefacios) {
+    if (__DEV__) console.log("Rebuilding misal_prefacios_fts (missing)…");
+    try {
+      await db.runAsync("DROP TABLE IF EXISTS misal_prefacios_fts");
+      await db.runAsync(
+        "CREATE VIRTUAL TABLE IF NOT EXISTS misal_prefacios_fts USING fts5(id, titulo, texto)",
+      );
+      const rows = await db.getAllAsync<any>("SELECT rowid as id, titulo, texto FROM misal_prefacios");
+      for (const r of rows) {
+        await db.runAsync("INSERT INTO misal_prefacios_fts(rowid, id, titulo, texto) VALUES (?, ?, ?, ?)",
+          [r.id, r.id, r.titulo, r.texto]);
+      }
+    } catch (e) {
+      if (__DEV__) console.warn("Failed to rebuild misal_prefacios_fts:", e);
+    }
+  }
+
+  if (!fts.misalPlegarias) {
+    if (__DEV__) console.log("Rebuilding misal_plegarias_fts (missing)…");
+    try {
+      await db.runAsync("DROP TABLE IF EXISTS misal_plegarias_fts");
+      await db.runAsync(
+        "CREATE VIRTUAL TABLE IF NOT EXISTS misal_plegarias_fts USING fts5(id, nombre, texto)",
+      );
+      const rows = await db.getAllAsync<any>("SELECT rowid as id, nombre, texto FROM misal_plegarias");
+      for (const r of rows) {
+        await db.runAsync("INSERT INTO misal_plegarias_fts(rowid, id, nombre, texto) VALUES (?, ?, ?, ?)",
+          [r.id, r.id, r.nombre, r.texto]);
+      }
+    } catch (e) {
+      if (__DEV__) console.warn("Failed to rebuild misal_plegarias_fts:", e);
+    }
+  }
 }
 
 /** Delete the database file so the next open copies fresh from assets */
@@ -129,11 +197,17 @@ export async function forceReCopy(): Promise<void> {
 }
 
 /** Quick check: are FTS5 tables available for search? */
-async function areFTSReady(db: SQLiteDatabase): Promise<{ cic: boolean }> {
+async function areFTSReady(db: SQLiteDatabase): Promise<{ cic: boolean; misalPropio: boolean; misalOrdinario: boolean; misalPrefacios: boolean; misalPlegarias: boolean }> {
   const tables = await db.getAllAsync<{ name: string }>(
-    "SELECT name FROM sqlite_master WHERE type='table' AND name = 'catecismo_cic_fts'",
+    "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('catecismo_cic_fts','misal_propio_fts','misal_ordinario_fts','misal_prefacios_fts','misal_plegarias_fts')",
   );
-  return { cic: tables.some(t => t.name === "catecismo_cic_fts") };
+  return {
+    cic: tables.some(t => t.name === "catecismo_cic_fts"),
+    misalPropio: tables.some(t => t.name === "misal_propio_fts"),
+    misalOrdinario: tables.some(t => t.name === "misal_ordinario_fts"),
+    misalPrefacios: tables.some(t => t.name === "misal_prefacios_fts"),
+    misalPlegarias: tables.some(t => t.name === "misal_plegarias_fts"),
+  };
 }
 
 /** Return a diagnosis string describing table/column state */
@@ -155,7 +229,7 @@ export async function diagnose(db: SQLiteDatabase): Promise<string> {
       }
     }
 
-    for (const table of ["catecismo_cic_fts"]) {
+    for (const table of ["catecismo_cic_fts", "misal_propio_fts", "misal_ordinario_fts", "misal_prefacios_fts", "misal_plegarias_fts"]) {
       lines.push(`${table}: ${tables.some(t => t.name === table) ? "EXISTE" : "NO EXISTE"}`);
     }
 
@@ -180,6 +254,14 @@ export async function diagnose(db: SQLiteDatabase): Promise<string> {
       lines.push(`   → Andá a "Rebuild FTS" para recrearlas.`);
       lines.push(`   → Si el rebuild falla, tu dispositivo no soporta FTS5.`);
     }
+    if (ftsStatus.misalPropio) lines.push(`✅ FTS5 disponible: Misal Propio`);
+    else lines.push(`❌ FTS5 NO disponible: Misal Propio`);
+    if (ftsStatus.misalOrdinario) lines.push(`✅ FTS5 disponible: Misal Ordinario`);
+    else lines.push(`❌ FTS5 NO disponible: Misal Ordinario`);
+    if (ftsStatus.misalPrefacios) lines.push(`✅ FTS5 disponible: Prefacios`);
+    else lines.push(`❌ FTS5 NO disponible: Prefacios`);
+    if (ftsStatus.misalPlegarias) lines.push(`✅ FTS5 disponible: Plegarias`);
+    else lines.push(`❌ FTS5 NO disponible: Plegarias`);
   } catch (e: any) {
     lines.push(`Error en diagnóstico: ${e.message}`);
   }
