@@ -1,11 +1,10 @@
-import { Tabs } from 'expo-router';
+import { Tabs, router } from 'expo-router';
 import React from 'react';
 import { TouchableOpacity, View, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import FloatingTabBar from '@/components/ui/floating-tab-bar';
 import { C } from '@/constants/theme';
-import { router } from 'expo-router';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();

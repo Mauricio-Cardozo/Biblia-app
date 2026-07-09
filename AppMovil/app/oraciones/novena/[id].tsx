@@ -4,7 +4,7 @@ import { ThemedText } from "@/components/themed-text";
 import { useFontSize, fs } from "@/contexts/font-size";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -25,19 +25,19 @@ export default function NovenaDetalleScreen() {
   const [diaSel, setDiaSel] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
-    if (!id) return;
-    const nov = await db.getFirstAsync<{ titulo: string }>("SELECT titulo FROM novenas WHERE id = ?", [Number(id)]);
-    if (nov) setTitulo(nov.titulo);
-    const rows = await db.getAllAsync<NovenaDia>(
-      "SELECT id, dia, titulo, texto FROM novena_dias WHERE novena_id = ? ORDER BY dia",
-      [Number(id)],
-    );
-    setDias(rows);
-    setLoading(false);
+  useEffect(() => {
+    (async () => {
+      if (!id) return;
+      const nov = await db.getFirstAsync<{ titulo: string }>("SELECT titulo FROM novenas WHERE id = ?", [Number(id)]);
+      if (nov) setTitulo(nov.titulo);
+      const rows = await db.getAllAsync<NovenaDia>(
+        "SELECT id, dia, titulo, texto FROM novena_dias WHERE novena_id = ? ORDER BY dia",
+        [Number(id)],
+      );
+      setDias(rows);
+      setLoading(false);
+    })();
   }, [db, id]);
-
-  useEffect(() => { load(); }, [load]);
 
   const diaActual = dias.find((d) => d.dia === diaSel);
 

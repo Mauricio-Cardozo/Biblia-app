@@ -44,7 +44,21 @@ export default function EvangelioScreen() {
     }
   }, [db, fechaParam]);
 
-  useEffect(() => { cargar(); }, [cargar, fechaParam]);
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const targetDate = fechaParam ?? hoy();
+        const data = await getLecturaDelDia(db, targetDate);
+        setLectura(data);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Error desconocido");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [db, fechaParam]);
 
   if (loading) {
     return (
@@ -89,7 +103,7 @@ export default function EvangelioScreen() {
                 tipo: "evangelio",
                 referencia: `Evangelio ${lectura.fecha}`,
                 preview: lectura.evangelio?.slice(0, 80) ?? "",
-                timestamp: Date.now(),
+                timestamp: 0,
               }}
             />
           </View>

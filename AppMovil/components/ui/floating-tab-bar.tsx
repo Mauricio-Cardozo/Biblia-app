@@ -32,7 +32,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
       prevScrollY.current = value;
     });
     return () => tabBarScrollY.removeListener(listener);
-  }, []);
+  }, [translateY]);
 
   return (
     <Animated.View style={[s.outer, { transform: [{ translateY }] }]}>

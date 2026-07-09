@@ -47,7 +47,7 @@ export default function LiturgiaScreen() {
         }
       }
     });
-  }, []);
+  }, [db]);
 
   const misaTitle = lectura?.titulo_misa;
   const season = misaTitle ? detectSeason(misaTitle) : null;

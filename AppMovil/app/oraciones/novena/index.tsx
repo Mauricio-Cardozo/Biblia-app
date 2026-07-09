@@ -4,7 +4,7 @@ import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { router } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -19,14 +19,11 @@ export default function NovenaListScreen() {
   const db = useSQLiteContext();
   const [novenas, setNovenas] = useState<Novena[]>([]);
 
-  const load = useCallback(async () => {
-    const rows = await db.getAllAsync<Novena>(
+  useEffect(() => {
+    db.getAllAsync<Novena>(
       "SELECT n.id, n.titulo, (SELECT COUNT(*) FROM novena_dias WHERE novena_id = n.id) AS dias_count FROM novenas n ORDER BY n.id",
-    );
-    setNovenas(rows);
+    ).then(setNovenas);
   }, [db]);
-
-  useEffect(() => { load(); }, [load]);
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>

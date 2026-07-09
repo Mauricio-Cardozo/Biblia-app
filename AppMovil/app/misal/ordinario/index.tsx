@@ -20,11 +20,12 @@ export default function OrdinarioScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadSecciones = useCallback(async () => {
-    setLoading(true);
-    try { setSecciones(await getMisalOrdinarioSecciones(db)); }
-    catch { /* */ }
-    setLoading(false);
+  useEffect(() => {
+    (async () => {
+      try { setSecciones(await getMisalOrdinarioSecciones(db)); }
+      catch { /* */ }
+      setLoading(false);
+    })();
   }, [db]);
 
   const loadBlocks = useCallback(async (seccion: string) => {
@@ -35,8 +36,6 @@ export default function OrdinarioScreen() {
     } catch { /* */ }
     setLoading(false);
   }, [db]);
-
-  useEffect(() => { loadSecciones(); }, [loadSecciones]);
 
   if (loading) {
     return (

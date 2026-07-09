@@ -89,11 +89,13 @@ export default function BibliaScreen() {
   const [filtro, setFiltro] = useState<Filtro>("Todos");
   const [favs, setFavs] = useState<Set<number>>(new Set());
 
-  const cargarLibros = useCallback(async () => {
-    setLoading(true); setError(null);
-    try { setLibros(await getLibros(db, version.tabla)); }
-    catch (e: any) { setError(`Error: ${e.message}`); }
-    finally { setLoading(false); }
+  useEffect(() => {
+    (async () => {
+      setLoading(true); setError(null);
+      try { setLibros(await getLibros(db, version.tabla)); }
+      catch (e: any) { setError(`Error: ${e.message}`); }
+      finally { setLoading(false); }
+    })();
   }, [db, version.tabla]);
 
   const cargarCapitulos = useCallback(async (libro: string) => {
@@ -109,8 +111,6 @@ export default function BibliaScreen() {
     catch (e: any) { setError(`Error: ${e.message}`); }
     finally { setLoading(false); }
   }, [db, version.tabla]);
-
-  useEffect(() => { cargarLibros(); }, [cargarLibros]);
 
   useEffect(() => {
     Promise.all(versiculos.map((v) => isFavorito(`biblia-${v.id}`))).then((results) => {

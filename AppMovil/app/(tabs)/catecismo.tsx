@@ -7,7 +7,7 @@ import ScreenHeader from "@/components/ui/screen-header";
 import ListItemCard from "@/components/ui/list-item-card";
 import FavBtn from "@/components/fav-btn";
 import { useSQLiteContext } from "expo-sqlite";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator, ScrollView, StatusBar,
   StyleSheet, TextInput, TouchableOpacity, View,
@@ -44,13 +44,14 @@ export default function CatecismoScreen() {
   const [currentNumeralId, setCurrentNumeralId] = useState<number | null>(null);
   const [jumpValue, setJumpValue] = useState("");
   const inputRef = useRef<TextInput>(null);
-  const timestamp = useMemo(() => Date.now(), []);
 
-  const cargarPartes = useCallback(async () => {
-    setLoading(true); setError(null);
-    try { setPartes(await getCICPartes(db)); }
-    catch (e: any) { setError(`Error: ${e.message}`); }
-    finally { setLoading(false); }
+  useEffect(() => {
+    (async () => {
+      setLoading(true); setError(null);
+      try { setPartes(await getCICPartes(db)); }
+      catch (e: any) { setError(`Error: ${e.message}`); }
+      finally { setLoading(false); }
+    })();
   }, [db]);
 
   const cargarSecciones = useCallback(async (parte: string) => {
@@ -120,8 +121,6 @@ export default function CatecismoScreen() {
       setLoading(false);
     }
   }, [db]);
-
-  useEffect(() => { cargarPartes(); }, [cargarPartes]);
 
   const seleccionarParte = (parte: string) => {
     setParteActual(parte); cargarSecciones(parte); setNivel("secciones");
@@ -227,7 +226,7 @@ export default function CatecismoScreen() {
               tipo: "cic",
               referencia: `CIC #${detalle.id}`,
               preview: detalle.texto?.slice(0, 80) ?? "",
-              timestamp,
+              timestamp: 0,
             }}
           />
         </View>

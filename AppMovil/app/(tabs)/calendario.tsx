@@ -4,7 +4,7 @@ import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -42,7 +42,6 @@ export default function CalendarioLiturgico() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
     const start = `${ano}-${String(mes).padStart(2, "0")}-01`;
     const end = `${ano}-${String(mes).padStart(2, "0")}-${diasEnMes(ano, mes)}`;
     db.getAllAsync<DiaLectura>(

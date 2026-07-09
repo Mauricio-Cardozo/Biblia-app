@@ -1,4 +1,3 @@
-import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { ThemedText } from "@/components/themed-text";
 import { addFavorito, isFavorito, removeFavorito, type Favorito } from "@/data/favoritos";
@@ -21,7 +20,7 @@ export default function FavBtn({ favorito }: Props) {
       await removeFavorito(favorito.id);
       setActivo(false);
     } else {
-      await addFavorito(favorito);
+      await addFavorito({ ...favorito, timestamp: Date.now() });
       setActivo(true);
     }
   }, [activo, favorito]);

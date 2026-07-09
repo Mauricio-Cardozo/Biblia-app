@@ -5,7 +5,7 @@ import ScreenHeader from "@/components/ui/screen-header";
 import ListItemCard from "@/components/ui/list-item-card";
 import { router } from "expo-router";
 import { getFavoritos, type Favorito } from "@/data/favoritos";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,11 +20,9 @@ export default function FavoritosScreen() {
   const insets = useSafeAreaInsets();
   const [favs, setFavs] = useState<Favorito[]>([]);
 
-  const recargar = useCallback(async () => {
-    setFavs(await getFavoritos());
+  useEffect(() => {
+    getFavoritos().then(setFavs);
   }, []);
-
-  useEffect(() => { recargar(); }, [recargar]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>

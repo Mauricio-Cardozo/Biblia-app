@@ -21,13 +21,14 @@ export default function PropioScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadTemporadas = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await getMisalTemporadas(db);
-      setTemporadas(data);
-    } catch { /* ignore */ }
-    setLoading(false);
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getMisalTemporadas(db);
+        setTemporadas(data);
+      } catch { /* ignore */ }
+      setLoading(false);
+    })();
   }, [db]);
 
   const loadEntries = useCallback(async (temporada: string) => {
@@ -39,8 +40,6 @@ export default function PropioScreen() {
     } catch { /* ignore */ }
     setLoading(false);
   }, [db]);
-
-  useEffect(() => { loadTemporadas(); }, [loadTemporadas]);
 
   if (loading) {
     return (

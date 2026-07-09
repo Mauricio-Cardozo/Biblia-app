@@ -60,7 +60,7 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
         if (idx > 0 && idx < total) setStepIndex(idx);
       }
     }).finally(() => setReady(true)).catch(() => setReady(true));
-  }, []);
+  }, [storageKey, total]);
 
   useEffect(() => {
     if (ready && !completado) {
@@ -69,11 +69,11 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
       AsyncStorage.setItem(storageKey + "_saved_date", fecha).catch(() => {});
       AsyncStorage.setItem(storageKey + "_saved_step", String(stepIndex)).catch(() => {});
     }
-  }, [stepIndex, ready, completado]);
+  }, [stepIndex, ready, completado, storageKey]);
 
   useEffect(() => {
     if (step.id === "completado" && !completado) {
-      setCompletado(true);
+      const t = setTimeout(() => setCompletado(true), 0);
       (async () => {
         const hoy = new Date();
         const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
@@ -106,6 +106,7 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
         await AsyncStorage.removeItem(storageKey + "_saved_step");
         await AsyncStorage.removeItem(storageKey + "_saved_date");
       })().catch(() => {});
+      return () => clearTimeout(t);
     }
   }, [step.id, completado, storageKey]);
 
