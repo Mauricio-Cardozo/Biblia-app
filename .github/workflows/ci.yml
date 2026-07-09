@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths: ['AppMovil/**']
+  pull_request:
+    branches: [main]
+    paths: ['AppMovil/**']
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AppMovil
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: AppMovil/package-lock.json
+      - run: npm ci --legacy-peer-deps --ignore-scripts
+      - run: npm test
