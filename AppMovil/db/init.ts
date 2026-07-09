@@ -37,6 +37,7 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
     } catch { /* retry on next launch */ }
   }
 
+  // ── v2 (skipped): youcat.parte column — no-op, YOUCAT tables dropped in v4
   // ── v3: Add `novenas` + `novena_dias` tables if missing ──────────────
   if (version < 3) {
     if (__DEV__) console.log("Migration v3: adding novenas tables…");

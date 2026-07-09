@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import FloatingTabBar from '@/components/ui/floating-tab-bar';
 import { C } from '@/constants/theme';
+import { R } from '@/constants/radius';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -59,7 +60,7 @@ export default function TabLayout() {
 const s = StyleSheet.create({
   fab: {
     position: 'absolute', right: 20,
-    width: 52, height: 52, borderRadius: 26,
+    width: 52, height: 52, borderRadius: R.full,
     backgroundColor: C.gold,
     alignItems: 'center', justifyContent: 'center',
     ...Platform.select({ android: { elevation: 6 } }),

@@ -1,4 +1,5 @@
 import { C } from "@/constants/theme";
+import { R } from '@/constants/radius';
 import { S } from '@/constants/spacing';
 import { ThemedText } from "@/components/themed-text";
 import { useFontSize, fs } from "@/contexts/font-size";
@@ -104,7 +105,7 @@ const s = StyleSheet.create({
   },
   diaScroll: { paddingHorizontal: S.lg, gap: S.sm },
   diaBtn: {
-    paddingHorizontal: 14, paddingVertical: S.sm, borderRadius: 20,
+    paddingHorizontal: 14, paddingVertical: S.sm, borderRadius: R.xxl,
     backgroundColor: C.navyLight, borderWidth: 1, borderColor: C.sep,
   },
   diaBtnActive: { backgroundColor: C.gold, borderColor: C.gold },

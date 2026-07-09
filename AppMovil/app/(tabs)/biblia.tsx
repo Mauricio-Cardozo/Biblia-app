@@ -327,7 +327,7 @@ const s = StyleSheet.create({
 
   pillRow: { flexDirection: "row", gap: S.sm, paddingHorizontal: S.md, paddingVertical: S.md },
   pill: {
-    flex: 1, paddingVertical: S.sm, borderRadius: 20,
+    flex: 1, paddingVertical: S.sm, borderRadius: R.xxl,
     borderWidth: 1, borderColor: C.goldDim,
     alignItems: "center",
   },

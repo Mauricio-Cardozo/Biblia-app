@@ -1,4 +1,5 @@
 import { C } from '@/constants/theme';
+import { R } from '@/constants/radius';
 import { S } from '@/constants/spacing';
 import { ThemedText } from '@/components/themed-text';
 import { router } from 'expo-router';
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
   brand: { color: C.gold, fontSize: 12, fontWeight: '700', letterSpacing: 2, marginBottom: S.xs, marginHorizontal: S.xl },
   title: { color: C.text, fontSize: 28, fontWeight: '700', marginBottom: S.xxl, marginHorizontal: S.xl },
   pillRow: { flexDirection: 'row', gap: S.sm, paddingHorizontal: S.xl, marginBottom: S.xl },
-  pill: { flex: 1, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: C.goldDim, alignItems: 'center' },
+  pill: { flex: 1, paddingVertical: 10, borderRadius: R.xxl, borderWidth: 1, borderColor: C.goldDim, alignItems: 'center' },
   pillActive: { backgroundColor: C.gold, borderColor: C.gold },
   pillText: { color: C.gold, fontSize: 13, fontWeight: '600' },
   pillTextActive: { color: C.navy },
@@ -126,6 +127,6 @@ const styles = StyleSheet.create({
   cardTitle: { color: C.text, fontSize: 16, fontWeight: '600' },
   cardSubtitle: { color: C.muted, fontSize: 13, marginTop: 2 },
   chevron: { color: C.gold, fontSize: 24, marginLeft: S.sm },
-  indexBadge: { width: 32, height: 32, borderRadius: 16, backgroundColor: C.goldDim, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  indexBadge: { width: 32, height: 32, borderRadius: R.xl, backgroundColor: C.goldDim, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   indexBadgeText: { color: C.goldLight, fontSize: 14, fontWeight: '800' },
 });
