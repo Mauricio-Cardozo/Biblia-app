@@ -116,6 +116,7 @@ npm test                    # jest (23 tests, 4 suites)
 - `app/evangelio.tsx` — fully working, accepts `?fecha=YYYY-MM-DD`. Uses `getLecturaDelDia`.
 - Streak cards on Home (`🔥 N días`) — real data from `data/streaks.ts` via AsyncStorage (`racha_rosario_ultima`, `racha_coronilla_ultima`). `calcularRacha()` counts consecutive days backwards.
 - No pagination on list screens — all data fits in memory.
+- **FTS5 en misal**: 4 virtual tables (`misal_propio_fts`, `misal_ordinario_fts`, `misal_prefacios_fts`, `misal_plegarias_fts`) creadas en `ensureFTS()` en `init.ts`. Buscables via `searchMisal()` en `db/db.ts` que devuelve resultados unificados con `tabla`, `id`, `titulo`, `preview`.
 - No FTS on misal tables yet — not needed for current UX.
 - Novenas: 18 scraped from `devocionario.com` (single-page format); ~28 more exist on devocionario.com with multi-page or numeric-day format — not yet scraped.
 - CIC `capitulo`/`articulo` populated (2359/2865 caps, 1964/2865 arts) via `archive/popular_cic.py`. Asset DB has no FTS triggers (dropped before UPDATE; app recreates them on first launch via migration v1).
