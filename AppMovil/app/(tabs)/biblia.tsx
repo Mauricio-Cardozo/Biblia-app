@@ -7,7 +7,7 @@ import { R } from '@/constants/radius';
 import { useSQLiteContext } from "expo-sqlite";
 import { useBibliaVersion } from "@/contexts/bible-version";
 import { tabBarScrollY } from "@/utils/scroll-state";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator, Animated, ImageBackground, StatusBar,
   StyleSheet, TouchableOpacity, View,
@@ -47,7 +47,7 @@ const ABREVIATURAS: Record<string, string> = {
 const abrev = (libro: string) => ABREVIATURAS[libro] ?? libro.slice(0, 3);
 
 function LibroCard({ item, onPress }: { item: Book; onPress: () => void }) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const scale = useMemo(() => new Animated.Value(1), []);
 
   const handlePressIn = () => {
     Animated.timing(scale, { toValue: 0.95, duration: 100, useNativeDriver: true }).start();

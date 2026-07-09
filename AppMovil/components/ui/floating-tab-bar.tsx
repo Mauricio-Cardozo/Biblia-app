@@ -2,7 +2,7 @@ import { C } from "@/constants/theme";
 import { Animated, TouchableOpacity, View, StyleSheet } from "react-native";
 import { IconSymbol } from "./icon-symbol";
 import { tabBarScrollY } from "@/utils/scroll-state";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
 const VISIBLE_TABS = ["index", "biblia", "calendario", "oracion"];
@@ -15,7 +15,7 @@ const ICONS: Record<string, string> = {
 };
 
 export default function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const translateY = useRef(new Animated.Value(0)).current;
+  const translateY = useMemo(() => new Animated.Value(0), []);
   const prevScrollY = useRef(0);
   const hidden = useRef(false);
 

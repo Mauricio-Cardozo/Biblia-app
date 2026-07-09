@@ -7,7 +7,7 @@ import ScreenHeader from "@/components/ui/screen-header";
 import ListItemCard from "@/components/ui/list-item-card";
 import FavBtn from "@/components/fav-btn";
 import { useSQLiteContext } from "expo-sqlite";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator, ScrollView, StatusBar,
   StyleSheet, TextInput, TouchableOpacity, View,
@@ -44,6 +44,7 @@ export default function CatecismoScreen() {
   const [currentNumeralId, setCurrentNumeralId] = useState<number | null>(null);
   const [jumpValue, setJumpValue] = useState("");
   const inputRef = useRef<TextInput>(null);
+  const timestamp = useMemo(() => Date.now(), []);
 
   const cargarPartes = useCallback(async () => {
     setLoading(true); setError(null);
@@ -226,12 +227,12 @@ export default function CatecismoScreen() {
               tipo: "cic",
               referencia: `CIC #${detalle.id}`,
               preview: detalle.texto?.slice(0, 80) ?? "",
-              timestamp: Date.now(),
+              timestamp,
             }}
           />
         </View>
         <View style={s.jerarquia}>
-          {detalle.parte && <ThemedText style={s.jerarquiaItem}>📖 {detalle.parte}</ThemedText>}
+          {detalle.parte && <View style={s.jerarquiaItem}><ThemedText>📖 {detalle.parte}</ThemedText></View>}
           {detalle.seccion && <ThemedText style={s.jerarquiaItem}>  › {detalle.seccion}</ThemedText>}
           {detalle.capitulo && <ThemedText style={s.jerarquiaItem}>  › {detalle.capitulo}</ThemedText>}
           {detalle.articulo && <ThemedText style={s.jerarquiaItem}>  › {detalle.articulo}</ThemedText>}

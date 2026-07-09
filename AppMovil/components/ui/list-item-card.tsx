@@ -1,7 +1,7 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
-import React, { useRef } from "react";
+import React, { useMemo } from "react";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 
@@ -24,7 +24,7 @@ export default function ListItemCard({
   disabled,
   rightSlot,
 }: Props) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const scale = useMemo(() => new Animated.Value(1), []);
 
   const handlePressIn = () => {
     Animated.timing(scale, {

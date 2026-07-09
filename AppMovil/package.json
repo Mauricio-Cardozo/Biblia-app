@@ -8,7 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -50,6 +51,11 @@
   },
   "private": true,
   "devDependencies": {
-    "expo-mcp": "~0.2.1"
+    "@react-native/jest-preset": "^0.86.0",
+    "@types/jest": "^30.0.0",
+    "expo-mcp": "~0.2.1",
+    "jest": "^30.4.2",
+    "jest-expo": "^57.0.1",
+    "ts-jest": "^29.4.11"
   }
 }

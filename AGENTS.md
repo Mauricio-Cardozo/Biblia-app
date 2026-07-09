@@ -99,7 +99,20 @@ These reflect actual codebase patterns, not aspirational rules:
 - `biblia_pueblo_dios.db` is the pre-scraper legacy Bible DB — keep for reference.
 - All pipeline artifacts (10+ files targeting intermediate DBs, youcat files) deleted.
 
-### Other
+### Tests
+```bash
+npm test                    # jest (23 tests, 4 suites)
+```
+- **Setup**: Jest + ts-jest, `jest.config.js` + `tsconfig.test.json` (extends base, adds `"types": ["jest"]`).
+- **`__tests__/date.test.ts`** — `formatoFecha`, `fechaActualLarga`, `hoy` (5 tests).
+- **`__tests__/seasons.test.ts`** — `romanToInt`, `detectSeason`, `parseWeekNumber`, `isSunday` (12 tests).
+- **`__tests__/streaks.test.ts`** — `calcularRacha`, `obtenerStats` with mocked AsyncStorage (4 tests).
+- **`__tests__/favoritos.test.ts`** — `addFavorito`, `removeFavorito`, `isFavorito`, `getFavoritos` with mocked AsyncStorage (4 tests).
+- **Mock pattern**: Inline `jest.mock` with `mockStore` object; `beforeEach` clears store.
+- DB queries verified via `sqlite` MCP tools directly against the asset DB.
+- DB health: 9 tables, 35,852 Bible verses, 109 readings, 2,865 CIC numerals, 157 misal propios. FTS5 not pre-built (created on launch via migration v1).
+
+## Other
 - `app/evangelio.tsx` — fully working, accepts `?fecha=YYYY-MM-DD`. Uses `getLecturaDelDia`.
 - Streak cards on Home (`🔥 N días`) — real data from `data/streaks.ts` via AsyncStorage (`racha_rosario_ultima`, `racha_coronilla_ultima`). `calcularRacha()` counts consecutive days backwards.
 - No pagination on list screens — all data fits in memory.
