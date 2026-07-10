@@ -6,14 +6,17 @@ import ScreenHeader from '@/components/ui/screen-header';
 import FontSizeControl from '@/components/font-size-control';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Alert, ScrollView, Share, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { exportarDatos, importarDatos } from '@/data/export-import';
 
 export default function AjustesScreen() {
   const insets = useSafeAreaInsets();
   const [temaOscuro, setTemaOscuro] = useState(true);
   const [notifEvangelio, setNotifEvangelio] = useState(false);
   const [notifRachas, setNotifRachas] = useState(false);
+  const [mostrarImport, setMostrarImport] = useState(false);
+  const [importText, setImportText] = useState("");
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
@@ -71,6 +74,47 @@ export default function AjustesScreen() {
           </View>
         </View>
 
+        <ThemedText style={s.seccionTitulo}>DATOS</ThemedText>
+        <View style={s.card}>
+          <TouchableOpacity style={s.fila} onPress={async () => {
+            const json = await exportarDatos();
+            await Share.share({ message: json });
+          }}>
+            <ThemedText style={s.filaLabel}>Exportar datos</ThemedText>
+            <ThemedText style={s.flecha}>→</ThemedText>
+          </TouchableOpacity>
+        </View>
+        <View style={s.card}>
+          <TouchableOpacity style={s.fila} onPress={() => setMostrarImport(true)}>
+            <ThemedText style={s.filaLabel}>Importar datos</ThemedText>
+            <ThemedText style={s.flecha}>→</ThemedText>
+          </TouchableOpacity>
+        </View>
+        {mostrarImport && (
+          <View style={s.card}>
+            <TextInput
+              style={s.importInput}
+              placeholder="Pegá el JSON aquí..."
+              placeholderTextColor={C.muted}
+              value={importText}
+              onChangeText={setImportText}
+              multiline
+            />
+            <TouchableOpacity style={s.importBtn} onPress={async () => {
+              try {
+                const n = await importarDatos(importText);
+                Alert.alert("Importado", `${n} datos restaurados.`);
+                setMostrarImport(false);
+                setImportText("");
+              } catch {
+                Alert.alert("Error", "JSON inválido");
+              }
+            }}>
+              <ThemedText style={s.importBtnText}>Restaurar</ThemedText>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <ThemedText style={s.seccionTitulo}>INFORMACIÓN</ThemedText>
         <View style={s.card}>
           <View style={s.fila}>
@@ -106,4 +150,8 @@ const s = StyleSheet.create({
   filaLabel: { color: C.text, fontSize: 15, fontWeight: '600' },
   filaSub: { color: C.muted, fontSize: 12, marginTop: 2, maxWidth: 240 },
   filaValor: { color: C.muted, fontSize: 14 },
+  flecha: { color: C.gold, fontSize: 18 },
+  importInput: { backgroundColor: C.navyMid, color: C.text, borderRadius: R.md, padding: S.md, fontSize: 13, marginBottom: S.sm, borderWidth: 1, borderColor: C.goldDim, minHeight: 80, textAlignVertical: 'top' },
+  importBtn: { backgroundColor: C.gold, borderRadius: R.md, paddingVertical: S.sm, alignItems: 'center' },
+  importBtnText: { color: C.navy, fontWeight: '700', fontSize: 14 },
 });

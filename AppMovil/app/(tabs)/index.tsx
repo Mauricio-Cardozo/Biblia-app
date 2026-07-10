@@ -66,8 +66,15 @@ export default function LiturgiaScreen() {
             </TouchableOpacity>
           </Link>
         )}
-        <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
-        <ThemedText style={styles.pageTitle}>Liturgia</ThemedText>
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }}>
+            <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
+            <ThemedText style={styles.pageTitle}>Liturgia</ThemedText>
+          </View>
+          <TouchableOpacity onPress={() => router.push('/ajustes')} style={styles.gearBtn}>
+            <ThemedText style={styles.gearIcon}>⚙️</ThemedText>
+          </TouchableOpacity>
+        </View>
         <ThemedText style={styles.dateText}>{fechaActualLarga()}</ThemedText>
         {misaTitle ? <ThemedText style={styles.misaTitle}>{misaTitle}</ThemedText> : null}
 
@@ -168,8 +175,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   debugLink: { backgroundColor: '#8B0000', marginBottom: 10, borderRadius: R.md, marginHorizontal: S.xl, padding: 10, alignItems: 'center' },
   debugText: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  brand: { color: C.gold, fontSize: 12, fontWeight: '700', letterSpacing: 2, marginBottom: S.xs, marginHorizontal: S.xl },
-  pageTitle: { color: C.text, fontSize: 28, fontWeight: '700', marginBottom: S.xs, marginHorizontal: S.xl },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', marginHorizontal: S.xl },
+  gearBtn: { paddingTop: 4, paddingLeft: S.md },
+  gearIcon: { fontSize: 22 },
+  brand: { color: C.gold, fontSize: 12, fontWeight: '700', letterSpacing: 2, marginBottom: S.xs },
+  pageTitle: { color: C.text, fontSize: 28, fontWeight: '700', marginBottom: S.xs },
   dateText: { color: C.gold, fontSize: 18, marginBottom: S.xs, marginHorizontal: S.xl },
   misaTitle: { color: C.goldLight, fontSize: 13, fontStyle: 'italic', marginBottom: S.xl, marginHorizontal: S.xl },
   card: { backgroundColor: C.navyMid, padding: S.xl, borderRadius: R.lg, marginBottom: 15, marginHorizontal: S.xl },
