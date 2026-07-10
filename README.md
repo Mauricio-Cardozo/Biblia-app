@@ -153,7 +153,7 @@ TABLE novena_dias (
 
 > **Nota sobre actualizaciones de BD:** Si la app muestra errores de columnas o tablas faltantes (ej. `no such column: parte` o `no such table: ..._fts`), la migración automática en `db/init.ts` los corrige al arrancar. También podés forzar la recreación borrando la DB almacenada en el dispositivo:
 > ```bash
-> adb shell "run-as com.tudominio.app rm /data/data/com.tudominio.app/files/ExpoLite/iglesia_digital.db"
+> adb shell "run-as com.iglesiadigital.app rm /data/data/com.iglesiadigital.app/files/ExpoLite/iglesia_digital.db"
 > ```
 
 ### Requisitos previos
@@ -165,7 +165,7 @@ TABLE novena_dias (
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/Mauricio-bb/Biblia-app.git
+git clone https://github.com/Mauricio-Cardozo/Biblia-app.git
 cd Biblia-app/AppMovil
 
 # 2. Instalar dependencias
@@ -303,22 +303,21 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] Expo SDK 54 → 56 (React 19.2.3, RN 0.85.3)
 - [x] Rebranding — nombre, icono personalizado, splash
 - [x] **Bugs corregidos** — `\n` literal en letanías, `?fecha` en favoritos a evangelio, `find()` cliente → query directa en detalle de ordinario/prefacios/plegarias, `.catch()` faltantes, `#D4AF37` → `C.gold`, `catch(e: any)` → `instanceof Error`
+- [x] **Compartir versículos** — botón ↗ por versículo en Biblia y en header de Evangelio, vía `Share.share`
+- [x] **Export/import AsyncStorage** — backup de favoritos/rachas/font-size via `Share.share` + paste restore en Ajustes
 - [x] **Limpieza de deuda técnica** — eliminado `modal.tsx`, `collapsible.tsx`, `hasColumn`. Movido `getLecturaDelDia` al bloque correcto en `db/db.ts`. Completado tipo `Lectura` con columnas faltantes.
 - [x] **Eliminar duplicación** — `formatoFecha`/`hoy()`, mapa de emojis de temporadas, layout de sección de lecturas extraídos a `utils/date.ts`, `utils/seasons.ts`, `components/reading-section.tsx`.
-- [x] **Tokens de diseño** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados (pendiente refactorizar screens).
+- [x] **Tokens de diseño** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados + refactorizados en ~25 archivos
 - [x] **StatusBar + NavigationBar ocultos** en toda la app vía `expo-navigation-bar`
-- [x] **Evangelio del día en Home** — preview en vivo con truncado por numberOfLines, se adapta al tamaño de fuente.
-- [x] **Rediseño navegación** — tab bar flotante redondeada, FAB de ajustes, calendario como tab, Home renombrado a Liturgia, Catecismo+Misal como sub-secciones de Oración.
+- [x] **Ajustes screen** — gear ⚙️ en Home, versión dinámica, font-size, export/import de datos
+- [x] **Rediseño navegación** — tab bar flotante redondeada, scroll-to-hide, ajustes en Home, calendario como tab
 
 ### 🔴 Corto plazo (alta prioridad)
 
-- [ ] **Refactorizar design system** — reemplazar valores inline de padding/margin/radius/gap con `S.*` / `R.*` en todas las screens.
 - [ ] **Rediseño de Home** — hero section con saludo ("Buenos días hermano/hijo"), santo del día, color litúrgico, evangelio destacado, acceso rápido a rachas. Inspirado en Lummen.
 - [ ] **Notificaciones bíblicas diarias** — evangelio del día a las 7am, versículo aleatorio al mediodía, recordatorio de rachas. Basado en `expo-notifications` + SQLite.
 - [ ] **Split-pane / multi-ventana** — dos paneles simultáneos (Biblia + CIC, o Lecturas + Reflexión). Prioritario en tablets.
 - [ ] **Sistema de etiquetas, highlights y notas** — expandir favs actuales con etiquetas de colores, resaltado de versículos, notas personales.
-
-- [x] **Evangelio del día en Home** — preview en vivo con truncado por numberOfLines, se adapta al tamaño de fuente.
 
 ### 🟡 Mediano plazo
 - [ ] **Configuraciones funcionales** — tema claro/oscuro real, notificaciones push (expo-notifications), ayuda integrada.
@@ -389,7 +388,7 @@ python3 archive/scraper_novenas.py --db assets/db.db   # escribir en DB
 - **Biblia del Pueblo de Dios** — Texto bíblico en español latinoamericano
 - **Catecismo de la Iglesia Católica** — © Libreria Editrice Vaticana
 - **Misal Romano (México)** — © LiturgiaPapal.org / Conferencia del Episcopado Mexicano
-- Desarrollado con ❤️ por [Mauricio](https://github.com/Mauricio-bb)
+- Desarrollado con ❤️ por [Mauricio](https://github.com/Mauricio-Cardozo)
 
 ---
 

@@ -145,28 +145,18 @@ See GitHub issues #1, #2, #3.
 
 ## GitHub Issues
 
-18 issues created at https://github.com/Mauricio-Cardozo/Biblia-app/issues:
+22 issues at https://github.com/Mauricio-Cardozo/Biblia-app/issues (18 closed, 4 open):
 
+### Closed (v1 → v2.0.0)
+#1–#3 React Compiler bugs · #4 Lint warnings · #5 ScreenHeader migration · #6 Scrape 28 novenas · #7 CIC metadata · #8 Vatican scraper automation · #9 db/init.ts docs · #10 notifications.ts stub · #11 FTS5 misal · #12 Scrape 28 novenas dup · #13 LICENSE · #14 Accesibilidad · #15 CI · #16 Compartir versículos · #17 README · #18 Export/import AsyncStorage
+
+### Open (ponytail audit — sobreingeniería)
 | # | Title | Type |
 |---|-------|------|
-| 1 | React Compiler: useRef().current en render | Bug |
-| 2 | React Compiler: setState en useEffect | Bug |
-| 3 | React Compiler: Date.now() en render | Bug |
-| 4 | Lint warnings: imports, missing deps | Chore |
-| 5 | Migrar headers a ScreenHeader | Design |
-| 6 | Completar tokens S/R | Design |
-| 7 | CIC metadata faltante | Content |
-| 8 | Automatizar scraper lecturas | Content |
-| 9 | db/init.ts docs + rollback | Chore |
-| 10 | notifications.ts stub | Chore |
-| 11 | FTS5 en tablas misal | Feature |
-| 12 | Scrape 28 novenas | Content |
-| 13 | Licencia y copyright de textos | Legal |
-| 14 | Accesibilidad (VoiceOver/TalkBack) | Feature |
-| 15 | Tests y CI pipeline | CI |
-| 16 | Compartir versículos | Feature |
-| 17 | README desactualizado | Docs |
-| 18 | Export/import AsyncStorage | Feature |
+| 19 | delete: código muerto (5 archivos) | Chore |
+| 20 | yagni: abstracciones especulativas (2 hallazgos) | Chore |
+| 21 | stdlib: reemplazar código manual (2 hallazgos) | Chore |
+| 22 | shrink: simplificar/achicar (6 hallazgos) | Chore |
 
 ## Key Components
 
@@ -187,7 +177,9 @@ See GitHub issues #1, #2, #3.
 | `data/coronilla-steps.ts` | `generarPasosCoronilla()` — Divine Mercy chaplet |
 | `data/streaks.ts` | `calcularRacha(key)`, `obtenerStats()` — streak calculation |
 | `data/favoritos.ts` | `addFavorito`, `removeFavorito`, `isFavorito`, `getFavoritos` — CRUD via AsyncStorage |
+| `data/export-import.ts` | `exportarDatos()`, `importarDatos()` — backup/restore de AsyncStorage vía Share |
 | `data/jaculatorias.ts` | Jaculatorias grouped by section (Jesús, Espíritu Santo, María, José, etc.) |
+| `data/notifications.ts` | Stubs no-op (`setupNotifications`, `isEnabled`, `setEnabled`) — intencional para v1.0 |
 | `data/vatican-prayers.ts` | 23 prayers from Vatican News (Angelus, Magnificat, Te Deum, etc.) |
 
 ## Android Quirks
@@ -216,7 +208,7 @@ eas build --platform android --profile production
 # Or use Expo Application Services dashboard
 ```
 
-- `app.json`: `android.package = "com.iglesiadigital.app"`, `versionCode = 1`.
+- `app.json`: `android.package = "com.iglesiadigital.app"`, `versionCode = 4`.
 - `eas.json`: created at `AppMovil/eas.json` with `preview` (APK) and `production` (AAB) profiles.
 
 ## Python Scrapers (`archive/`)
