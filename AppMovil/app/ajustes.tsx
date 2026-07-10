@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { Alert, ScrollView, Share, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { exportarDatos, importarDatos } from '@/data/export-import';
+import Constants from 'expo-constants';
 
 export default function AjustesScreen() {
   const insets = useSafeAreaInsets();
@@ -119,7 +120,7 @@ export default function AjustesScreen() {
         <View style={s.card}>
           <View style={s.fila}>
             <ThemedText style={s.filaLabel}>Versión</ThemedText>
-            <ThemedText style={s.filaValor}>1.0.0</ThemedText>
+            <ThemedText style={s.filaValor}>{Constants.expoConfig?.version ?? "?"}</ThemedText>
           </View>
         </View>
         <View style={s.card}>
