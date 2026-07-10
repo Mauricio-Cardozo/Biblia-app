@@ -51,11 +51,9 @@
   },
   "private": true,
   "devDependencies": {
-    "@react-native/jest-preset": "^0.86.0",
     "@types/jest": "^30.0.0",
     "expo-mcp": "~0.2.1",
     "jest": "^30.4.2",
-    "jest-expo": "^57.0.1",
     "ts-jest": "^29.4.11"
   }
 }
