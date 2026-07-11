@@ -4,13 +4,6 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
 
 ---
 
-## 📱 Capturas de pantalla
-
-| Home | Biblia | Catecismo | Misal | Oración |
-|------|--------|-----------|-------|---------|
-| <img src="AppMovil/assets/screenshots/home-tsx.jpeg" width="180"> | <img src="AppMovil/assets/screenshots/biblia-tsx.jpeg" width="180"> | <img src="AppMovil/assets/screenshots/catecismo-tsx.jpeg" width="180"> | <img src="AppMovil/assets/screenshots/misal-romano-tsx.jpeg" width="180"> | <img src="AppMovil/assets/screenshots/oracion-tsx.jpeg" width="180"> |
-| Versículo del día, rachas 🔥 y acceso rápido | Navegación por libros, capítulos y versículos | Navegación multinivel por partes y numerales | Misal Romano: Propio, Ordinario, Prefacios, Plegarias | Rosario, Coronilla, Oraciones del Vaticano, Novenas |
-
 ---
 
 ## ✨ Funcionalidades
@@ -316,7 +309,6 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 
 - [ ] **Rediseño de Home** — hero section con saludo ("Buenos días hermano/hijo"), santo del día, color litúrgico, evangelio destacado, acceso rápido a rachas. Inspirado en Lummen.
 - [ ] **Notificaciones bíblicas diarias** — evangelio del día a las 7am, versículo aleatorio al mediodía, recordatorio de rachas. Basado en `expo-notifications` + SQLite.
-- [ ] **Split-pane / multi-ventana** — dos paneles simultáneos (Biblia + CIC, o Lecturas + Reflexión). Prioritario en tablets.
 - [ ] **Sistema de etiquetas, highlights y notas** — expandir favs actuales con etiquetas de colores, resaltado de versículos, notas personales.
 
 ### 🟡 Mediano plazo
@@ -343,6 +335,7 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [ ] **Sincronización en la nube (Firebase)**
 - [ ] **Biblia de Jerusalén** (pendiente de conseguir texto digital)
 - [ ] **Modo discreto** — apariencia alternativa para entornos restringidos
+- [ ] **Split-pane / multi-ventana** — dos paneles simultáneos (Biblia + CIC, o Lecturas + Reflexión).
 
 ---
 
