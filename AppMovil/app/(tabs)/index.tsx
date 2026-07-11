@@ -18,6 +18,29 @@ const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
   tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
 };
 
+const getSaludo = () => {
+  const h = new Date().getHours();
+  if (h < 12) return 'Buenos días';
+  if (h < 20) return 'Buenas tardes';
+  return 'Buenas noches';
+};
+
+const SEASON_COLOR: Record<string, string> = {
+  adviento: '#7B3FAF',
+  cuaresma: '#7B3FAF',
+  pascua: '#E8C97A',
+  navidad: '#E8C97A',
+  ordinario: '#4CAF50',
+};
+
+const SEASON_COLOR_NAME: Record<string, string> = {
+  adviento: 'Morado',
+  cuaresma: 'Morado',
+  pascua: 'Blanco',
+  navidad: 'Blanco',
+  ordinario: 'Verde',
+};
+
 export default function LiturgiaScreen() {
   const insets = useSafeAreaInsets();
   const db = useSQLiteContext();
@@ -56,6 +79,7 @@ export default function LiturgiaScreen() {
   const misaTitle = lectura?.titulo_misa;
   const season = misaTitle ? detectSeason(misaTitle) : null;
   const seasonData = season ? temporadas.find((t) => t.temporada === season) : null;
+  const seasonColor = season ? (SEASON_COLOR[season] ?? C.gold) : null;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
@@ -79,23 +103,21 @@ export default function LiturgiaScreen() {
         {misaTitle ? <ThemedText style={styles.misaTitle}>{misaTitle}</ThemedText> : null}
 
       <ScrollView onScroll={handleScroll} scrollEventThrottle={16} showsVerticalScrollIndicator={false}>
-        {/* Evangelio del Día */}
-        <TouchableOpacity onPress={() => router.push('/evangelio')} style={styles.card}>
-          <ThemedText style={styles.cardLabel}>EVANGELIO DEL DÍA</ThemedText>
-          {lectura?.evangelio ? (
-            <>
-              <ThemedText style={styles.verseText} numberOfLines={3}>
-                {'\u201C'}{lectura.evangelio}{'\u201D'}
-              </ThemedText>
-              {lectura.evangelio_ref ? (
-                <ThemedText style={styles.verseRef}>{lectura.evangelio_ref}</ThemedText>
-              ) : null}
-            </>
-          ) : (
-            <ThemedText style={styles.verseText}>
-              {'\u201C'}Yo soy el camino, la verdad y la vida.{'\u201D'}
-            </ThemedText>
-          )}
+        {/* Hero — Saludo + Temporada + Evangelio */}
+        <TouchableOpacity onPress={() => router.push('/evangelio')} style={[styles.heroCard, seasonColor ? { borderLeftColor: seasonColor } : undefined]} activeOpacity={0.9}>
+          {season ? (
+            <View style={styles.seasonRow}>
+              <View style={[styles.colorDot, { backgroundColor: seasonColor }]} />
+              <ThemedText style={styles.seasonLabel}>{SEASON_EMOJI[season] ?? '🌿'} {seasonData?.temporada_label ?? 'Tiempo Ordinario'} · {SEASON_COLOR_NAME[season]}</ThemedText>
+            </View>
+          ) : null}
+          <ThemedText style={styles.greeting}>{getSaludo()}</ThemedText>
+          <ThemedText style={styles.heroQuote} numberOfLines={4}>
+            {'\u201C'}{lectura?.evangelio ?? 'Yo soy el camino, la verdad y la vida.'}{'\u201D'}
+          </ThemedText>
+          {lectura?.evangelio_ref ? (
+            <ThemedText style={styles.heroRef}>{lectura.evangelio_ref}</ThemedText>
+          ) : null}
         </TouchableOpacity>
 
         {/* Oración — Rachas */}
@@ -182,6 +204,13 @@ const styles = StyleSheet.create({
   pageTitle: { color: C.text, fontSize: 28, fontWeight: '700', marginBottom: S.xs },
   dateText: { color: C.gold, fontSize: 18, marginBottom: S.xs, marginHorizontal: S.xl },
   misaTitle: { color: C.goldLight, fontSize: 13, fontStyle: 'italic', marginBottom: S.xl, marginHorizontal: S.xl },
+  heroCard: { backgroundColor: C.navyMid, padding: S.xl, borderRadius: R.lg, marginBottom: 15, marginHorizontal: S.xl, borderLeftWidth: 4, borderLeftColor: C.gold },
+  seasonRow: { flexDirection: 'row', alignItems: 'center', marginBottom: S.md },
+  colorDot: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
+  seasonLabel: { color: C.goldLight, fontSize: 12, fontWeight: '600' },
+  greeting: { color: C.text, fontSize: 22, fontWeight: '700', marginBottom: S.md },
+  heroQuote: { color: C.text, fontSize: 19, fontStyle: 'italic', lineHeight: 28 },
+  heroRef: { color: C.muted, marginTop: S.sm, textAlign: 'right' },
   card: { backgroundColor: C.navyMid, padding: S.xl, borderRadius: R.lg, marginBottom: 15, marginHorizontal: S.xl },
   cardSm: { padding: 18, borderRadius: R.lg, backgroundColor: C.navyMid, marginBottom: 15 },
   streakRow: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: S.xl },
@@ -191,8 +220,6 @@ const styles = StyleSheet.create({
   cardTitle: { color: C.text, fontSize: 16, fontWeight: '600' },
   chevron: { color: C.gold, fontSize: 24, marginLeft: 6 },
   cardLabel: { color: C.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: S.xs },
-  verseText: { color: C.text, fontSize: 18, fontStyle: 'italic' },
-  verseRef: { color: C.muted, marginTop: 10, textAlign: 'right' },
   streakText: { color: C.text, fontSize: 22, fontWeight: 'bold' },
   streakSub: { color: C.muted, fontSize: 11, marginTop: 2 },
   sectionLabel: { color: C.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: S.xs, marginHorizontal: S.xl },
