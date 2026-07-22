@@ -36,7 +36,7 @@ export default function PropioDetalleScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScreenHeader title={entry.dia} superLabel={entry.temporada_label} showBack onBack={() => router.back()} />
+      <ScreenHeader title={entry.dia ?? ''} superLabel={entry.temporada_label ?? ''} showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
         <Section label="Antífona de entrada" text={entry.antifona_entrada} />
         <Section label="Oración colecta" text={entry.colecta} />

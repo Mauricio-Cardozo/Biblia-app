@@ -81,7 +81,7 @@ export default function LiturgiaScreen() {
   const misaTitle = lectura?.titulo_misa;
   const season = misaTitle ? detectSeason(misaTitle) : null;
   const seasonData = season ? temporadas.find((t) => t.temporada === season) : null;
-  const seasonColor = season ? (SEASON_COLOR[season] ?? C.gold) : null;
+  const seasonColor = season ? (SEASON_COLOR[season] ?? C.gold) : undefined;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 20 }]}>

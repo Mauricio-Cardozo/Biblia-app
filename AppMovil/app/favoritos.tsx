@@ -33,7 +33,6 @@ export default function FavoritosScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        estimatedItemSize={72}
         ListEmptyComponent={
           <ThemedText style={styles.empty}>Sin favoritos todavía</ThemedText>
         }
@@ -41,7 +40,7 @@ export default function FavoritosScreen() {
           <ListItemCard
             title={item.referencia}
             subtitle={item.preview}
-            onPress={() => router.push(item.tipo === "evangelio" ? `/evangelio?fecha=${item.id.replace("evangelio-", "")}` : RUTAS[item.tipo])}
+            onPress={() => router.push((item.tipo === "evangelio" ? `/evangelio?fecha=${item.id.replace("evangelio-", "")}` : RUTAS[item.tipo]) as any)}
             rightSlot={
               <ThemedText style={styles.cardTipo}>{item.tipo.toUpperCase()}</ThemedText>
             }

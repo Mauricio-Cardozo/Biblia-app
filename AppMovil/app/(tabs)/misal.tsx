@@ -66,7 +66,7 @@ export default function MisalScreen() {
         <TouchableOpacity
           key={seccion.id}
           style={styles.card}
-          onPress={() => router.push(seccion.ruta)}
+          onPress={() => router.push(seccion.ruta as any)}
           activeOpacity={0.7}
         >
           <View style={styles.cardRow}>

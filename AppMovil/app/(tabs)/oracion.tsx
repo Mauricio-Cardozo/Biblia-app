@@ -53,7 +53,7 @@ export default function OracionScreen() {
       </View>
 
       {pill === 'oraciones' && ORACIONES_SECCIONES.map((s) => (
-        <TouchableOpacity key={s.id} style={styles.card} onPress={() => router.push(s.ruta)} activeOpacity={0.7}>
+        <TouchableOpacity key={s.id} style={styles.card} onPress={() => router.push(s.ruta as any)} activeOpacity={0.7}>
           <View style={styles.cardRow}>
             <ThemedText style={styles.cardIcon}>{s.icono}</ThemedText>
             <View style={styles.cardTextWrap}>
@@ -68,7 +68,7 @@ export default function OracionScreen() {
       {pill === 'catecismo' && (
         <View>
           <ThemedText style={styles.subHeader}>Partes del Catecismo</ThemedText>
-          {partes.map((p, i) => (
+          {(partes ?? []).map((p, i) => (
             <TouchableOpacity key={p.parte} style={styles.card} onPress={() => router.push('/catecismo')} activeOpacity={0.7}>
               <View style={styles.cardRow}>
                 <View style={styles.indexBadge}><ThemedText style={styles.indexBadgeText}>{i + 1}</ThemedText></View>
@@ -83,7 +83,7 @@ export default function OracionScreen() {
       )}
 
       {pill === 'misal' && SECCIONES_MISAL.map((s) => (
-        <TouchableOpacity key={s.id} style={styles.card} onPress={() => router.push(s.ruta)} activeOpacity={0.7}>
+        <TouchableOpacity key={s.id} style={styles.card} onPress={() => router.push(s.ruta as any)} activeOpacity={0.7}>
           <View style={styles.cardRow}>
             <ThemedText style={styles.cardIcon}>{s.icono}</ThemedText>
             <View style={styles.cardTextWrap}>

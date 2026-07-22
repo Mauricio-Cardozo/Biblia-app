@@ -44,14 +44,14 @@ export default function CatecismoScreen() {
   const [jumpValue, setJumpValue] = useState("");
   const inputRef = useRef<TextInput>(null);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true); setError(null);
-      try { setPartes(await getCICPartes(db)); }
-      catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
-      finally { setLoading(false); }
-    })();
+  const cargarPartes = useCallback(async () => {
+    setLoading(true); setError(null);
+    try { setPartes(await getCICPartes(db)); }
+    catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
+    finally { setLoading(false); }
   }, [db]);
+
+  useEffect(() => { cargarPartes(); }, [cargarPartes]);
 
   const cargarSecciones = useCallback(async (parte: string) => {
     setLoading(true); setError(null);
@@ -212,7 +212,7 @@ export default function CatecismoScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
       <ScreenHeader
         title="Numeral"
-        showBack={nivel !== "partes"}
+        showBack
         onBack={volver}
         superLabel="✝ IGLESIA DIGITAL"
       />
@@ -230,10 +230,10 @@ export default function CatecismoScreen() {
           />
         </View>
         <View style={s.jerarquia}>
-          {detalle.parte && <View style={s.jerarquiaItem}><ThemedText>📖 {detalle.parte}</ThemedText></View>}
-          {detalle.seccion && <ThemedText style={s.jerarquiaItem}>  › {detalle.seccion}</ThemedText>}
-          {detalle.capitulo && <ThemedText style={s.jerarquiaItem}>  › {detalle.capitulo}</ThemedText>}
-          {detalle.articulo && <ThemedText style={s.jerarquiaItem}>  › {detalle.articulo}</ThemedText>}
+          {detalle.parte ? <ThemedText style={s.jerarquiaItem}>📖 {detalle.parte}</ThemedText> : null}
+          {detalle.seccion ? <ThemedText style={s.jerarquiaItem}>  › {detalle.seccion}</ThemedText> : null}
+          {detalle.capitulo ? <ThemedText style={s.jerarquiaItem}>  › {detalle.capitulo}</ThemedText> : null}
+          {detalle.articulo ? <ThemedText style={s.jerarquiaItem}>  › {detalle.articulo}</ThemedText> : null}
         </View>
         <View style={s.divider} />
         <ThemedText style={s.detalleTexto}>{detalle.texto}</ThemedText>
@@ -287,7 +287,7 @@ export default function CatecismoScreen() {
         <StatusBar barStyle="light-content" backgroundColor={C.navy} />
         <ScreenHeader
           title={getHeaderTitles().title}
-          showBack={nivel !== "partes"}
+        showBack
           onBack={volver}
           superLabel="✝ IGLESIA DIGITAL"
         />

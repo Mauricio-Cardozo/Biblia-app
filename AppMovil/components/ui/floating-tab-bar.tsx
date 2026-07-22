@@ -3,7 +3,14 @@ import { Animated, TouchableOpacity, View, StyleSheet } from "react-native";
 import { IconSymbol } from "./icon-symbol";
 import { tabBarScrollY } from "@/utils/scroll-state";
 import { useEffect, useRef } from "react";
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+
+// ponytail: local types instead of @react-navigation/* imports (not direct deps)
+interface TabBarState { routes: { key: string; name: string; params?: object }[]; index: number }
+interface TabBarProps {
+  state: TabBarState;
+  descriptors: Record<string, object>;
+  navigation: { emit: (e: { type: string; target: string; canPreventDefault: boolean }) => { defaultPrevented: boolean }; navigate: (name: string, params?: object) => void };
+}
 
 const VISIBLE_TABS = ["index", "biblia", "calendario", "oracion"];
 const HIDE_THRESHOLD = 50;
@@ -14,7 +21,7 @@ const ICONS: Record<string, string> = {
   oracion: "hands.sparkles",
 };
 
-export default function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export default function FloatingTabBar({ state, navigation }: TabBarProps) {
   const translateY = useRef(new Animated.Value(0)).current;
   const prevScrollY = useRef(0);
   const hidden = useRef(false);

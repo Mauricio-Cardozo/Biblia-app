@@ -12,7 +12,7 @@ export default function TabLayout() {
       <Tabs
         tabBar={(props) => (
           <View style={{ marginBottom: insets.bottom }}>
-            <FloatingTabBar {...props} />
+            <FloatingTabBar {...(props as any)} />
           </View>
         )}
         screenOptions={{ headerShown: false }}

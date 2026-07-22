@@ -14,20 +14,20 @@ export default function SantoDetalleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
 
-  const { data } = useDbQuery(
-    (db) => {
-      if (!id) return Promise.resolve<[Santo | null, MisalSantosEntry | null]>([null, null]);
+  const { data } = useDbQuery<[Santo | null, MisalSantosEntry | null]>(
+    (db): Promise<[Santo | null, MisalSantosEntry | null]> => {
+      if (!id) return Promise.resolve([null, null]);
       const nid = Number(id);
       return db.getFirstAsync<Santo>("SELECT * FROM santos WHERE id = ?", [nid]).then((row) => {
-        if (!row) return [null, null] as const;
-        return getMisalSantosDelDia(db, row.mes, row.dia).then((ms) => [row, ms.find(e => e.colecta) ?? null] as const);
+        if (!row) return [null, null];
+        return getMisalSantosDelDia(db, row.mes, row.dia).then((ms) => [row, ms.find(e => e.colecta) ?? null]);
       });
     },
     [id],
   );
 
-  const santo = data?.[0] ?? null;
-  const santoPropio = data?.[1] ?? null;
+  const santo = (data as [Santo | null, MisalSantosEntry | null] | undefined)?.[0] ?? null;
+  const santoPropio = (data as [Santo | null, MisalSantosEntry | null] | undefined)?.[1] ?? null;
 
   if (!santo) return (
     <View style={[s.container, { paddingTop: insets.top }]}>
