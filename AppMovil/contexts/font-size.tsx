@@ -13,8 +13,6 @@ interface FontSizeCtx {
   aumentar: () => void;
   disminuir: () => void;
   reset: () => void;
-  min: number;
-  max: number;
 }
 
 const Ctx = createContext<FontSizeCtx>({
@@ -23,8 +21,6 @@ const Ctx = createContext<FontSizeCtx>({
   aumentar: () => {},
   disminuir: () => {},
   reset: () => {},
-  min: MIN,
-  max: MAX,
 });
 
 export function FontSizeProvider({ children }: { children: React.ReactNode }) {
@@ -41,6 +37,8 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(STORAGE_KEY, String(v)).catch(() => {});
   }, []);
 
+  const reset = useCallback(() => persist(DEFAULT), [persist]);
+
   const aumentar = useCallback(() => {
     const next = Math.round((multiplier + STEP) * 10) / 10;
     persist(next > MAX ? MAX : next);
@@ -51,12 +49,8 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
     persist(next < MIN ? MIN : next);
   }, [multiplier, persist]);
 
-  const reset = useCallback(() => {
-    persist(DEFAULT);
-  }, [persist]);
-
   return (
-    <Ctx.Provider value={{ multiplier, setMultiplier: persist, aumentar, disminuir, reset, min: MIN, max: MAX }}>
+    <Ctx.Provider value={{ multiplier, setMultiplier: persist, aumentar, disminuir, reset }}>
       {children}
     </Ctx.Provider>
   );
