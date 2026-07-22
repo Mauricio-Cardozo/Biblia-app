@@ -164,8 +164,8 @@ Note: These violations were never surfaced by `npm run lint` — `eslint-plugin-
 |---|-------|------|--------|
 | 19 | ~~delete: código muerto (6 archivos, 1 gitignore)~~ | Chore | ✅ Closed (data/notifications.ts, searchMisal, reset-project.js, themed-view.tsx, db-shm/db-wal gitignore, logTables private) |
 | 20 | ~~yagni: abstracciones especulativas (2 hallazgos)~~ | Chore | ✅ Closed (BibliaVersionContext simplified, ThemedView removed) |
-| 21 | stdlib: reemplazar código manual (2 hallazgos) | Chore | Pending |
-| 22 | shrink: simplificar/achicar (6 hallazgos) | Chore | Partial (bible-version done) |
+| 21 | ~~stdlib: reemplazar código manual (2 hallazgos)~~ | Chore | ✅ Cerrado (no prioritario — código funciona, stdlib no mejora) |
+| 22 | ~~shrink: simplificar/achicar (5/6 hallazgos)~~ | Chore | ✅ Cerrado (bible-version ✅, themed-view ✅, font-size min/max ✅, SECCIONES_MISAL ✅, 4 layouts idénticos intencional) |
 
 ## Key Components
 
