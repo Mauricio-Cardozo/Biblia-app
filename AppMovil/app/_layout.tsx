@@ -63,6 +63,7 @@ export default function RootLayout() {
                 <Stack.Screen name="oraciones/novena/[id]" options={{ headerShown: false }} />
                 <Stack.Screen name="misal" options={{ headerShown: false }} />
                 <Stack.Screen name="ajustes" options={{ headerShown: false }} />
+                <Stack.Screen name="santo/[id]" options={{ headerShown: false }} />
               </Stack>
             </BibliaVersionProvider>
           </FontSizeProvider>

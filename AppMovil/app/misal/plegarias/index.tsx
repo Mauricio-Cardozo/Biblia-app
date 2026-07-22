@@ -2,24 +2,19 @@ import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
-import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ui/screen-header";
 import { getMisalPlegarias } from "@/db/db";
-import type { MisalPlegaria } from "@/types";
+import { useDbQuery } from "@/hooks/use-db-query";
 
 export default function PlegariasScreen() {
-  const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const [plegarias, setPlegarias] = useState<MisalPlegaria[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getMisalPlegarias(db).then(setPlegarias).catch(console.error).finally(() => setLoading(false));
-  }, [db]);
+  const { data: plegarias, loading } = useDbQuery<import("@/types").MisalPlegaria[]>(
+    (db) => getMisalPlegarias(db),
+  );
 
   if (loading) {
     return (
@@ -29,11 +24,13 @@ export default function PlegariasScreen() {
     );
   }
 
+  const list = plegarias ?? [];
+
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScreenHeader title="Plegarias Eucarísticas" subtitle={`${plegarias.length} plegarias`} showBack onBack={() => router.back()} />
+      <ScreenHeader title="Plegarias Eucarísticas" subtitle={`${list.length} plegarias`} showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
-        {plegarias.map((p) => (
+        {list.map((p) => (
           <TouchableOpacity
             key={p.id}
             style={s.card}

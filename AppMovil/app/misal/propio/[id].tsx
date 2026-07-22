@@ -2,26 +2,21 @@ import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
-import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ui/screen-header";
 import { getMisalPropioDetalle } from "@/db/db";
-import type { MisalPropioEntry } from "@/types";
+import { useDbQuery } from "@/hooks/use-db-query";
 
 export default function PropioDetalleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const [entry, setEntry] = useState<MisalPropioEntry | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!id) return;
-    getMisalPropioDetalle(db, Number(id)).then(setEntry).catch(console.error).finally(() => setLoading(false));
-  }, [db, id]);
+  const { data: entry, loading } = useDbQuery(
+    (db) => getMisalPropioDetalle(db, Number(id)),
+    [id],
+  );
 
   if (loading) {
     return (

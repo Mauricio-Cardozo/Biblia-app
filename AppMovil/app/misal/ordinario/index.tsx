@@ -23,7 +23,7 @@ export default function OrdinarioScreen() {
   useEffect(() => {
     (async () => {
       try { setSecciones(await getMisalOrdinarioSecciones(db)); }
-      catch { /* */ }
+      catch (e) { console.warn('[ordinario]', e); }
       setLoading(false);
     })();
   }, [db]);
@@ -33,7 +33,7 @@ export default function OrdinarioScreen() {
     try {
       setBlocks(await getMisalOrdinarioPorSeccion(db, seccion));
       setSelected(seccion);
-    } catch { /* */ }
+    } catch (e) { console.warn('[ordinario]', e); }
     setLoading(false);
   }, [db]);
 

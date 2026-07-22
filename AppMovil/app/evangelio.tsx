@@ -4,13 +4,11 @@ import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import ReadingSection from "@/components/reading-section";
-import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
 import { getLecturaDelDia } from "@/db/db";
 import FavBtn from "@/components/fav-btn";
 import FontSizeControl from "@/components/font-size-control";
-import type { Lectura } from "@/types";
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -20,46 +18,17 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useDbQuery } from "@/hooks/use-db-query";
 import { formatoFecha, hoy } from "@/utils/date";
 
 export default function EvangelioScreen() {
   const insets = useSafeAreaInsets();
-  const db = useSQLiteContext();
   const { fecha: fechaParam } = useLocalSearchParams<{ fecha?: string }>();
-
-  const [lectura, setLectura] = useState<Lectura | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const cargar = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const targetDate = fechaParam ?? hoy();
-      const data = await getLecturaDelDia(db, targetDate);
-      setLectura(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error desconocido");
-    } finally {
-      setLoading(false);
-    }
-  }, [db, fechaParam]);
-
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const targetDate = fechaParam ?? hoy();
-        const data = await getLecturaDelDia(db, targetDate);
-        setLectura(data);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Error desconocido");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [db, fechaParam]);
+  const targetDate = fechaParam ?? hoy();
+  const { data: lectura, loading, error, refetch: cargar } = useDbQuery(
+    (db) => getLecturaDelDia(db, targetDate),
+    [targetDate],
+  );
 
   if (loading) {
     return (

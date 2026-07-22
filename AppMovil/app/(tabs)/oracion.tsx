@@ -42,7 +42,7 @@ export default function OracionScreen() {
 
   useEffect(() => {
     if (pill === 'catecismo') {
-      getCICPartes(db).then(setPartes).catch(() => {});
+      getCICPartes(db).then(setPartes).catch((e) => console.warn('[oracion]', e));
     }
   }, [pill, db]);
 

@@ -92,4 +92,30 @@ export interface MisalPlegaria {
   texto: string;
 }
 
+// ─── Santos ─────────────────────────────────────────────────────────────────────
+
+export interface Santo {
+  id: number;
+  mes: number;
+  dia: number;
+  nombre: string;
+  titulo: string | null;
+  biografia: string;
+}
+
+export interface MisalSantosEntry {
+  id: number;
+  mes: number;
+  dia: number;
+  nombre: string;
+  titulo: string | null;
+  rango: string | null;
+  antifona_entrada: string | null;
+  colecta: string | null;
+  oracion_ofrendas: string | null;
+  prefacio: string | null;
+  antifona_comunion: string | null;
+  postcomunion: string | null;
+}
+
 // ─── Búsqueda genérica ─────────────────────────────────────────────────────────

@@ -2,26 +2,21 @@ import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
-import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ui/screen-header";
 import { getMisalPlegariaDetalle } from "@/db/db";
-import type { MisalPlegaria } from "@/types";
+import { useDbQuery } from "@/hooks/use-db-query";
 
 export default function PlegariaDetalleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const [plegaria, setPlegaria] = useState<MisalPlegaria | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!id) return;
-    getMisalPlegariaDetalle(db, Number(id)).then(setPlegaria).catch(console.error).finally(() => setLoading(false));
-  }, [db, id]);
+  const { data: plegaria, loading } = useDbQuery(
+    (db) => getMisalPlegariaDetalle(db, Number(id)),
+    [id],
+  );
 
   if (loading) {
     return (

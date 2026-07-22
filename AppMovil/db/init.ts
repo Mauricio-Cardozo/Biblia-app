@@ -1,7 +1,7 @@
 import { File, Paths } from "expo-file-system";
 import { type SQLiteDatabase } from "expo-sqlite";
 
-const CURRENT_VERSION = 5;
+const CURRENT_VERSION = 7;
 
 async function getVersion(db: SQLiteDatabase): Promise<number> {
   try {
@@ -65,6 +65,28 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
     } catch (e) {
       if (__DEV__) console.warn("Migration v4 failed:", e);
     }
+  }
+
+  // ── v6: Add santos table ─────────────────────────────────────
+  if (version < 6) {
+    if (__DEV__) console.log("Migration v6: adding santos table…");
+    try {
+      await db.runAsync(
+        "CREATE TABLE IF NOT EXISTS santos (id INTEGER PRIMARY KEY AUTOINCREMENT, mes INTEGER NOT NULL, dia INTEGER NOT NULL, nombre TEXT NOT NULL, titulo TEXT, biografia TEXT NOT NULL)",
+      );
+      await setVersion(db, 6);
+    } catch {}
+  }
+
+  // ── v7: Add misal_santos table ───────────────────────────────
+  if (version < 7) {
+    if (__DEV__) console.log("Migration v7: adding misal_santos table…");
+    try {
+      await db.runAsync(
+        "CREATE TABLE IF NOT EXISTS misal_santos (id INTEGER PRIMARY KEY AUTOINCREMENT, mes INTEGER NOT NULL, dia INTEGER NOT NULL, nombre TEXT NOT NULL, titulo TEXT, rango TEXT, antifona_entrada TEXT, colecta TEXT, oracion_ofrendas TEXT, prefacio TEXT, antifona_comunion TEXT, postcomunion TEXT)",
+      );
+      await setVersion(db, 7);
+    } catch {}
   }
 
   // ── v5: Add Misal Romano tables ──────────────────────────────────

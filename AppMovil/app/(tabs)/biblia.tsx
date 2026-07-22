@@ -97,7 +97,7 @@ export default function BibliaScreen() {
     (async () => {
       setLoading(true); setError(null);
       try { setLibros(await getLibros(db, version.tabla)); }
-      catch (e: any) { setError(`Error: ${e.message}`); }
+      catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
       finally { setLoading(false); }
     })();
   }, [db, version.tabla]);
@@ -105,14 +105,14 @@ export default function BibliaScreen() {
   const cargarCapitulos = useCallback(async (libro: string) => {
     setLoading(true); setError(null);
     try { setCapitulos(await getCapitulos(db, libro, version.tabla)); }
-    catch (e: any) { setError(`Error: ${e.message}`); }
+    catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
   }, [db, version.tabla]);
 
   const cargarVersiculos = useCallback(async (libro: string, cap: number) => {
     setLoading(true); setError(null);
     try { setVersiculos(await getVersiculos(db, libro, cap, version.tabla)); }
-    catch (e: any) { setError(`Error: ${e.message}`); }
+    catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
   }, [db, version.tabla]);
 

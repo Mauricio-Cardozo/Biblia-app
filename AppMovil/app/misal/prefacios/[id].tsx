@@ -2,26 +2,21 @@ import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
-import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ui/screen-header";
 import { getMisalPrefacioDetalle } from "@/db/db";
-import type { MisalPrefacio } from "@/types";
+import { useDbQuery } from "@/hooks/use-db-query";
 
 export default function PrefacioDetalleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const [prefacio, setPrefacio] = useState<MisalPrefacio | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!id) return;
-    getMisalPrefacioDetalle(db, Number(id)).then(setPrefacio).catch(console.error).finally(() => setLoading(false));
-  }, [db, id]);
+  const { data: prefacio, loading } = useDbQuery(
+    (db) => getMisalPrefacioDetalle(db, Number(id)),
+    [id],
+  );
 
   if (loading) {
     return (

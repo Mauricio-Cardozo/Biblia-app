@@ -49,7 +49,7 @@ export default function CatecismoScreen() {
     (async () => {
       setLoading(true); setError(null);
       try { setPartes(await getCICPartes(db)); }
-      catch (e: any) { setError(`Error: ${e.message}`); }
+      catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
       finally { setLoading(false); }
     })();
   }, [db]);
@@ -57,14 +57,14 @@ export default function CatecismoScreen() {
   const cargarSecciones = useCallback(async (parte: string) => {
     setLoading(true); setError(null);
     try { setSecciones(await getCICSecciones(db, parte)); }
-    catch (e: any) { setError(`Error: ${e.message}`); }
+    catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
   }, [db]);
 
   const cargarNumerales = useCallback(async (parte: string, seccion: string) => {
     setLoading(true); setError(null);
     try { setNumerales(await getCICNumerales(db, parte, seccion)); }
-    catch (e: any) { setError(`Error: ${e.message}`); }
+    catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
   }, [db]);
 
@@ -79,7 +79,7 @@ export default function CatecismoScreen() {
       } else {
         setError(`No existe el numeral ${id}`);
       }
-    } catch (e: any) { setError(`Error: ${e.message}`); }
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
   }, [db]);
 
@@ -95,9 +95,9 @@ export default function CatecismoScreen() {
       if (rows.length === 0) {
         setSearchError("Sin resultados. Si esperabas encontrar algo, andá a Test y usá 'Rebuild FTS'.");
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setResultados([]);
-      setSearchError(`Error en búsqueda: ${e.message}. Probá con términos más simples.`);
+      setSearchError(`Error en búsqueda: ${e instanceof Error ? e.message : String(e)}. Probá con términos más simples.`);
     }
     setBuscando(false);
   }, [db]);
@@ -115,8 +115,8 @@ export default function CatecismoScreen() {
       } else {
         setError(`No existe el numeral ${nro}`);
       }
-    } catch (e: any) {
-      setError(`Error: ${e.message}`);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }

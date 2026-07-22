@@ -2,26 +2,21 @@ import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
-import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ui/screen-header";
 import { getMisalOrdinarioDetalle } from "@/db/db";
-import type { MisalOrdinarioBlock } from "@/types";
+import { useDbQuery } from "@/hooks/use-db-query";
 
 export default function OrdinarioDetalleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const [block, setBlock] = useState<MisalOrdinarioBlock | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!id) return;
-    getMisalOrdinarioDetalle(db, Number(id)).then(setBlock).finally(() => setLoading(false));
-  }, [db, id]);
+  const { data: block, loading } = useDbQuery(
+    (db) => getMisalOrdinarioDetalle(db, Number(id)),
+    [id],
+  );
 
   if (loading) {
     return (

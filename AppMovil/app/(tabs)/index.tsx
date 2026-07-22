@@ -9,7 +9,7 @@ import { tabBarScrollY } from '@/utils/scroll-state';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { calcularRacha, obtenerStats } from '@/data/streaks';
 import { useSQLiteContext } from 'expo-sqlite';
-import { getLecturaDelDia, getMisalTemporadas, getMisalPropioPorSemana } from '@/db/db';
+import { getLecturaDelDia, getMisalTemporadas, getMisalPropioPorSemana, getSeasonFromNearestLectura } from '@/db/db';
 import { fechaActualLarga, hoy } from '@/utils/date';
 import { detectSeason, parseWeekNumber, isSunday, SEASON_EMOJI } from '@/utils/seasons';
 import type { Lectura, MisalPropioEntry } from '@/types';
@@ -20,9 +20,10 @@ const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
 
 const getSaludo = () => {
   const h = new Date().getHours();
-  if (h < 12) return 'Buenos días';
-  if (h < 20) return 'Buenas tardes';
-  return 'Buenas noches';
+  if (h < 6) return 'Bendecida noche';
+  if (h < 12) return 'Bendecido día';
+  if (h < 20) return 'Bendecida tarde';
+  return 'Bendecida noche';
 };
 
 const SEASON_COLOR: Record<string, string> = {
@@ -70,7 +71,11 @@ export default function LiturgiaScreen() {
         if (season) {
           const week = parseWeekNumber(lec.titulo_misa);
           const sun = isSunday(lec.titulo_misa);
-          getMisalPropioPorSemana(db, season, week, sun).then(setPropio).catch(() => {});
+          getMisalPropioPorSemana(db, season, week, sun).then(setPropio).catch((e) => console.warn('[misa]', e));
+        } else {
+          getSeasonFromNearestLectura(db, hoy()).then(fb => {
+            if (fb) getMisalPropioPorSemana(db, fb.season, fb.week, fb.isSunday).then(setPropio).catch((e) => console.warn('[misa]', e));
+          });
         }
       }
     });
@@ -139,41 +144,11 @@ export default function LiturgiaScreen() {
           <View style={styles.propioSection}>
             <ThemedText style={styles.sectionLabel}>PROPIO DEL TIEMPO</ThemedText>
             <ThemedText style={styles.propioDia}>{seasonData?.temporada_label ?? ''} — {propio.dia}</ThemedText>
-
-            {propio.antifona_entrada ? (
-              <View style={styles.propioCard}>
-                <ThemedText style={styles.propioLabel}>Antífona de entrada</ThemedText>
-                <ThemedText style={styles.propioText}>{propio.antifona_entrada}</ThemedText>
-              </View>
-            ) : null}
-
-            {propio.colecta ? (
-              <View style={styles.propioCard}>
-                <ThemedText style={styles.propioLabel}>Oración colecta</ThemedText>
-                <ThemedText style={styles.propioText}>{propio.colecta}</ThemedText>
-              </View>
-            ) : null}
-
-            {propio.oracion_ofrendas ? (
-              <View style={styles.propioCard}>
-                <ThemedText style={styles.propioLabel}>Oración sobre las ofrendas</ThemedText>
-                <ThemedText style={styles.propioText}>{propio.oracion_ofrendas}</ThemedText>
-              </View>
-            ) : null}
-
-            {propio.postcomunion ? (
-              <View style={styles.propioCard}>
-                <ThemedText style={styles.propioLabel}>Postcomunión</ThemedText>
-                <ThemedText style={styles.propioText}>{propio.postcomunion}</ThemedText>
-              </View>
-            ) : null}
-
-            {propio.antifona_comunion ? (
-              <View style={styles.propioCard}>
-                <ThemedText style={styles.propioLabel}>Antífona de comunión</ThemedText>
-                <ThemedText style={styles.propioText}>{propio.antifona_comunion}</ThemedText>
-              </View>
-            ) : null}
+            {propio.antifona_entrada ? <PrayerCard label="Antífona de entrada" text={propio.antifona_entrada} /> : null}
+            {propio.colecta ? <PrayerCard label="Oración colecta" text={propio.colecta} /> : null}
+            {propio.oracion_ofrendas ? <PrayerCard label="Oración sobre las ofrendas" text={propio.oracion_ofrendas} /> : null}
+            {propio.postcomunion ? <PrayerCard label="Postcomunión" text={propio.postcomunion} /> : null}
+            {propio.antifona_comunion ? <PrayerCard label="Antífona de comunión" text={propio.antifona_comunion} /> : null}
           </View>
         ) : seasonData ? (
           <TouchableOpacity style={styles.card} onPress={() => router.push('/misal/propio')} activeOpacity={0.7}>
@@ -193,6 +168,15 @@ export default function LiturgiaScreen() {
   );
 }
 
+function PrayerCard({ label, text }: { label: string; text: string }) {
+  return (
+    <View style={styles.propioCard}>
+      <ThemedText style={styles.propioLabel}>{label}</ThemedText>
+      <ThemedText style={styles.propioText}>{text}</ThemedText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.navy },
   debugLink: { backgroundColor: '#8B0000', marginBottom: 10, borderRadius: R.md, marginHorizontal: S.xl, padding: 10, alignItems: 'center' },
@@ -208,7 +192,7 @@ const styles = StyleSheet.create({
   seasonRow: { flexDirection: 'row', alignItems: 'center', marginBottom: S.md },
   colorDot: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
   seasonLabel: { color: C.goldLight, fontSize: 12, fontWeight: '600' },
-  greeting: { color: C.text, fontSize: 22, fontWeight: '700', marginBottom: S.md },
+  greeting: { color: C.text, fontSize: 22, fontWeight: '700', marginBottom: S.xs },
   heroQuote: { color: C.text, fontSize: 19, fontStyle: 'italic', lineHeight: 28 },
   heroRef: { color: C.muted, marginTop: S.sm, textAlign: 'right' },
   card: { backgroundColor: C.navyMid, padding: S.xl, borderRadius: R.lg, marginBottom: 15, marginHorizontal: S.xl },

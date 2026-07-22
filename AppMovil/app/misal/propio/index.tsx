@@ -26,7 +26,7 @@ export default function PropioScreen() {
       try {
         const data = await getMisalTemporadas(db);
         setTemporadas(data);
-      } catch { /* ignore */ }
+      } catch (e) { console.warn('[propio]', e); }
       setLoading(false);
     })();
   }, [db]);
@@ -37,7 +37,7 @@ export default function PropioScreen() {
       const data = await getMisalPropio(db, temporada);
       setEntries(data);
       setSelected(temporada);
-    } catch { /* ignore */ }
+    } catch (e) { console.warn('[propio]', e); }
     setLoading(false);
   }, [db]);
 

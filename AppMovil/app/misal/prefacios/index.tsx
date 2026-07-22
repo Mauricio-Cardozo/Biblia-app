@@ -2,24 +2,19 @@ import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
-import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ui/screen-header";
 import { getMisalPrefacios } from "@/db/db";
-import type { MisalPrefacio } from "@/types";
+import { useDbQuery } from "@/hooks/use-db-query";
 
 export default function PrefaciosScreen() {
-  const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const [prefacios, setPrefacios] = useState<MisalPrefacio[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getMisalPrefacios(db).then(setPrefacios).catch(console.error).finally(() => setLoading(false));
-  }, [db]);
+  const { data: prefacios, loading } = useDbQuery<import("@/types").MisalPrefacio[]>(
+    (db) => getMisalPrefacios(db),
+  );
 
   if (loading) {
     return (
@@ -29,11 +24,13 @@ export default function PrefaciosScreen() {
     );
   }
 
+  const list = prefacios ?? [];
+
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScreenHeader title="Prefacios" subtitle={`${prefacios.length} prefacios`} showBack onBack={() => router.back()} />
+      <ScreenHeader title="Prefacios" subtitle={`${list.length} prefacios`} showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
-        {prefacios.map((p) => (
+        {list.map((p) => (
           <TouchableOpacity
             key={p.id}
             style={s.card}

@@ -20,7 +20,7 @@ No tsc/typecheck command available — `npm run lint` is the only static check.
 - **Stack**: Expo SDK 56 / RN 0.85.3 / TS 5.9 / Fabric (`newArchEnabled: true`) / React Compiler (`experiments.reactCompiler: true`) / `edgeToEdgeEnabled` on Android.
 - **Routing**: expo-router 6 file-based. `app/_layout.tsx` = root layout (SQLiteProvider + DatabaseInit + FontSizeProvider + BibliaVersionProvider + Stack). `app/(tabs)/_layout.tsx` = JS tab navigator (Home/Biblia/Catecismo/Misal/Oración). Routes inside `(tabs)` get the tab bar; routes outside (`evangelio.tsx`, `calendario.tsx`, `rosario/`, `oraciones/`, `favoritos.tsx`, `modal.tsx`, `test.tsx`, `misal/`) don't.
 - **DB**: Single `iglesia_digital.db` shipped in `AppMovil/assets/`, copied via `SQLiteProvider databaseName assetSource` with `useSuspense`. `metro.config.js` adds `db` to `assetExts` so Metro resolves `.db` files.
-- **DB Migrations**: `db/init.ts` uses `PRAGMA user_version`. Runs on every app launch. `CURRENT_VERSION = 5`. V1 recreates FTS tables as standalone (drops triggers, re-inserts data). V2 adds `youcat.parte` column (no-op since youcat dropped). V3 creates `novenas` + `novena_dias` tables. V4 drops YOUCAT tables. V5 creates `misal_propio`, `misal_ordinario`, `misal_prefacios`, `misal_plegarias` tables. FTS creation is skipped if source columns are missing; use the "Rebuild FTS" button on `/test` to retry.
+- **DB Migrations**: `db/init.ts` uses `PRAGMA user_version`. Runs on every app launch. `CURRENT_VERSION = 7`. V1 recreates FTS tables as standalone (drops triggers, re-inserts data). V2 adds `youcat.parte` column (no-op since youcat dropped). V3 creates `novenas` + `novena_dias` tables. V4 drops YOUCAT tables. V5 creates `misal_propio`, `misal_ordinario`, `misal_prefacios`, `misal_plegarias` tables. V6 creates `santos` table. V7 creates `misal_santos` table. FTS creation is skipped if source columns are missing; use the "Rebuild FTS" button on `/test` to retry.
 - **DB API** (v16 `expo-sqlite`): `db.getAllAsync<T>`, `db.getFirstAsync<T>`, `db.runAsync`. FTS5 join: `JOIN table_fts f ON source.rowid = f.rowid WHERE table_fts MATCH ? ORDER BY f.rank` (⚠️ use `rowid`, NOT `id`). `GROUP BY ... ORDER BY MIN(id)` for dedup. `forceReCopy()` in `db/init.ts` uses `expo-file-system` File/Paths API (NOT raw `documentDirectory` strings). `getMisalPropioPorSemana()` matches liturgical day to misal_propio by season + week number + isSunday.
 - **Color palette**: `import { C } from '@/constants/theme'`. `C.*` = Navy/Gold (`#0D1B2A` / `#C9A84C`) — use for all UI. `Fonts` and `Colors` were removed (no theme toggle, fixed palette).
 - **Icons**: Dual-platform files. `components/ui/icon-symbol.ios.tsx` (SF Symbols via `expo-symbols`), `components/ui/icon-symbol.tsx` (MaterialIcons fallback for Android/web). Both export `IconSymbol({ name, size, color })`. SF→Material mapping dict in `icon-symbol.tsx`.
@@ -50,6 +50,8 @@ These reflect actual codebase patterns, not aspirational rules:
 | `misal_ordinario` | Ordinary of Mass | `id`, `seccion`, `subseccion`, `rol`, `texto`, `orden` |
 | `misal_prefacios` | Prefaces | `id`, `titulo`, `texto` |
 | `misal_plegarias` | Eucharistic Prayers | `id`, `nombre`, `texto` |
+| `misal_santos` | Saint Mass Propers | `id`, `mes`, `dia`, `nombre`, `titulo`, `rango`, `colecta`, `oracion_ofrendas`, `postcomunion`, `prefacio`, `antifona_entrada`, `antifona_comunion` |
+| `santos` | Saint biographies | `id`, `mes`, `dia`, `nombre`, `titulo`, `biografia` |
 | `novenas` | Novenas list | `id`, `titulo`, `url` |
 | `novena_dias` | Novena day prayers | `id`, `novena_id`, `dia`, `titulo`, `texto` |
 
@@ -87,11 +89,12 @@ These reflect actual codebase patterns, not aspirational rules:
 - ~~**`getLecturaDelDia` misplaced**~~ ✅ moved to `// LECTURAS` block
 - ~~**`Lectura` type incomplete**~~ ✅ completed (`comentario_papal`, `url`, `creado_en`)
 - ~~**Missing `.catch()` on DB calls**~~ ✅ added to all 8 affected screens
-- **`db/init.ts`** — version gap (v2 no-op skipped without comment); ~~version advances even on migration failure (no rollback)~~ ✅ fixed (`setVersion` inside try/catch in v1, v3, v4, v5).
+- **`db/init.ts`** — version gap (v2 no-op skipped without comment); ~~version advances even on migration failure (no rollback)~~ ✅ fixed (`setVersion` inside try/catch in v1, v3, v4, v5, v6, v7).
 
 ### Scrapers (`archive/`)
 - 6 Python scrapers: `popular_cic.py`, `scraper_cic.py`, `scraper_vaticano.py` (writes directly to AppMovil/assets/iglesia_digital.db), `scraper_misal.py`, `scraper_novenas.py`, `scraper_oraciones_vatican.py`.
 - `scraper_novenas.py` requires explicit `--db` flag (no default guardrail).
+- `scraper_msantos.py` parses `Msantos3.{01-12}.htm` from curas.com.ar → `misal_santos` table. 207 entries, 200 with colecta, 43 with prefacio.
 - `scraper_oraciones_vatican.py` outputs to stdout only (not integrated with DB).
 - `scraper_cic.py`/`scraper_misal.py` require `pdfplumber` (documented).
 - `youcat.pdf` + `catecismoDeLaIglesia.pdf` are source PDFs for scrapers — keep.
@@ -110,7 +113,7 @@ npm test                    # jest (23 tests, 4 suites)
 - **`__tests__/favoritos.test.ts`** — `addFavorito`, `removeFavorito`, `isFavorito`, `getFavoritos` with mocked AsyncStorage (4 tests).
 - **Mock pattern**: Inline `jest.mock` with `mockStore` object; `beforeEach` clears store.
 - DB queries verified via `sqlite` MCP tools directly against the asset DB.
-- DB health: 9 tables, 35,852 Bible verses, 109 readings, 2,865 CIC numerals, 157 misal propios. FTS5 not pre-built (created on launch via migration v1).
+- DB health: 11 tables, 35,852 Bible verses, 109 readings, 2,865 CIC numerals, 157 misal propios, 207 misal santos, 919 santos. FTS5 not pre-built (created on launch via migration v1).
 
 ## Other
 - `app/evangelio.tsx` — fully working, accepts `?fecha=YYYY-MM-DD`. Uses `getLecturaDelDia`.

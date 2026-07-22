@@ -45,8 +45,8 @@ export default function TestDatabase() {
             try {
               await forceReCopy();
               Alert.alert("Listo", "Base de datos eliminada. Cerrá y abrí la app para recopiar desde assets.");
-            } catch (e: any) {
-              Alert.alert("Error", e.message);
+            } catch (e: unknown) {
+              Alert.alert("Error", e instanceof Error ? e.message : String(e));
             }
           },
         },
@@ -85,8 +85,8 @@ export default function TestDatabase() {
 
     try {
       await db.runAsync('DROP TABLE IF EXISTS catecismo_cic_fts;');
-    } catch {
-      errors.push('Error al dropear tabla FTS');
+    } catch (e: unknown) {
+      errors.push(e instanceof Error ? e.message : 'Error al dropear tabla FTS');
     }
 
     try {
@@ -102,8 +102,8 @@ export default function TestDatabase() {
           [r.id, r.id, r.parte, r.seccion, r.capitulo, r.articulo, r.texto],
         );
       }
-    } catch (err: any) {
-      errors.push(`catecismo_cic_fts: ${err.message}`);
+    } catch (err: unknown) {
+      errors.push(err instanceof Error ? err.message : String(err));
     }
 
     if (errors.length === 0) {
