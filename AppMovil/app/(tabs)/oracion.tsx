@@ -4,10 +4,10 @@ import { S } from '@/constants/spacing';
 import { tabBarScrollY } from '@/utils/scroll-state';
 import { ThemedText } from '@/components/themed-text';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSQLiteContext } from 'expo-sqlite';
+import { useDbQuery } from '@/hooks/use-db-query';
 import { getCICPartes } from '@/db/db';
 import type { CICParte } from '@/types';
 
@@ -36,15 +36,11 @@ const MISAL_SECCIONES = [
 
 export default function OracionScreen() {
   const insets = useSafeAreaInsets();
-  const db = useSQLiteContext();
   const [pill, setPill] = useState<Pill>('oraciones');
-  const [partes, setPartes] = useState<CICParte[]>([]);
-
-  useEffect(() => {
-    if (pill === 'catecismo') {
-      getCICPartes(db).then(setPartes).catch((e) => console.warn('[oracion]', e));
-    }
-  }, [pill, db]);
+  const { data: partes } = useDbQuery<CICParte[]>(
+    (db) => pill === 'catecismo' ? getCICPartes(db) : Promise.resolve([]),
+    [pill],
+  );
 
   return (
     <ScrollView onScroll={handleScroll} scrollEventThrottle={16} style={[styles.container, { paddingTop: insets.top + 16 }]} contentContainerStyle={styles.content}>

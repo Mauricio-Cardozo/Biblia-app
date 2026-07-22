@@ -24,8 +24,7 @@ export default function PropioScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await getMisalTemporadas(db);
-        setTemporadas(data);
+        setTemporadas(await getMisalTemporadas(db));
       } catch (e) { console.warn('[propio]', e); }
       setLoading(false);
     })();

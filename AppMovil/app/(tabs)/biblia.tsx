@@ -1,13 +1,12 @@
 import ScreenHeader from "@/components/ui/screen-header";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { C } from "@/constants/theme";
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { useSQLiteContext } from "expo-sqlite";
 import { useBibliaVersion } from "@/contexts/bible-version";
 import { tabBarScrollY } from "@/utils/scroll-state";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator, Animated, ImageBackground, Share, StatusBar,
   StyleSheet, TouchableOpacity, View,
@@ -51,7 +50,7 @@ const ABREVIATURAS: Record<string, string> = {
 const abrev = (libro: string) => ABREVIATURAS[libro] ?? libro.slice(0, 3);
 
 function LibroCard({ item, onPress }: { item: Book; onPress: () => void }) {
-  const scale = useMemo(() => new Animated.Value(1), []);
+  const scale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
     Animated.timing(scale, { toValue: 0.95, duration: 100, useNativeDriver: true }).start();
@@ -79,7 +78,7 @@ function LibroCard({ item, onPress }: { item: Book; onPress: () => void }) {
 
 export default function BibliaScreen() {
   const db = useSQLiteContext();
-  const { version, versiones, setVersion } = useBibliaVersion();
+  const version = useBibliaVersion();
 
   const [nivel, setNivel] = useState<Nivel>("libros");
   const [libroActual, setLibroActual] = useState<Book | null>(null);
@@ -117,11 +116,12 @@ export default function BibliaScreen() {
   }, [db, version.tabla]);
 
   useEffect(() => {
-    Promise.all(versiculos.map((v) => isFavorito(`biblia-${v.id}`))).then((results) => {
+    (async () => {
+      const results = await Promise.all(versiculos.map((v) => isFavorito(`biblia-${v.id}`)));
       const s = new Set<number>();
       versiculos.forEach((v, i) => { if (results[i]) s.add(v.id); });
       setFavs(s);
-    });
+    })();
   }, [versiculos]);
 
   const toggleFav = useCallback(async (v: Verse) => {
@@ -160,8 +160,6 @@ export default function BibliaScreen() {
   const antiguos = libros.filter((b) => b.testamento === "Antiguo").length;
   const nuevos = libros.filter((b) => b.testamento === "Nuevo").length;
 
-  const [mostrarVersiones, setMostrarVersiones] = useState(false);
-
   const renderHeader = () => {
     if (nivel === "libros") {
       const imgSrc = filtro === "Nuevo"
@@ -171,9 +169,7 @@ export default function BibliaScreen() {
       return (
         <ImageBackground source={imgSrc} style={s.heroImg} resizeMode="cover">
           <View style={s.heroOverlay}>
-            <TouchableOpacity onPress={() => setMostrarVersiones(true)}>
-              <ThemedText style={s.heroSuper}>✝ {version.nombre.toUpperCase()}</ThemedText>
-            </TouchableOpacity>
+            <ThemedText style={s.heroSuper}>✝ {version.nombre.toUpperCase()}</ThemedText>
             <ThemedText style={s.heroTitle}>La Sagrada Escritura</ThemedText>
             <ThemedText style={s.heroSub}>{antiguos + nuevos} Libros</ThemedText>
           </View>
@@ -188,28 +184,22 @@ export default function BibliaScreen() {
         subtitle={nivel === "capitulos" ? `${libroActual?.testamento} Testamento` : `${libroActual?.libro ?? ""} › Cap. ${capActual ?? ""}`}
         showBack
         onBack={volver}
-        rightSlot={
-          <TouchableOpacity onPress={() => setMostrarVersiones(true)}>
-            <ThemedText style={{ color: C.gold, fontSize: 10, letterSpacing: 1, fontWeight: "700" }}>
-              CAMBIAR
-            </ThemedText>
-          </TouchableOpacity>
-        }
+        rightSlot={<View style={{ width: 40 }} />}
       />
     );
   };
 
   if (loading) return (
-    <ThemedView style={s.center}>
+    <View style={s.center}>
       <ActivityIndicator size="large" color={C.gold} />
       <ThemedText style={s.muted}>Cargando…</ThemedText>
-    </ThemedView>
+    </View>
   );
 
   if (error) return (
-    <ThemedView style={s.center}>
+    <View style={s.center}>
       <ThemedText style={s.errorText}>{error}</ThemedText>
-    </ThemedView>
+    </View>
   );
 
   return (
@@ -284,31 +274,6 @@ export default function BibliaScreen() {
         />
       )}
 
-      {mostrarVersiones && (
-        <View style={s.versionOverlay}>
-          <TouchableOpacity style={s.versionBackdrop} onPress={() => setMostrarVersiones(false)} />
-          <View style={s.versionSheet}>
-            <ThemedText style={s.versionTitle}>Versión de la Biblia</ThemedText>
-            {versiones.map((v) => (
-              <TouchableOpacity
-                key={v.id}
-                style={[s.versionOption, v.id === version.id && s.versionOptionActive]}
-                onPress={() => { setVersion(v.id); setMostrarVersiones(false); }}
-                activeOpacity={0.7}
-              >
-                <ThemedText style={[s.versionName, v.id === version.id && s.versionNameActive]}>
-                  {v.nombre}
-                </ThemedText>
-                <ThemedText style={s.versionDesc}>{v.descripcion}</ThemedText>
-                {v.id === version.id && <ThemedText style={s.versionCheck}>✓</ThemedText>}
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity style={s.versionCerrar} onPress={() => setMostrarVersiones(false)}>
-              <ThemedText style={s.versionCerrarText}>Cerrar</ThemedText>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
     </SafeAreaView>
   );
 }
@@ -359,24 +324,4 @@ const s = StyleSheet.create({
   shareBtn: { paddingHorizontal: S.xs },
   shareIcon: { color: C.muted, fontSize: 16 },
   versFav: { color: C.error, fontSize: 16, minWidth: 20, textAlign: "center", paddingTop: 2 },
-
-  versionOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 100 },
-  versionBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)" },
-  versionSheet: {
-    position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: C.navyMid, borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    padding: S.xl, paddingBottom: S.huge,
-  },
-  versionTitle: { color: C.text, fontSize: 18, fontWeight: "700", marginBottom: S.lg },
-  versionOption: {
-    paddingVertical: 14, paddingHorizontal: S.lg, borderRadius: R.lg,
-    marginBottom: S.sm, borderWidth: 1, borderColor: C.sep,
-  },
-  versionOptionActive: { borderColor: C.gold, backgroundColor: C.navyLight },
-  versionName: { color: C.text, fontSize: 15, fontWeight: "600" },
-  versionNameActive: { color: C.gold },
-  versionDesc: { color: C.muted, fontSize: 12, marginTop: 3, lineHeight: 16 },
-  versionCheck: { color: C.gold, fontSize: 18, position: "absolute", right: 16, top: 14 },
-  versionCerrar: { marginTop: S.sm, paddingVertical: S.md, alignItems: "center" },
-  versionCerrarText: { color: C.muted, fontSize: 14 },
 });

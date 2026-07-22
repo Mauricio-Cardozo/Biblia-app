@@ -2,29 +2,32 @@ import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
-import { useSQLiteContext } from "expo-sqlite";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useDbQuery } from '@/hooks/use-db-query';
 import { getMisalSantosDelDia } from '@/db/db';
 import type { Santo, MisalSantosEntry } from '@/types';
 
 export default function SantoDetalleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const [santo, setSanto] = useState<Santo | null>(null);
-  const [santoPropio, setSantoPropio] = useState<MisalSantosEntry | null>(null);
 
-  useEffect(() => {
-    if (!id) return;
-    const nid = Number(id);
-    db.getFirstAsync<Santo>("SELECT * FROM santos WHERE id = ?", [nid]).then((row) => {
-      setSanto(row);
-      if (row) getMisalSantosDelDia(db, row.mes, row.dia).then(ms => setSantoPropio(ms.find(e => e.colecta) ?? null));
-    }).catch((e) => console.warn('[santo]', e));
-  }, [db, id]);
+  const { data } = useDbQuery(
+    (db) => {
+      if (!id) return Promise.resolve<[Santo | null, MisalSantosEntry | null]>([null, null]);
+      const nid = Number(id);
+      return db.getFirstAsync<Santo>("SELECT * FROM santos WHERE id = ?", [nid]).then((row) => {
+        if (!row) return [null, null] as const;
+        return getMisalSantosDelDia(db, row.mes, row.dia).then((ms) => [row, ms.find(e => e.colecta) ?? null] as const);
+      });
+    },
+    [id],
+  );
+
+  const santo = data?.[0] ?? null;
+  const santoPropio = data?.[1] ?? null;
 
   if (!santo) return (
     <View style={[s.container, { paddingTop: insets.top }]}>

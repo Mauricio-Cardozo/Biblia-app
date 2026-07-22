@@ -293,7 +293,7 @@ export async function diagnose(db: SQLiteDatabase): Promise<string> {
 
 /** CIC repair is no longer needed — data is correct from scraper. */
 
-export async function logTables(db: SQLiteDatabase): Promise<void> {
+async function logTables(db: SQLiteDatabase): Promise<void> {
   try {
     const tables = await db.getAllAsync<{ name: string }>(
       "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",

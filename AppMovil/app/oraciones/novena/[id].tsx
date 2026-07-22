@@ -4,10 +4,10 @@ import { S } from '@/constants/spacing';
 import { ThemedText } from "@/components/themed-text";
 import { useFontSize, fs } from "@/contexts/font-size";
 import { router, useLocalSearchParams } from "expo-router";
-import { useSQLiteContext } from "expo-sqlite";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useDbQuery } from "@/hooks/use-db-query";
 
 interface NovenaDia {
   id: number;
@@ -16,30 +16,33 @@ interface NovenaDia {
   texto: string;
 }
 
+interface NovenaData {
+  titulo: string;
+  dias: NovenaDia[];
+}
+
+function fetchNovena(db: import("expo-sqlite").SQLiteDatabase, id: string): Promise<NovenaData> {
+  return db.getFirstAsync<{ titulo: string }>("SELECT titulo FROM novenas WHERE id = ?", [Number(id)]).then((nov) =>
+    db.getAllAsync<NovenaDia>(
+      "SELECT id, dia, titulo, texto FROM novena_dias WHERE novena_id = ? ORDER BY dia",
+      [Number(id)],
+    ).then((dias) => ({ titulo: nov?.titulo ?? "", dias })),
+  );
+}
+
 export default function NovenaDetalleScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const db = useSQLiteContext();
   const { multiplier } = useFontSize();
-  const [titulo, setTitulo] = useState("");
-  const [dias, setDias] = useState<NovenaDia[]>([]);
-  const [diaSel, setDiaSel] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [diaSel, setDiaSel] = React.useState(1);
 
-  useEffect(() => {
-    (async () => {
-      if (!id) return;
-      const nov = await db.getFirstAsync<{ titulo: string }>("SELECT titulo FROM novenas WHERE id = ?", [Number(id)]);
-      if (nov) setTitulo(nov.titulo);
-      const rows = await db.getAllAsync<NovenaDia>(
-        "SELECT id, dia, titulo, texto FROM novena_dias WHERE novena_id = ? ORDER BY dia",
-        [Number(id)],
-      );
-      setDias(rows);
-      setLoading(false);
-    })();
-  }, [db, id]);
+  const { data, loading } = useDbQuery(
+    (db) => id ? fetchNovena(db, id) : Promise.resolve<NovenaData>({ titulo: "", dias: [] }),
+    [id],
+  );
 
+  const titulo = data?.titulo ?? "";
+  const dias = data?.dias ?? [];
   const diaActual = dias.find((d) => d.dia === diaSel);
 
   return (

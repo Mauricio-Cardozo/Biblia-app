@@ -13,9 +13,8 @@ export {
   getMisalTemporadas, getMisalPropio, getMisalPropioDetalle,
   getMisalPropioPorSemana, getMisalOrdinarioPorSeccion, getMisalOrdinarioSecciones,
   getMisalPrefacios, getMisalPrefacioDetalle, getMisalPlegarias,
-  getMisalPlegariaDetalle, getMisalOrdinarioDetalle, searchMisal,
+  getMisalPlegariaDetalle, getMisalOrdinarioDetalle,
 } from "./misal";
-export type { MisalSearchResult } from "./misal";
 
 export { getSantosDelDia, getMisalSantosDelDia } from "./santos";
 export type { Santo, MisalSantosEntry } from "@/types";

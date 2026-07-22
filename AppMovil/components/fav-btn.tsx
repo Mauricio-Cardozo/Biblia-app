@@ -12,7 +12,7 @@ export default function FavBtn({ favorito }: Props) {
   const [activo, setActivo] = useState(false);
 
   useEffect(() => {
-    isFavorito(favorito.id).then(setActivo);
+    (async () => { setActivo(await isFavorito(favorito.id)); })();
   }, [favorito.id]);
 
   const toggle = useCallback(async () => {

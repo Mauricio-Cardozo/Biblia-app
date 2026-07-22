@@ -21,7 +21,11 @@ No tsc/typecheck command available — `npm run lint` is the only static check.
 - **Routing**: expo-router 6 file-based. `app/_layout.tsx` = root layout (SQLiteProvider + DatabaseInit + FontSizeProvider + BibliaVersionProvider + Stack). `app/(tabs)/_layout.tsx` = JS tab navigator (Home/Biblia/Catecismo/Misal/Oración). Routes inside `(tabs)` get the tab bar; routes outside (`evangelio.tsx`, `calendario.tsx`, `rosario/`, `oraciones/`, `favoritos.tsx`, `modal.tsx`, `test.tsx`, `misal/`) don't.
 - **DB**: Single `iglesia_digital.db` shipped in `AppMovil/assets/`, copied via `SQLiteProvider databaseName assetSource` with `useSuspense`. `metro.config.js` adds `db` to `assetExts` so Metro resolves `.db` files.
 - **DB Migrations**: `db/init.ts` uses `PRAGMA user_version`. Runs on every app launch. `CURRENT_VERSION = 7`. V1 recreates FTS tables as standalone (drops triggers, re-inserts data). V2 adds `youcat.parte` column (no-op since youcat dropped). V3 creates `novenas` + `novena_dias` tables. V4 drops YOUCAT tables. V5 creates `misal_propio`, `misal_ordinario`, `misal_prefacios`, `misal_plegarias` tables. V6 creates `santos` table. V7 creates `misal_santos` table. FTS creation is skipped if source columns are missing; use the "Rebuild FTS" button on `/test` to retry.
+- **DB module**: Split into domain files in `db/` — `biblia.ts`, `catecismo.ts`, `lecturas.ts`, `misal.ts`, `santos.ts` + barrel `db.ts`. Each exports domain-specific query functions.
 - **DB API** (v16 `expo-sqlite`): `db.getAllAsync<T>`, `db.getFirstAsync<T>`, `db.runAsync`. FTS5 join: `JOIN table_fts f ON source.rowid = f.rowid WHERE table_fts MATCH ? ORDER BY f.rank` (⚠️ use `rowid`, NOT `id`). `GROUP BY ... ORDER BY MIN(id)` for dedup. `forceReCopy()` in `db/init.ts` uses `expo-file-system` File/Paths API (NOT raw `documentDirectory` strings). `getMisalPropioPorSemana()` matches liturgical day to misal_propio by season + week number + isSunday.
+- **DB queries**: `hooks/use-db-query.ts` provides `useDbQuery<T>(fn, deps)` — wraps async DB calls with loading/error state. Used by 7 screens.
+- **DB tests**: `db/test-utils.ts` — sql.js adapter for in-memory testing. `__tests__/db.test.ts` — 7 integration tests.
+- **Error handling**: Zero `catch(e: any)`. All catches use `instanceof Error`.
 - **Color palette**: `import { C } from '@/constants/theme'`. `C.*` = Navy/Gold (`#0D1B2A` / `#C9A84C`) — use for all UI. `Fonts` and `Colors` were removed (no theme toggle, fixed palette).
 - **Icons**: Dual-platform files. `components/ui/icon-symbol.ios.tsx` (SF Symbols via `expo-symbols`), `components/ui/icon-symbol.tsx` (MaterialIcons fallback for Android/web). Both export `IconSymbol({ name, size, color })`. SF→Material mapping dict in `icon-symbol.tsx`.
 - **State**: No state management lib. `useState`/`useCallback` + `useSQLiteContext()` for DB access. FontSizeContext and BibliaVersionContext for global UI state.
@@ -37,7 +41,8 @@ These reflect actual codebase patterns, not aspirational rules:
 - `SafeAreaView` is used sparingly (`biblia.tsx`), but `useSafeAreaInsets()` on a plain `View` is more common.
 - Images → `expo-image` (not RN `Image`).
 - Platform padding: `Platform.OS === "android"` checks in headers for status bar insets.
-- SQL fetch patterns: `useCallback` wrappers around async DB functions, called from `useEffect` or inline handlers. Loading/error states managed per-component.
+- SQL fetch patterns: `useCallback` wrappers around async DB functions, called from `useEffect` or inline handlers. Loading/error states managed per-component. For simple queries, `useDbQuery` hook from `hooks/use-db-query.ts` wraps this pattern automatically.
+- Error handling: All async DB calls have explicit `.catch()` with `instanceof Error` checks. Zero `catch(e: any)` in the codebase.
 
 ## DB Schema (condensed)
 
@@ -74,16 +79,21 @@ These reflect actual codebase patterns, not aspirational rules:
 - ~~`types/index.ts` — `CICSearchResult`, `FTS5Query`~~ ✅ removed (unused)
 - ~~`db/db.ts` — `getMisalOrdinario` export~~ ✅ removed (unused)
 - ~~`db/init.ts` — `areFTSReady`, `logTables` exports~~ ✅ removed (internal only)
-- `data/notifications.ts` — 4-line stub, all functions are no-ops (intentional for v1.0).
+- ~~`data/notifications.ts` — 4-line stub~~ ✅ removed
+- ~~`db/misal.ts:92-141` — `searchMisal` + `MisalSearchResult`~~ ✅ removed (no consumers)
+- ~~`scripts/reset-project.js` — Expo init template scaffolding~~ ✅ removed
+- ~~`components/themed-view.tsx` — dead wrapper~~ ✅ removed (replaced with `<View>`)
+- ~~`assets/iglesia_digital.db-shm`, `assets/iglesia_digital.db-wal` — WAL artifacts~~ ✅ gitignored
 
 ### Design System
 - **Spacing/radius tokens** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados y refactorizados en ~25 archivos (Home, Biblia, Catecismo, Misal, Oración, componentes). `borderRadius: 12` aparece aún en algunos archivos menores.
 - **`themed-text.tsx` simplified** — `type` prop (5 variants), `lightColor`/`darkColor` props, `useThemeColor` dependency, y hardcoded `#0a7ea4` link color removed.
-- **`themed-view.tsx` simplified** — removed `lightColor`/`darkColor`/`useThemeColor`. Now a plain `<View style={style}>`.
+- ~~**`themed-view.tsx` simplified**~~ ✅ removed (replaced with `<View>` in biblia.tsx, catecismo.tsx)
 - **Header pattern duplicated** — `borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid` repeated across 10+ screens instead of using `ScreenHeader`.
 
 ### Architecture
 - ~~**`formatoFecha` / `hoy()` duplicated**~~ ✅ extracted to `utils/date.ts`
+- ~~**`BibliaVersionContext` — multi-version infra for 1 version**~~ ✅ simplified (removed `setVersion`, `versiones` array, version picker UI)
 - ~~**Season emoji map + season/day detection helpers**~~ ✅ extracted to `utils/seasons.ts`
 - ~~**Reading section layout duplicated**~~ ✅ extracted to `components/reading-section.tsx`
 - ~~**`getLecturaDelDia` misplaced**~~ ✅ moved to `// LECTURAS` block
@@ -119,8 +129,7 @@ npm test                    # jest (23 tests, 4 suites)
 - `app/evangelio.tsx` — fully working, accepts `?fecha=YYYY-MM-DD`. Uses `getLecturaDelDia`.
 - Streak cards on Home (`🔥 N días`) — real data from `data/streaks.ts` via AsyncStorage (`racha_rosario_ultima`, `racha_coronilla_ultima`). `calcularRacha()` counts consecutive days backwards.
 - No pagination on list screens — all data fits in memory.
-- **FTS5 en misal**: 4 virtual tables (`misal_propio_fts`, `misal_ordinario_fts`, `misal_prefacios_fts`, `misal_plegarias_fts`) creadas en `ensureFTS()` en `init.ts`. Buscables via `searchMisal()` en `db/db.ts` que devuelve resultados unificados con `tabla`, `id`, `titulo`, `preview`.
-- No FTS on misal tables yet — not needed for current UX.
+- **FTS5 en misal**: 4 virtual tables (`misal_propio_fts`, `misal_ordinario_fts`, `misal_prefacios_fts`, `misal_plegarias_fts`) creadas en `ensureFTS()` en `init.ts`. Sin interfaz de búsqueda por ahora — no necesario.
 - Novenas: 18 scraped from `devocionario.com` (single-page format); ~28 more exist on devocionario.com with multi-page or numeric-day format — not yet scraped.
 - CIC `capitulo`/`articulo` populated (2359/2865 caps, 1964/2865 arts) via `archive/popular_cic.py`. Asset DB has no FTS triggers (dropped before UPDATE; app recreates them on first launch via migration v1).
 - FTS on `catecismo_cic` is created by migration v1 at app launch — the asset DB does NOT include the `catecismo_cic_fts` table (it's created on first run).
@@ -134,17 +143,14 @@ npm test                    # jest (23 tests, 4 suites)
 - Scroll position shared across screens via `utils/scroll-state.ts` (module-level `Animated.Value`). Each screen writes to it via `Animated.event` or `tabBarScrollY.setValue()`.
 - ⚠️ `Animated.event` with `useNativeDriver: true` returns an object, not a function, on RN 0.85 Fabric. All screens currently use `tabBarScrollY.setValue()` directly to avoid this.
 
-## React Compiler Violations
+## React Compiler Violations (all resolved)
 
-The project has `experiments.reactCompiler: true` in app.json. `npm run lint` reports 27 errors:
+~~The project had `experiments.reactCompiler: true` in app.json with 27 violations across 3 categories. All fixed:~~
+- ~~`Cannot access refs during render` (3 files)~~ ✅ `useMemo`→`useRef`
+- ~~`Calling setState() within an effect` (13 screens)~~ ✅ async/await inline or `useDbQuery` hook
+- ~~`Cannot call impure function during render` (index.tsx)~~ ✅ module-level constant
 
-| Error | Files affected | Fix |
-|-------|---------------|-----|
-| `Cannot access refs during render` | `biblia.tsx`, `floating-tab-bar.tsx`, `list-item-card.tsx` | Access `.current` only in handlers, not render body |
-| `Calling setState() within an effect` | 10+ screens (biblia, calendario, catecismo, evangelio, favoritos, misal, novenas) | Inline async in useEffect instead of useCallback→useEffect→setState |
-| `Cannot call impure function during render` | `catecismo.tsx`, `evangelio.tsx` (Date.now()) | Use `useRef(Date.now())` for stable value |
-
-See GitHub issues #1, #2, #3.
+Note: These violations were never surfaced by `npm run lint` — `eslint-plugin-react-compiler` is not in the ESLint config. They only appeared during Metro/Babel compilation.
 
 ## GitHub Issues
 
@@ -153,13 +159,13 @@ See GitHub issues #1, #2, #3.
 ### Closed (v1 → v2.0.0)
 #1–#3 React Compiler bugs · #4 Lint warnings · #5 ScreenHeader migration · #6 Scrape 28 novenas · #7 CIC metadata · #8 Vatican scraper automation · #9 db/init.ts docs · #10 notifications.ts stub · #11 FTS5 misal · #12 Scrape 28 novenas dup · #13 LICENSE · #14 Accesibilidad · #15 CI · #16 Compartir versículos · #17 README · #18 Export/import AsyncStorage
 
-### Open (ponytail audit — sobreingeniería)
-| # | Title | Type |
-|---|-------|------|
-| 19 | delete: código muerto (5 archivos) | Chore |
-| 20 | yagni: abstracciones especulativas (2 hallazgos) | Chore |
-| 21 | stdlib: reemplazar código manual (2 hallazgos) | Chore |
-| 22 | shrink: simplificar/achicar (6 hallazgos) | Chore |
+### Open
+| # | Title | Type | Status |
+|---|-------|------|--------|
+| 19 | ~~delete: código muerto (6 archivos, 1 gitignore)~~ | Chore | ✅ Closed (data/notifications.ts, searchMisal, reset-project.js, themed-view.tsx, db-shm/db-wal gitignore, logTables private) |
+| 20 | ~~yagni: abstracciones especulativas (2 hallazgos)~~ | Chore | ✅ Closed (BibliaVersionContext simplified, ThemedView removed) |
+| 21 | stdlib: reemplazar código manual (2 hallazgos) | Chore | Pending |
+| 22 | shrink: simplificar/achicar (6 hallazgos) | Chore | Partial (bible-version done) |
 
 ## Key Components
 
@@ -169,7 +175,8 @@ See GitHub issues #1, #2, #3.
 - **FavBtn** (`components/fav-btn.tsx`) — heart toggle for favorites. Uses `data/favoritos.ts` (AsyncStorage CRUD).
 - **FontSizeControl** (`components/font-size-control.tsx`) — A-/A+ buttons. Uses `contexts/font-size.tsx`.
 - **FontSizeContext** (`contexts/font-size.tsx`) — multiplier state (0.8–1.5, step 0.1). Persisted to AsyncStorage. Wrapped in root `_layout.tsx`.
-- **BibliaVersionContext** (`contexts/bible-version.tsx`) — which translation is active. Currently only `biblia_pueblo_dios`.
+- **BibliaVersionContext** (`contexts/bible-version.tsx`) — which translation is active. Single-version only (`biblia_pueblo_dios`). Simplified: no `setVersion`, no `versiones` array.
+- **useDbQuery** (`hooks/use-db-query.ts`) — React hook wrapping async SQLite queries with loading/error state. Used by 7 screens.
 
 ## Data Files
 

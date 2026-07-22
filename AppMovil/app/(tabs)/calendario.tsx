@@ -53,28 +53,34 @@ export default function CalendarioLiturgico() {
   const [selectedDate, setSelectedDate] = useState(hoyStr);
 
   useEffect(() => {
-    const start = `${ano}-${String(mes).padStart(2, "0")}-01`;
-    const end = `${ano}-${String(mes).padStart(2, "0")}-${diasEnMes(ano, mes)}`;
-    db.getAllAsync<DiaLectura>(
-      `SELECT fecha, titulo_misa, CASE WHEN evangelio IS NOT NULL AND evangelio != '' THEN 1 ELSE 0 END as tieneEvangelio FROM lecturas WHERE fecha >= ? AND fecha <= ? ORDER BY fecha`,
-      [start, end]
-    ).then((rows) => {
-      const map = new Map<string, DiaLectura>();
-      for (const r of rows) map.set(r.fecha, r);
-      setLecturas(map);
+    (async () => {
+      const start = `${ano}-${String(mes).padStart(2, "0")}-01`;
+      const end = `${ano}-${String(mes).padStart(2, "0")}-${diasEnMes(ano, mes)}`;
+      try {
+        const rows = await db.getAllAsync<DiaLectura>(
+          `SELECT fecha, titulo_misa, CASE WHEN evangelio IS NOT NULL AND evangelio != '' THEN 1 ELSE 0 END as tieneEvangelio FROM lecturas WHERE fecha >= ? AND fecha <= ? ORDER BY fecha`,
+          [start, end]
+        );
+        const map = new Map<string, DiaLectura>();
+        for (const r of rows) map.set(r.fecha, r);
+        setLecturas(map);
+      } catch (e) { console.warn('[calendario]', e); }
       setLoading(false);
-    }).catch((e) => console.warn('[calendario]', e));
+    })();
   }, [db, ano, mes]);
 
   useEffect(() => {
-    const parts = selectedDate.split('-').map(Number);
-    Promise.all([
-      getSantosDelDia(db, parts[1], parts[2]),
-      getMisalSantosDelDia(db, parts[1], parts[2]),
-    ]).then(([ss, ms]) => {
-      setSantos(ss);
-      setSantoPropio(ms.find(e => e.colecta) ?? null);
-    }).catch((e) => console.warn('[calendario]', e));
+    (async () => {
+      const parts = selectedDate.split('-').map(Number);
+      try {
+        const [ss, ms] = await Promise.all([
+          getSantosDelDia(db, parts[1], parts[2]),
+          getMisalSantosDelDia(db, parts[1], parts[2]),
+        ]);
+        setSantos(ss);
+        setSantoPropio(ms.find(e => e.colecta) ?? null);
+      } catch (e) { console.warn('[calendario]', e); }
+    })();
   }, [db, selectedDate]);
 
   const totalDias = diasEnMes(ano, mes);

@@ -1,5 +1,4 @@
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
@@ -193,19 +192,19 @@ export default function CatecismoScreen() {
   );
 
   if (loading) return (
-    <ThemedView style={s.center}>
+    <View style={s.center}>
       <ActivityIndicator size="large" color={C.gold} />
       <ThemedText style={s.muted}>Cargando…</ThemedText>
-    </ThemedView>
+    </View>
   );
 
   if (error) return (
-    <ThemedView style={s.center}>
+    <View style={s.center}>
       <ThemedText style={s.errorText}>{error}</ThemedText>
       <TouchableOpacity style={s.retryBtn} onPress={cargarPartes}>
         <ThemedText style={s.retryText}>Reintentar</ThemedText>
       </TouchableOpacity>
-    </ThemedView>
+    </View>
   );
 
   if (nivel === "detalle" && detalle) return (

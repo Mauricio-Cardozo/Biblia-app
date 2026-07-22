@@ -4,33 +4,29 @@ import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import ReadingSection from "@/components/reading-section";
-import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useDbQuery } from "@/hooks/use-db-query";
 import { getLecturaDelDia, getMisalTemporadas } from "@/db/db";
 import { SEASON_EMOJI } from "@/utils/seasons";
 import type { Lectura } from "@/types";
 
 export default function HoyScreen() {
-  const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
   const today = new Date().toISOString().slice(0, 10);
 
-  const [lectura, setLectura] = useState<Lectura | null>(null);
-  const [temporadas, setTemporadas] = useState<{ temporada: string; temporada_label: string; count: number }[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    Promise.all([
+  const { data, loading } = useDbQuery(
+    (db) => Promise.all([
       getLecturaDelDia(db, today),
       getMisalTemporadas(db),
-    ]).then(([lec, temps]) => {
-      setLectura(lec);
-      setTemporadas(temps);
-    }).finally(() => setLoading(false));
-  }, [db, today]);
+    ]),
+    [today],
+  );
+
+  const lectura = (data?.[0] as Lectura | null) ?? null;
+  const temporadas = (data?.[1] as { temporada: string; temporada_label: string; count: number }[]) ?? [];
 
   if (loading) {
     return (

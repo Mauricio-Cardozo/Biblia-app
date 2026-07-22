@@ -21,7 +21,7 @@ export default function FavoritosScreen() {
   const [favs, setFavs] = useState<Favorito[]>([]);
 
   useEffect(() => {
-    getFavoritos().then(setFavs);
+    (async () => { setFavs(await getFavoritos()); })();
   }, []);
 
   return (

@@ -18,13 +18,8 @@ const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
   tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
 };
 
-const getSaludo = () => {
-  const h = new Date().getHours();
-  if (h < 6) return 'Bendecida noche';
-  if (h < 12) return 'Bendecido día';
-  if (h < 20) return 'Bendecida tarde';
-  return 'Bendecida noche';
-};
+const h = new Date().getHours();
+const saludo = h < 6 ? 'Bendecida noche' : h < 12 ? 'Bendecido día' : h < 20 ? 'Bendecida tarde' : 'Bendecida noche';
 
 const SEASON_COLOR: Record<string, string> = {
   adviento: '#7B3FAF',
@@ -54,13 +49,14 @@ export default function LiturgiaScreen() {
   const [propio, setPropio] = useState<MisalPropioEntry | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      calcularRacha("racha_rosario_ultima"),
-      calcularRacha("racha_coronilla_ultima"),
-      obtenerStats(),
-      getLecturaDelDia(db, hoy()),
-      getMisalTemporadas(db),
-    ]).then(([rr, rc, st, lec, temps]) => {
+    (async () => {
+      const [rr, rc, st, lec, temps] = await Promise.all([
+        calcularRacha("racha_rosario_ultima"),
+        calcularRacha("racha_coronilla_ultima"),
+        obtenerStats(),
+        getLecturaDelDia(db, hoy()),
+        getMisalTemporadas(db),
+      ]);
       setRachaRosario(rr);
       setRachaCoronilla(rc);
       setStats({ rosario_total: st.rosario_total, coronilla_total: st.coronilla_total });
@@ -68,17 +64,18 @@ export default function LiturgiaScreen() {
       setTemporadas(temps);
       if (lec?.titulo_misa) {
         const season = detectSeason(lec.titulo_misa);
-        if (season) {
-          const week = parseWeekNumber(lec.titulo_misa);
-          const sun = isSunday(lec.titulo_misa);
-          getMisalPropioPorSemana(db, season, week, sun).then(setPropio).catch((e) => console.warn('[misa]', e));
-        } else {
-          getSeasonFromNearestLectura(db, hoy()).then(fb => {
-            if (fb) getMisalPropioPorSemana(db, fb.season, fb.week, fb.isSunday).then(setPropio).catch((e) => console.warn('[misa]', e));
-          });
-        }
+        try {
+          if (season) {
+            const week = parseWeekNumber(lec.titulo_misa);
+            const sun = isSunday(lec.titulo_misa);
+            setPropio(await getMisalPropioPorSemana(db, season, week, sun));
+          } else {
+            const fb = await getSeasonFromNearestLectura(db, hoy());
+            if (fb) setPropio(await getMisalPropioPorSemana(db, fb.season, fb.week, fb.isSunday));
+          }
+        } catch (e) { console.warn('[misa]', e); }
       }
-    });
+    })();
   }, [db]);
 
   const misaTitle = lectura?.titulo_misa;
@@ -116,7 +113,7 @@ export default function LiturgiaScreen() {
               <ThemedText style={styles.seasonLabel}>{SEASON_EMOJI[season] ?? '🌿'} {seasonData?.temporada_label ?? 'Tiempo Ordinario'} · {SEASON_COLOR_NAME[season]}</ThemedText>
             </View>
           ) : null}
-          <ThemedText style={styles.greeting}>{getSaludo()}</ThemedText>
+          <ThemedText style={styles.greeting}>{saludo}</ThemedText>
           <ThemedText style={styles.heroQuote} numberOfLines={4}>
             {'\u201C'}{lectura?.evangelio ?? 'Yo soy el camino, la verdad y la vida.'}{'\u201D'}
           </ThemedText>

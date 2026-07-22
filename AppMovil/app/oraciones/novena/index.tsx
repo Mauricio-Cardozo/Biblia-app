@@ -3,10 +3,10 @@ import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from "@/components/themed-text";
 import { router } from "expo-router";
-import { useSQLiteContext } from "expo-sqlite";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useDbQuery } from "@/hooks/use-db-query";
 
 interface Novena {
   id: number;
@@ -16,14 +16,11 @@ interface Novena {
 
 export default function NovenaListScreen() {
   const insets = useSafeAreaInsets();
-  const db = useSQLiteContext();
-  const [novenas, setNovenas] = useState<Novena[]>([]);
-
-  useEffect(() => {
+  const { data: novenas } = useDbQuery<Novena[]>((db) =>
     db.getAllAsync<Novena>(
       "SELECT n.id, n.titulo, (SELECT COUNT(*) FROM novena_dias WHERE novena_id = n.id) AS dias_count FROM novenas n ORDER BY n.id",
-    ).then(setNovenas);
-  }, [db]);
+    ),
+  );
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
@@ -35,7 +32,7 @@ export default function NovenaListScreen() {
       </View>
       <ScrollView contentContainerStyle={s.content}>
         <ThemedText style={s.intro}>Elegí una novena para comenzar</ThemedText>
-        {novenas.map((n) => (
+        {(novenas ?? []).map((n) => (
           <TouchableOpacity
             key={n.id}
             style={s.card}

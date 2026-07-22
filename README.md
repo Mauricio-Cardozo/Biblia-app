@@ -200,7 +200,7 @@ Biblia-app/
 │   │   ├── (tabs)/
 │   │   │   ├── _layout.tsx          # Tab bar (Home, Biblia, Catecismo, Misal, Oración)
 │   │   │   ├── index.tsx            # Home — versículo del día + rachas + acceso rápido
-│   │   │   ├── biblia.tsx           # Biblia — libros → capítulos → versículos + selector de versión
+│   │   │   ├── biblia.tsx           # Biblia — libros → capítulos → versículos
 │   │   │   ├── catecismo.tsx        # CIC — partes → secciones → numerales → detalle + FTS5
 │   │   │   ├── misal.tsx            # Misal — Misa de Hoy, Propio, Ordinario, Prefacios, Plegarias
 │   │   │   └── oracion.tsx          # Hub de oración — rosario, coronilla, oraciones del Vaticano, jaculatorias
@@ -239,7 +239,6 @@ Biblia-app/
 │   │   └── init.ts                  # Migración automática de BD al arrancar
 │   ├── components/
 │   │   ├── themed-text.tsx
-│   │   └── themed-view.tsx
 │   ├── types/
 │   │   └── index.ts                 # Interfaces compartidas (Book, CICNumeral, etc.)
 │   ├── constants/
@@ -298,12 +297,14 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] **Bugs corregidos** — `\n` literal en letanías, `?fecha` en favoritos a evangelio, `find()` cliente → query directa en detalle de ordinario/prefacios/plegarias, `.catch()` faltantes, `#D4AF37` → `C.gold`, `catch(e: any)` → `instanceof Error`
 - [x] **Compartir versículos** — botón ↗ por versículo en Biblia y en header de Evangelio, vía `Share.share`
 - [x] **Export/import AsyncStorage** — backup de favoritos/rachas/font-size via `Share.share` + paste restore en Ajustes
-- [x] **Limpieza de deuda técnica** — eliminado `modal.tsx`, `collapsible.tsx`, `hasColumn`. Movido `getLecturaDelDia` al bloque correcto en `db/db.ts`. Completado tipo `Lectura` con columnas faltantes.
+- [x] **Limpieza de deuda técnica** — eliminado `modal.tsx`, `collapsible.tsx`, `hasColumn`, `themed-view.tsx`, `reset-project.js`, `notifications.ts`, `searchMisal`. Movido `getLecturaDelDia` al bloque correcto. Completado tipo `Lectura` con columnas faltantes.
 - [x] **Eliminar duplicación** — `formatoFecha`/`hoy()`, mapa de emojis de temporadas, layout de sección de lecturas extraídos a `utils/date.ts`, `utils/seasons.ts`, `components/reading-section.tsx`.
 - [x] **Tokens de diseño** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados + refactorizados en ~25 archivos
 - [x] **StatusBar + NavigationBar ocultos** en toda la app vía `expo-navigation-bar`
 - [x] **Ajustes screen** — gear ⚙️ en Home, versión dinámica, font-size, export/import de datos
 - [x] **Rediseño navegación** — tab bar flotante redondeada, scroll-to-hide, ajustes en Home, calendario como tab
+- [x] **React Compiler — 27 violaciones corregidas** — `Animated.Value` en render (useRef), `Date.now()` en render (const module-level), `.then(setState)` en screens (useDbQuery/async-await inline)
+- [x] **BibliaVersionContext simplificado** — eliminado multi-versión (1 sola traducción), `setVersion`, `versiones` array, selector UI
 
 ### 🔴 Corto plazo (alta prioridad)
 
