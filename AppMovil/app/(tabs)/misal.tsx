@@ -5,7 +5,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-interface Seccion {
+export interface Seccion {
   id: string;
   titulo: string;
   subtitulo: string;
@@ -13,7 +13,7 @@ interface Seccion {
   ruta: string;
 }
 
-const SECCIONES: Seccion[] = [
+export const SECCIONES_MISAL: Seccion[] = [
   {
     id: 'hoy',
     titulo: 'Misa de Hoy',
@@ -62,7 +62,7 @@ export default function MisalScreen() {
       <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
       <ThemedText style={styles.title}>Misal Romano</ThemedText>
 
-      {SECCIONES.map((seccion) => (
+      {SECCIONES_MISAL.map((seccion) => (
         <TouchableOpacity
           key={seccion.id}
           style={styles.card}

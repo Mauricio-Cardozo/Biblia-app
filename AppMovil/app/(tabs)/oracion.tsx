@@ -9,6 +9,7 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDbQuery } from '@/hooks/use-db-query';
 import { getCICPartes } from '@/db/db';
+import { SECCIONES_MISAL } from './misal';
 import type { CICParte } from '@/types';
 
 const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
@@ -24,14 +25,6 @@ const ORACIONES_SECCIONES = [
   { id: 'oraciones', titulo: 'Oraciones', subtitulo: 'Del Vaticano: Padre nuestro, Ave María, Credo y más', icono: '📖', ruta: '/oraciones' },
   { id: 'jaculatorias', titulo: 'Jaculatorias', subtitulo: 'Oraciones breves para el día', icono: '🔥', ruta: '/oraciones/jaculatorias' },
   { id: 'novenas', titulo: 'Novenas', subtitulo: '18 devociones de 9 días', icono: '🕯️', ruta: '/oraciones/novena' },
-];
-
-const MISAL_SECCIONES = [
-  { id: 'hoy', titulo: 'Misa de Hoy', subtitulo: 'Oraciones y lecturas del día', icono: '🕊️', ruta: '/misal/hoy' },
-  { id: 'propio', titulo: 'Propio del Tiempo', subtitulo: 'Adviento, Navidad, Cuaresma, Pascua, Ordinario', icono: '📅', ruta: '/misal/propio' },
-  { id: 'ordinario', titulo: 'Ordinario de la Misa', subtitulo: 'Ritos, oraciones y plegarias', icono: '📖', ruta: '/misal/ordinario' },
-  { id: 'prefacios', titulo: 'Prefacios', subtitulo: '67 prefacios para cada tiempo litúrgico', icono: '✋', ruta: '/misal/prefacios' },
-  { id: 'plegarias', titulo: 'Plegarias Eucarísticas', subtitulo: 'I, II, III y IV', icono: '🍞', ruta: '/misal/plegarias' },
 ];
 
 export default function OracionScreen() {
@@ -89,7 +82,7 @@ export default function OracionScreen() {
         </View>
       )}
 
-      {pill === 'misal' && MISAL_SECCIONES.map((s) => (
+      {pill === 'misal' && SECCIONES_MISAL.map((s) => (
         <TouchableOpacity key={s.id} style={styles.card} onPress={() => router.push(s.ruta)} activeOpacity={0.7}>
           <View style={styles.cardRow}>
             <ThemedText style={styles.cardIcon}>{s.icono}</ThemedText>
