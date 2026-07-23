@@ -9,10 +9,10 @@ import { tabBarScrollY } from '@/utils/scroll-state';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { calcularRacha, obtenerStats } from '@/data/streaks';
 import { useSQLiteContext } from 'expo-sqlite';
-import { getLecturaDelDia, getMisalTemporadas, getMisalPropioPorSemana, getSeasonFromNearestLectura } from '@/db/db';
+import { getLecturaDelDia, getMisalTemporadas, getMisalPropioPorSemana, getSeasonFromNearestLectura, getSantosDelDia } from '@/db/db';
 import { fechaActualLarga, hoy } from '@/utils/date';
 import { detectSeason, parseWeekNumber, isSunday, SEASON_EMOJI } from '@/utils/seasons';
-import type { Lectura, MisalPropioEntry } from '@/types';
+import type { Lectura, MisalPropioEntry, Santo } from '@/types';
 
 const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
   tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
@@ -47,6 +47,7 @@ export default function LiturgiaScreen() {
   const [lectura, setLectura] = useState<Lectura | null>(null);
   const [temporadas, setTemporadas] = useState<{ temporada: string; temporada_label: string; count: number }[]>([]);
   const [propio, setPropio] = useState<MisalPropioEntry | null>(null);
+  const [santoDelDia, setSantoDelDia] = useState<Santo | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -62,6 +63,12 @@ export default function LiturgiaScreen() {
       setStats({ rosario_total: st.rosario_total, coronilla_total: st.coronilla_total });
       setLectura(lec);
       setTemporadas(temps);
+      const now = new Date();
+      try {
+        const santos = await getSantosDelDia(db, now.getMonth() + 1, now.getDate());
+        setSantoDelDia(santos[0] ?? null);
+      } catch (e) { console.warn('[santo]', e); }
+
       if (lec?.titulo_misa) {
         const season = detectSeason(lec.titulo_misa);
         try {
@@ -136,6 +143,22 @@ export default function LiturgiaScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Santo del día */}
+        {santoDelDia ? (
+          <TouchableOpacity onPress={() => router.push(`/santo/${santoDelDia.id}`)} style={styles.card} activeOpacity={0.7}>
+            <View style={styles.cardRow}>
+              <ThemedText style={styles.cardIcon}>✝</ThemedText>
+              <View style={styles.cardTextWrap}>
+                <ThemedText style={styles.cardLabel}>SANTO DEL DÍA</ThemedText>
+                <ThemedText style={styles.cardTitle}>{santoDelDia.nombre}</ThemedText>
+                {santoDelDia.titulo ? <ThemedText style={styles.santoSub}>{santoDelDia.titulo}</ThemedText> : null}
+                <ThemedText style={styles.santoBio} numberOfLines={2}>{santoDelDia.biografia}</ThemedText>
+              </View>
+              <ThemedText style={styles.chevron}>›</ThemedText>
+            </View>
+          </TouchableOpacity>
+        ) : null}
+
         {/* Propio del Tiempo */}
         {propio ? (
           <View style={styles.propioSection}>
@@ -199,6 +222,8 @@ const styles = StyleSheet.create({
   cardIcon: { fontSize: 28, marginRight: 14 },
   cardTextWrap: { flex: 1 },
   cardTitle: { color: C.text, fontSize: 16, fontWeight: '600' },
+  santoSub: { color: C.goldLight, fontSize: 12, fontStyle: 'italic', marginTop: 2 },
+  santoBio: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 4 },
   chevron: { color: C.gold, fontSize: 24, marginLeft: 6 },
   cardLabel: { color: C.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: S.xs },
   streakText: { color: C.text, fontSize: 22, fontWeight: 'bold' },
