@@ -46,6 +46,10 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
     }
   }, [stepIndex, total]);
 
+  const handleAnterior = useCallback(() => {
+    setStepIndex((i) => Math.max(0, i - 1));
+  }, []);
+
   useEffect(() => {
     const hoy = new Date();
     const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
@@ -165,13 +169,24 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
 
       {step.id !== "completado" ? (
         <View style={[s.footer, { paddingBottom: insets.bottom + 12 }]}>
-          <TouchableOpacity
-            style={s.nextBtn}
-            onPress={handleSiguiente}
-            activeOpacity={0.8}
-          >
-            <ThemedText style={s.nextBtnText}>Amén · Siguiente</ThemedText>
-          </TouchableOpacity>
+          <View style={s.footerRow}>
+            {stepIndex > 0 && (
+              <TouchableOpacity
+                style={s.prevBtn}
+                onPress={handleAnterior}
+                activeOpacity={0.8}
+              >
+                <ThemedText style={s.prevBtnText}>← Anterior</ThemedText>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[s.nextBtn, stepIndex > 0 && s.nextBtnFlex]}
+              onPress={handleSiguiente}
+              activeOpacity={0.8}
+            >
+              <ThemedText style={s.nextBtnText}>Amén · Siguiente</ThemedText>
+            </TouchableOpacity>
+          </View>
         </View>
       ) : (
         <View style={[s.footer, { paddingBottom: insets.bottom + 12 }]}>
@@ -215,6 +230,17 @@ const s = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: C.goldDim,
   },
+  footerRow: { flexDirection: "row", gap: 12 },
+  prevBtn: {
+    flex: 1,
+    backgroundColor: C.navyLight,
+    borderRadius: R.lg,
+    paddingVertical: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: C.goldDim,
+  },
+  prevBtnText: { color: C.muted, fontSize: 16, fontWeight: "600" },
   nextBtn: {
     backgroundColor: C.goldDim,
     borderRadius: R.lg,
@@ -223,5 +249,6 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.gold,
   },
+  nextBtnFlex: { flex: 1 },
   nextBtnText: { color: C.goldLight, fontSize: 16, fontWeight: "700", letterSpacing: 0.5 },
 });
