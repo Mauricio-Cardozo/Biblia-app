@@ -1,4 +1,4 @@
-export interface JaculatoriaGroup {
+interface JaculatoriaGroup {
   titulo: string;
   items: { invocacion: string; respuesta: string }[];
 }

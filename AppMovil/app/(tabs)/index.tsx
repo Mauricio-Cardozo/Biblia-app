@@ -16,7 +16,7 @@ import { calcularRacha, obtenerStats } from '@/data/streaks';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getLecturaDelDia, getMisalTemporadas, getMisalPropioPorSemana, getSeasonFromNearestLectura, getSantosDelDia } from '@/db/db';
 import { fechaActualLarga, hoy } from '@/utils/date';
-import { detectSeason, parseWeekNumber, isSunday, SEASON_EMOJI } from '@/utils/seasons';
+import { detectSeason, parseWeekNumber, SEASON_EMOJI } from '@/utils/seasons';
 import type { Lectura, MisalPropioEntry, Santo } from '@/types';
 
 const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
@@ -79,11 +79,10 @@ export default function LiturgiaScreen() {
         try {
           if (season) {
             const week = parseWeekNumber(lec.titulo_misa);
-            const sun = isSunday(lec.titulo_misa);
-            setPropio(await getMisalPropioPorSemana(db, season, week, sun));
+            setPropio(await getMisalPropioPorSemana(db, season, week));
           } else {
             const fb = await getSeasonFromNearestLectura(db, hoy());
-            if (fb) setPropio(await getMisalPropioPorSemana(db, fb.season, fb.week, fb.isSunday));
+            if (fb) setPropio(await getMisalPropioPorSemana(db, fb.season, fb.week));
           }
         } catch (e: unknown) { console.warn('[misa]', e instanceof Error ? e.message : e); }
       }

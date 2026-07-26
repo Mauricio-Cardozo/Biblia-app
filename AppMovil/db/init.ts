@@ -87,7 +87,9 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
         "CREATE TABLE IF NOT EXISTS santos (id INTEGER PRIMARY KEY AUTOINCREMENT, mes INTEGER NOT NULL, dia INTEGER NOT NULL, nombre TEXT NOT NULL, titulo TEXT, biografia TEXT NOT NULL)",
       );
       await setVersion(db, 6);
-    } catch {}
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Migration v6 failed:", e instanceof Error ? e.message : e);
+    }
   }
 
   // ── v7: Add misal_santos table ───────────────────────────────
@@ -98,7 +100,9 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
         "CREATE TABLE IF NOT EXISTS misal_santos (id INTEGER PRIMARY KEY AUTOINCREMENT, mes INTEGER NOT NULL, dia INTEGER NOT NULL, nombre TEXT NOT NULL, titulo TEXT, rango TEXT, antifona_entrada TEXT, colecta TEXT, oracion_ofrendas TEXT, prefacio TEXT, antifona_comunion TEXT, postcomunion TEXT)",
       );
       await setVersion(db, 7);
-    } catch {}
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Migration v7 failed:", e instanceof Error ? e.message : e);
+    }
   }
 
   // ── v8: Add YOUCAT table ─────────────────────────────────────
@@ -285,8 +289,8 @@ export async function diagnose(db: SQLiteDatabase): Promise<string> {
     else lines.push(`❌ FTS5 NO disponible: Plegarias`);
     if (ftsStatus.biblia) lines.push(`✅ FTS5 disponible: Biblia`);
     else lines.push(`❌ FTS5 NO disponible: Biblia`);
-  } catch (e: any) {
-    lines.push(`Error en diagnóstico: ${e.message}`);
+  } catch (e: unknown) {
+    lines.push(`Error en diagnóstico: ${e instanceof Error ? e.message : String(e)}`);
   }
   return lines.join("\n");
 }

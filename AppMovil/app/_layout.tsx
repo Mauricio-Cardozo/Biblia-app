@@ -6,7 +6,6 @@ import { NavigationBar } from 'expo-navigation-bar';
 import { C } from '@/constants/theme';
 import { ensureDatabaseSchema } from '@/db/init';
 import { FontSizeProvider } from '@/contexts/font-size';
-import { BibliaVersionProvider } from '@/contexts/bible-version';
 import { initNotificationHandler, getPrefEvangelio, getPrefRachas, scheduleBibleNotifications, scheduleStreakNotification } from '@/data/notifications';
 
 initNotificationHandler();
@@ -55,25 +54,23 @@ export default function RootLayout() {
       >
         <DatabaseInit>
           <FontSizeProvider>
-            <BibliaVersionProvider>
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="evangelio" options={{ headerShown: false }} />
-                <Stack.Screen name="calendario" options={{ headerShown: false }} />
-                <Stack.Screen name="favoritos" options={{ headerShown: false }} />
-                <Stack.Screen name="test" options={{ headerShown: false }} />
-                <Stack.Screen name="rosario/guia" options={{ headerShown: false }} />
-                <Stack.Screen name="rosario/coronilla" options={{ headerShown: false }} />
-                <Stack.Screen name="oraciones/index" options={{ headerShown: false }} />
-                <Stack.Screen name="oraciones/[id]" options={{ headerShown: false }} />
-                <Stack.Screen name="oraciones/jaculatorias" options={{ headerShown: false }} />
-                <Stack.Screen name="oraciones/novena/index" options={{ headerShown: false }} />
-                <Stack.Screen name="oraciones/novena/[id]" options={{ headerShown: false }} />
-                <Stack.Screen name="misal" options={{ headerShown: false }} />
-                <Stack.Screen name="ajustes" options={{ headerShown: false }} />
-                <Stack.Screen name="santo/[id]" options={{ headerShown: false }} />
-              </Stack>
-            </BibliaVersionProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="evangelio" options={{ headerShown: false }} />
+              <Stack.Screen name="calendario" options={{ headerShown: false }} />
+              <Stack.Screen name="favoritos" options={{ headerShown: false }} />
+              <Stack.Screen name="test" options={{ headerShown: false }} />
+              <Stack.Screen name="rosario/guia" options={{ headerShown: false }} />
+              <Stack.Screen name="rosario/coronilla" options={{ headerShown: false }} />
+              <Stack.Screen name="oraciones/index" options={{ headerShown: false }} />
+              <Stack.Screen name="oraciones/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="oraciones/jaculatorias" options={{ headerShown: false }} />
+              <Stack.Screen name="oraciones/novena/index" options={{ headerShown: false }} />
+              <Stack.Screen name="oraciones/novena/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="misal" options={{ headerShown: false }} />
+              <Stack.Screen name="ajustes" options={{ headerShown: false }} />
+              <Stack.Screen name="santo/[id]" options={{ headerShown: false }} />
+            </Stack>
           </FontSizeProvider>
         </DatabaseInit>
       </SQLiteProvider>

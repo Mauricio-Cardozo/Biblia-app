@@ -7,7 +7,6 @@ import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { sharedStyles } from '@/constants/shared-styles';
 import { useSQLiteContext } from "expo-sqlite";
-import { useBibliaVersion } from "@/contexts/bible-version";
 import { tabBarScrollY } from "@/utils/scroll-state";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -29,7 +28,6 @@ const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
 
 export default function BibliaScreen() {
   const db = useSQLiteContext();
-  const version = useBibliaVersion();
 
   const [nivel, setNivel] = useState<Nivel>("libros");
   const [libroActual, setLibroActual] = useState<Book | null>(null);
@@ -72,25 +70,25 @@ export default function BibliaScreen() {
   useEffect(() => {
     (async () => {
       setLoading(true); setError(null);
-      try { setLibros(await getLibros(db, version.tabla)); }
+      try { setLibros(await getLibros(db)); }
       catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
       finally { setLoading(false); }
     })();
-  }, [db, version.tabla]);
+  }, [db]);
 
   const cargarCapitulos = useCallback(async (libro: string) => {
     setLoading(true); setError(null);
-    try { setCapitulos(await getCapitulos(db, libro, version.tabla)); }
+    try { setCapitulos(await getCapitulos(db, libro)); }
     catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
-  }, [db, version.tabla]);
+  }, [db]);
 
   const cargarVersiculos = useCallback(async (libro: string, cap: number) => {
     setLoading(true); setError(null);
-    try { setVersiculos(await getVersiculos(db, libro, cap, version.tabla)); }
+    try { setVersiculos(await getVersiculos(db, libro, cap)); }
     catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
-  }, [db, version.tabla]);
+  }, [db]);
 
   useEffect(() => {
     (async () => {
@@ -158,7 +156,7 @@ export default function BibliaScreen() {
       return (
         <ImageBackground source={imgSrc} style={s.heroImg} resizeMode="cover">
           <View style={s.heroOverlay}>
-            <ThemedText style={s.heroSuper}>✝ {version.nombre.toUpperCase()}</ThemedText>
+            <ThemedText style={s.heroSuper}>✝ BIBLIA DEL PUEBLO DE DIOS</ThemedText>
             <ThemedText style={s.heroTitle}>La Sagrada Escritura</ThemedText>
             <ThemedText style={s.heroSub}>{antiguos + nuevos} Libros</ThemedText>
           </View>
@@ -168,7 +166,7 @@ export default function BibliaScreen() {
 
     return (
       <ScreenHeader
-        superLabel={`✝ ${version.nombre.toUpperCase()}`}
+        superLabel="✝ BIBLIA DEL PUEBLO DE DIOS"
         title={nivel === "capitulos" ? (libroActual?.libro ?? "") : `${libroActual?.libro ?? ""} ${capActual ?? ""}`}
         subtitle={nivel === "capitulos" ? `${libroActual?.testamento} Testamento` : `${libroActual?.libro ?? ""} › Cap. ${capActual ?? ""}`}
         showBack

@@ -6,7 +6,7 @@ import type { Book } from "@/types";
 import React, { useState } from "react";
 import { Animated, StyleSheet, TouchableOpacity } from "react-native";
 
-export const ABREVIATURAS: Record<string, string> = {
+const ABREVIATURAS: Record<string, string> = {
   "Génesis": "Gn", "Éxodo": "Éx", "Levítico": "Lv", "Números": "Nm",
   "Deuteronomio": "Dt", "Josué": "Jos", "Jueces": "Jue", "Rut": "Rut",
   "1 Samuel": "1 Sm", "2 Samuel": "2 Sm", "1 Reyes": "1 Re", "2 Reyes": "2 Re",
@@ -29,7 +29,7 @@ export const ABREVIATURAS: Record<string, string> = {
   "Apocalipsis": "Ap",
 };
 
-export const abrev = (libro: string) => ABREVIATURAS[libro] ?? libro.slice(0, 3);
+const abrev = (libro: string) => ABREVIATURAS[libro] ?? libro.slice(0, 3);
 
 interface LibroCardProps {
   item: Book;

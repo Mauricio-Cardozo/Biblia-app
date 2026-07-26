@@ -21,7 +21,7 @@ export async function getMisalPropioDetalle(db: SQLiteDatabase, id: number): Pro
   );
 }
 
-export async function getMisalPropioPorSemana(db: SQLiteDatabase, temporada: string, semana: number, esDomingo: boolean): Promise<MisalPropioEntry | null> {
+export async function getMisalPropioPorSemana(db: SQLiteDatabase, temporada: string, semana: number): Promise<MisalPropioEntry | null> {
   if (temporada === 'ordinario' && semana > 0 && semana <= 34) {
     const R = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI','XXII','XXIII','XXIV','XXV','XXVI','XXVII','XXVIII','XXIX','XXX','XXXI','XXXII','XXXIII','XXXIV'];
     const n = R[semana - 1];
@@ -92,13 +92,6 @@ export async function getMisalGuiaPorSeccion(db: SQLiteDatabase, seccion: string
   return db.getAllAsync<MisalGuiaEntry>(
     "SELECT id, seccion, titulo, texto, orden FROM misal_guia WHERE seccion = ? ORDER BY orden",
     [seccion],
-  );
-}
-
-export async function getMisalGuiaDetalle(db: SQLiteDatabase, id: number): Promise<MisalGuiaEntry | null> {
-  return db.getFirstAsync<MisalGuiaEntry>(
-    "SELECT id, seccion, titulo, texto, orden FROM misal_guia WHERE id = ?",
-    [id],
   );
 }
 

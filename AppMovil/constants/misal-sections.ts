@@ -1,4 +1,4 @@
-export interface Seccion {
+interface Seccion {
   id: string;
   titulo: string;
   subtitulo: string;

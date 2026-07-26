@@ -32,22 +32,4 @@ export async function addTag(label: string, color: string): Promise<Tag> {
   return tag;
 }
 
-export async function removeTag(id: string): Promise<void> {
-  let tags = await getTags();
-  tags = tags.filter((t) => t.id !== id);
-  try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tags));
-    _cache = tags;
-  } catch { /* storage write failed */ }
-}
 
-export async function renameTag(id: string, label: string): Promise<void> {
-  const tags = await getTags();
-  const t = tags.find((x) => x.id === id);
-  if (!t) return;
-  t.label = label;
-  try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tags));
-    _cache = tags;
-  } catch { /* storage write failed */ }
-}

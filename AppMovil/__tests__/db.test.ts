@@ -112,7 +112,7 @@ describe("Misal", () => {
   });
 
   it("getMisalPropioPorSemana retorna propio por semana del tiempo ordinario", async () => {
-    const res = await getMisalPropioPorSemana(db, "ordinario", 1, true);
+    const res = await getMisalPropioPorSemana(db, "ordinario", 1);
     expect(res).not.toBeNull();
     expect(res?.temporada).toBe("ordinario");
   });

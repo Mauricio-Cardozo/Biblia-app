@@ -9,7 +9,6 @@ const STEP = 0.1;
 
 interface FontSizeCtx {
   multiplier: number;
-  setMultiplier: (v: number) => void;
   aumentar: () => void;
   disminuir: () => void;
   reset: () => void;
@@ -17,7 +16,6 @@ interface FontSizeCtx {
 
 const Ctx = createContext<FontSizeCtx>({
   multiplier: DEFAULT,
-  setMultiplier: () => {},
   aumentar: () => {},
   disminuir: () => {},
   reset: () => {},
@@ -50,7 +48,7 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
   }, [multiplier, persist]);
 
   return (
-    <Ctx.Provider value={{ multiplier, setMultiplier: persist, aumentar, disminuir, reset }}>
+    <Ctx.Provider value={{ multiplier, aumentar, disminuir, reset }}>
       {children}
     </Ctx.Provider>
   );

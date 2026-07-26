@@ -125,8 +125,8 @@ export default function AjustesScreen() {
                 Alert.alert("Importado", `${n} datos restaurados.`);
                 setMostrarImport(false);
                 setImportText("");
-              } catch (e) {
-                console.warn('[import]', e);
+              } catch (e: unknown) {
+                console.warn('[import]', e instanceof Error ? e.message : e);
                 Alert.alert("Error", "JSON inválido");
               }
             }}>

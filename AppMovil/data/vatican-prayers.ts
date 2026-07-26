@@ -1,4 +1,4 @@
-export interface VaticanPrayer {
+interface VaticanPrayer {
   id: string;
   titulo: string;
   texto: string;

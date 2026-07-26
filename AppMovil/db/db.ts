@@ -14,7 +14,7 @@ export {
   getMisalPropioPorSemana, getMisalOrdinarioPorSeccion, getMisalOrdinarioSecciones,
   getMisalPrefacios, getMisalPrefacioDetalle, getMisalPlegarias,
   getMisalPlegariaDetalle, getMisalOrdinarioDetalle,
-  getMisalGuiaSecciones, getMisalGuiaPorSeccion, getMisalGuiaDetalle,
+  getMisalGuiaSecciones, getMisalGuiaPorSeccion,
   searchMisalTodo,
 } from "./misal";
 export type { MisalGuiaEntry, MisalSearchResult } from "@/types";
