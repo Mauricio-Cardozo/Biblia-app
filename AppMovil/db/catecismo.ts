@@ -34,9 +34,9 @@ export async function searchYoucat(
   termino: string,
 ): Promise<YoucatPregunta[]> {
   return db.getAllAsync<YoucatPregunta>(
-    `SELECT y.* FROM youcat y
-     WHERE y.pregunta LIKE ? OR y.respuesta LIKE ?
-     ORDER BY y.id`,
+     `SELECT y.* FROM youcat y
+      WHERE y.pregunta LIKE ? OR y.respuesta LIKE ?
+      ORDER BY y.id LIMIT 50`,
     [`%${termino}%`, `%${termino}%`],
   );
 }

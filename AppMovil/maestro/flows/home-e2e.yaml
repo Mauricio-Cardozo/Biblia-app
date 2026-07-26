@@ -1,0 +1,7 @@
+appId: com.iglesiadigital.app
+---
+- launchApp
+- assertVisible: "✝ IGLESIA DIGITAL"
+- assertVisible: "Liturgia"
+- assertVisible: "ROSARIO"
+- assertVisible: "CORONILLA"

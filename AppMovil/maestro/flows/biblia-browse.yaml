@@ -1,0 +1,14 @@
+appId: com.iglesiadigital.app
+---
+- launchApp
+- tapOn:
+    id: "biblia"
+- assertVisible: "La Sagrada Escritura"
+- tapOn:
+    id: "Antiguo"
+- tapOn: "Génesis"
+- assertVisible: "Génesis"
+- tapOn: "1"
+- assertVisible: "En el principio creó Dios los cielos y la tierra."
+- tapOn:
+    id: "back"

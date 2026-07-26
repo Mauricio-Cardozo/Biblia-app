@@ -110,6 +110,7 @@ export default function FavoritosScreen() {
         keyExtractor={(item) => item.kind === 'fav' ? `fav-${item.fav.id}` : `hdr-${item.kind === 'tag' ? item.tag.id : 'untagged'}`}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        estimatedItemSize={90}
         ListEmptyComponent={
           <ThemedText style={styles.empty}>Sin favoritos todavía</ThemedText>
         }

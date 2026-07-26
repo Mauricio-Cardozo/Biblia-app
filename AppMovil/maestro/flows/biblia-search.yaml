@@ -1,0 +1,14 @@
+appId: com.iglesiadigital.app
+---
+- launchApp
+- tapOn:
+    id: "biblia"
+- assertVisible: "La Sagrada Escritura"
+- tapOn: "Buscá en la Biblia…"
+- inputText: "principio"
+- pressKey: "Enter"
+- assertVisible: "Génesis 1:1"
+- tapOn: "Génesis 1:1"
+- assertVisible: "En el principio"
+- tapOn:
+    id: "back"

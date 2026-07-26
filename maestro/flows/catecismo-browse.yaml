@@ -1,0 +1,15 @@
+appId: com.iglesiadigital.app
+---
+- launchApp
+- openLink: "iglesia-digital://catecismo"
+- assertVisible: "YOUCAT"
+- assertVisible: "Seleccioná una parte del YOUCAT"
+- tapOn: ".*CREEMOS.*"
+- assertVisible: ".*preguntas.*"
+- tapOn:
+    index: 0
+    text: ".*"
+- assertVisible: "Pregunta"
+- assertVisible: "RESPUESTA"
+- tapOn:
+    id: "back"

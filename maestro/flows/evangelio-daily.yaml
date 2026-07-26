@@ -1,0 +1,8 @@
+appId: com.iglesiadigital.app
+---
+- launchApp
+- openLink: "iglesia-digital://evangelio"
+- assertVisible: "Evangelio del día"
+- assertVisible: "Evangelio"
+- tapOn:
+    id: "back"

@@ -2,7 +2,7 @@ import { C } from "@/constants/theme";
 import { Animated, TouchableOpacity, View, StyleSheet } from "react-native";
 import { IconSymbol } from "./icon-symbol";
 import { tabBarScrollY } from "@/utils/scroll-state";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // ponytail: local types instead of @react-navigation/* imports (not direct deps)
 interface TabBarState { routes: { key: string; name: string; params?: object }[]; index: number }

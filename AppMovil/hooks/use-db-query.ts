@@ -17,7 +17,7 @@ export function useDbQuery<T>(
       .then(setData)
       .catch((e) => setError(e instanceof Error ? e.message : "Error desconocido"))
       .finally(() => setLoading(false));
-  }, [db, ...deps]); // eslint-disable-line react-hooks/use-memo
+  }, [db, fetcher, ...deps]);
 
   useEffect(() => { execute(); }, [execute]);
 

@@ -1,0 +1,16 @@
+appId: com.iglesiadigital.app
+---
+- launchApp
+- tapOn:
+    id: "oracion"
+- assertVisible: "Oración"
+- tapOn: "Misal"
+- assertVisible: "Propio del Tiempo"
+- tapOn: "Propio del Tiempo"
+- assertVisible: "Propio del Tiempo"
+- tapOn:
+    index: 0
+    text: ".*"
+- assertVisible: ".*días.*"
+- tapOn:
+    id: "back"

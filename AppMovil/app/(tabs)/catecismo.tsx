@@ -246,6 +246,7 @@ export default function CatecismoScreen() {
             keyExtractor={(item) => String(item.id)}
             contentContainerStyle={s.list}
             showsVerticalScrollIndicator={false}
+            estimatedItemSize={80}
             ItemSeparatorComponent={() => <View style={s.sep} />}
             renderItem={({ item }) => (
               <ListItemCard
@@ -279,6 +280,7 @@ export default function CatecismoScreen() {
 
       {nivel === "partes" && (
         <FlashList data={partes} keyExtractor={(item) => String(item.parte_id)} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
+          estimatedItemSize={60}
           ListHeaderComponent={<ThemedText style={s.nivelInfo}>Seleccioná una parte del YOUCAT</ThemedText>}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item, index }) => (
@@ -293,6 +295,7 @@ export default function CatecismoScreen() {
 
       {nivel === "preguntas" && (
         <FlashList data={preguntas} keyExtractor={(item) => String(item.id)} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
+          estimatedItemSize={80}
           ListHeaderComponent={<ThemedText style={s.nivelInfo}>{preguntas.length} preguntas</ThemedText>}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item }) => (

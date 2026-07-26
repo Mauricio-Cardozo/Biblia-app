@@ -1,0 +1,12 @@
+appId: com.iglesiadigital.app
+---
+- launchApp
+- tapOn:
+    id: "oracion"
+- assertVisible: "Oración"
+- tapOn: "Santo Rosario"
+- assertVisible: "Santo Rosario"
+- assertVisible: "Amén · Siguiente"
+- tapOn: "Amén · Siguiente"
+- tapOn:
+    id: "back"
