@@ -11,7 +11,7 @@ import { Alert, ScrollView, Share, StyleSheet, Switch, TextInput, TouchableOpaci
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSQLiteContext } from 'expo-sqlite';
 import { exportarDatos, importarDatos } from '@/data/export-import';
-import { scheduleBibleNotifications, cancelBibleNotifications, scheduleStreakNotification, cancelStreakNotification, getPrefEvangelio, getPrefRachas, setPrefEvangelio, setPrefRachas } from '@/data/notifications';
+import { scheduleBibleNotifications, cancelBibleNotifications, scheduleStreakNotification, cancelStreakNotification, getPrefEvangelio, getPrefRachas, setPrefEvangelio, setPrefRachas, getPrefSilencio, setPrefSilencio } from '@/data/notifications';
 import Constants from 'expo-constants';
 
 export default function AjustesScreen() {
@@ -19,6 +19,7 @@ export default function AjustesScreen() {
   const db = useSQLiteContext();
   const [notifEvangelio, setNotifEvangelio] = useState(false);
   const [notifRachas, setNotifRachas] = useState(false);
+  const [modoSilencio, setModoSilencio] = useState(false);
   const [mostrarImport, setMostrarImport] = useState(false);
   const [importText, setImportText] = useState("");
 
@@ -26,6 +27,7 @@ export default function AjustesScreen() {
     (async () => {
       setNotifEvangelio(await getPrefEvangelio());
       setNotifRachas(await getPrefRachas());
+      setModoSilencio(await getPrefSilencio());
     })();
   }, []);
 
@@ -89,6 +91,20 @@ export default function AjustesScreen() {
               onValueChange={toggleRachas}
               trackColor={{ false: C.muted, true: C.goldDim }}
               thumbColor={notifRachas ? C.gold : C.text}
+            />
+          </View>
+        </View>
+        <View style={s.card}>
+          <View style={s.fila}>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={s.filaLabel}>Modo silencio</ThemedText>
+              <ThemedText style={s.filaSub}>Pantalla encendida durante el Rosario o Coronilla</ThemedText>
+            </View>
+            <Switch
+              value={modoSilencio}
+              onValueChange={async (v) => { setModoSilencio(v); await setPrefSilencio(v); }}
+              trackColor={{ false: C.muted, true: C.goldDim }}
+              thumbColor={modoSilencio ? C.gold : C.text}
             />
           </View>
         </View>

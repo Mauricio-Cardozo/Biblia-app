@@ -6,6 +6,7 @@ import { hoy } from '@/utils/date';
 
 const PREF_EVANGELIO = 'notif_evangelio';
 const PREF_RACHAS = 'notif_rachas';
+const PREF_SILENCIO = 'notif_silencio';
 
 export function initNotificationHandler(): void {
   Notifications.setNotificationHandler({
@@ -123,4 +124,13 @@ export async function getPrefRachas(): Promise<boolean> {
 
 export async function setPrefRachas(v: boolean): Promise<void> {
   await AsyncStorage.setItem(PREF_RACHAS, JSON.stringify(v));
+}
+
+export async function getPrefSilencio(): Promise<boolean> {
+  try { return (await AsyncStorage.getItem(PREF_SILENCIO)) === 'true'; }
+  catch { return false; }
+}
+
+export async function setPrefSilencio(v: boolean): Promise<void> {
+  await AsyncStorage.setItem(PREF_SILENCIO, JSON.stringify(v));
 }

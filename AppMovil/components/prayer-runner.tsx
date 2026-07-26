@@ -6,6 +6,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import FontSizeControl from "@/components/font-size-control";
 import { useFontSize, fs } from "@/contexts/font-size";
+import { getPrefSilencio } from "@/data/notifications";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ScrollView,
@@ -48,6 +50,16 @@ export default function PrayerRunner({ pasos, storageKey, title, onBack }: Props
 
   const handleAnterior = useCallback(() => {
     setStepIndex((i) => Math.max(0, i - 1));
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      if (await getPrefSilencio()) {
+        // ponytail: screen-awake only, no system DND (needs setInterruptionFilterAsync from expo-notifications ≥ v57)
+        await activateKeepAwakeAsync();
+      }
+    })();
+    return () => deactivateKeepAwake();
   }, []);
 
   useEffect(() => {
