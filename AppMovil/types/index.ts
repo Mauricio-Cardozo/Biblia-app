@@ -18,26 +18,18 @@ export interface Verse {
   testamento: string;
 }
 
-// ─── Catecismo CIC ─────────────────────────────────────────────────────────────
+// ─── YOUCAT ─────────────────────────────────────────────────────────────────────
 
-export interface CICNumeral {
+export interface YoucatPregunta {
   id: number;
+  parte_id: number;
   parte: string;
   seccion: string;
   capitulo: string;
-  articulo: string;
-  texto: string;
+  pregunta: string;
+  respuesta: string;
+  comentario: string;
 }
-
-export interface CICParte {
-  parte: string;
-}
-
-export interface CICSeccion {
-  seccion: string;
-}
-
-export type CICNumeralPreview = Pick<CICNumeral, 'id' | 'articulo' | 'texto'>;
 
 // ─── Lecturas ───────────────────────────────────────────────────────────────────
 
@@ -116,6 +108,21 @@ export interface MisalSantosEntry {
   prefacio: string | null;
   antifona_comunion: string | null;
   postcomunion: string | null;
+}
+
+export interface MisalGuiaEntry {
+  id: number;
+  seccion: string;
+  titulo: string;
+  texto: string;
+  orden: number;
+}
+
+export interface MisalSearchResult {
+  tipo: 'propio' | 'ordinario' | 'prefacio' | 'plegaria';
+  id: number;
+  titulo: string;
+  preview: string;
 }
 
 // ─── Búsqueda genérica ─────────────────────────────────────────────────────────

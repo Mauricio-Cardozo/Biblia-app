@@ -2,14 +2,15 @@ import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { ThemedText } from '@/components/themed-text';
-import { useCallback, useRef, useState } from 'react';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, View,
 } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
-import { searchCIC } from '@/db/db';
-import type { CICNumeral } from '@/types';
+import { searchYoucat } from '@/db/db';
+import type { YoucatPregunta } from '@/types';
 import { diagnose, forceReCopy } from '@/db/init';
 
 export default function TestDatabase() {
@@ -61,11 +62,11 @@ export default function TestDatabase() {
     setSearchError(null);
     setSearchResults('');
     try {
-      const data = await searchCIC(db, t);
+      const data = await searchYoucat(db, t);
       setSearchResults(data.length === 0
         ? 'Sin resultados'
-        : data.slice(0, 30).map((r: CICNumeral) =>
-            `• Numeral ${r.id}: ${r.texto.slice(0, 120)}…`
+        : data.slice(0, 30).map((r: YoucatPregunta) =>
+            `• #${r.id}: ${r.pregunta.slice(0, 120)}…`
           ).join('\n\n')
       );
     } catch (err) {
@@ -80,39 +81,13 @@ export default function TestDatabase() {
   const rebuildFTS = useCallback(async () => {
     setSearchLoading(true);
     setSearchError(null);
-    setSearchResults('');
-    const errors: string[] = [];
-
-    try {
-      await db.runAsync('DROP TABLE IF EXISTS catecismo_cic_fts;');
-    } catch (e: unknown) {
-      errors.push(e instanceof Error ? e.message : 'Error al dropear tabla FTS');
-    }
-
-    try {
-      await db.runAsync(`CREATE VIRTUAL TABLE IF NOT EXISTS catecismo_cic_fts USING fts5(
-        id, parte, seccion, capitulo, articulo, texto
-      )`);
-      const cicRows = await db.getAllAsync<any>(
-        "SELECT rowid as id, parte, seccion, capitulo, articulo, texto FROM catecismo_cic"
-      );
-      for (const r of cicRows) {
-        await db.runAsync(
-          "INSERT INTO catecismo_cic_fts(rowid, id, parte, seccion, capitulo, articulo, texto) VALUES (?, ?, ?, ?, ?, ?, ?)",
-          [r.id, r.id, r.parte, r.seccion, r.capitulo, r.articulo, r.texto],
-        );
-      }
-    } catch (err: unknown) {
-      errors.push(err instanceof Error ? err.message : String(err));
-    }
-
-    if (errors.length === 0) {
-      setSearchResults('✅ FTS rebuild exitoso');
-    } else {
-      setSearchResults(`⚠ Rebuild parcial:\n  ${errors.join('\n  ')}`);
-    }
+    setSearchResults('✅ No se necesita FTS para YOUCAT (usa LIKE)');
     setSearchLoading(false);
-  }, [db]);
+  }, []);
+
+  useEffect(() => {
+    if (!__DEV__) router.replace('/');
+  }, []);
 
   if (!__DEV__) return null;
 
@@ -121,7 +96,7 @@ export default function TestDatabase() {
       <ThemedText style={s.title}>🔍 Debug de Base de Datos</ThemedText>
 
       <View style={s.card}>
-        <ThemedText style={s.cardTitle}>Buscar en CIC</ThemedText>
+        <ThemedText style={s.cardTitle}>Buscar en YOUCAT</ThemedText>
         <TextInput ref={inputRef} style={s.input} placeholder="Ej: Dios, amor, fe..." placeholderTextColor={C.muted}
           value={termino} onChangeText={setTermino} onSubmitEditing={ejecutarBusqueda} returnKeyType="search"
         />

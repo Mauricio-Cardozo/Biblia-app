@@ -1,55 +1,42 @@
 import { type SQLiteDatabase } from "expo-sqlite";
-import type { CICNumeral, CICParte, CICSeccion, CICNumeralPreview } from "@/types";
+import type { YoucatPregunta } from "@/types";
 
-export async function getCICPartes(db: SQLiteDatabase): Promise<CICParte[]> {
-  return db.getAllAsync<CICParte>(
-    "SELECT parte FROM catecismo_cic GROUP BY parte ORDER BY id ASC",
-  );
-}
-
-export async function getCICSecciones(
+export async function getYoucatPartes(
   db: SQLiteDatabase,
-  parte: string,
-): Promise<CICSeccion[]> {
-  return db.getAllAsync<CICSeccion>(
-    "SELECT seccion FROM catecismo_cic WHERE parte = ? GROUP BY seccion ORDER BY id ASC",
-    [parte],
+): Promise<{ parte_id: number; parte: string }[]> {
+  return db.getAllAsync<{ parte_id: number; parte: string }>(
+    "SELECT parte_id, parte FROM youcat GROUP BY parte_id ORDER BY parte_id ASC",
   );
 }
 
-export async function getCICNumerales(
+export async function getYoucatPreguntas(
   db: SQLiteDatabase,
-  parte: string,
-  seccion: string,
-): Promise<CICNumeralPreview[]> {
-  return db.getAllAsync<CICNumeralPreview>(
-    `SELECT id, articulo, texto
-     FROM catecismo_cic
-     WHERE parte = ? AND seccion = ?
-     ORDER BY id ASC`,
-    [parte, seccion],
+  parte_id: number,
+): Promise<YoucatPregunta[]> {
+  return db.getAllAsync<YoucatPregunta>(
+    "SELECT id, parte_id, parte, seccion, capitulo, pregunta, respuesta, comentario FROM youcat WHERE parte_id = ? ORDER BY id ASC",
+    [parte_id],
   );
 }
 
-export async function getCICDetalle(
+export async function getYoucatDetalle(
   db: SQLiteDatabase,
   id: number,
-): Promise<CICNumeral | null> {
-  return db.getFirstAsync<CICNumeral>(
-    "SELECT id, parte, seccion, capitulo, articulo, texto FROM catecismo_cic WHERE id = ?",
+): Promise<YoucatPregunta | null> {
+  return db.getFirstAsync<YoucatPregunta>(
+    "SELECT id, parte_id, parte, seccion, capitulo, pregunta, respuesta, comentario FROM youcat WHERE id = ?",
     [id],
   );
 }
 
-export async function searchCIC(
+export async function searchYoucat(
   db: SQLiteDatabase,
   termino: string,
-): Promise<CICNumeral[]> {
-  return db.getAllAsync<CICNumeral>(
-     `SELECT c.* FROM catecismo_cic c
-      JOIN catecismo_cic_fts f ON c.rowid = f.rowid
-     WHERE f MATCH ?
-     ORDER BY f.rank`,
-    [termino],
+): Promise<YoucatPregunta[]> {
+  return db.getAllAsync<YoucatPregunta>(
+    `SELECT y.* FROM youcat y
+     WHERE y.pregunta LIKE ? OR y.respuesta LIKE ?
+     ORDER BY y.id`,
+    [`%${termino}%`, `%${termino}%`],
   );
 }

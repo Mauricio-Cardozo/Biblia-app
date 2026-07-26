@@ -1,6 +1,5 @@
 import { C } from '@/constants/theme';
-import { S } from '@/constants/spacing';
-import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
@@ -20,7 +19,7 @@ export default function PlegariaDetalleScreen() {
 
   if (loading) {
     return (
-      <View style={[s.container, s.center, { paddingTop: insets.top }]}>
+      <View style={[sharedStyles.container, sharedStyles.center, { paddingTop: insets.top }]}>
         <ActivityIndicator color={C.gold} />
       </View>
     );
@@ -28,21 +27,21 @@ export default function PlegariaDetalleScreen() {
 
   if (!plegaria) {
     return (
-      <View style={[s.container, s.center, { paddingTop: insets.top }]}>
+      <View style={[sharedStyles.container, sharedStyles.center, { paddingTop: insets.top }]}>
         <ThemedText style={s.errorText}>Plegaria no encontrada</ThemedText>
       </View>
     );
   }
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader
         title={plegaria.nombre}
         superLabel="Plegaria Eucarística"
         showBack
         onBack={() => router.back()}
       />
-      <ScrollView contentContainerStyle={s.content}>
+      <ScrollView contentContainerStyle={sharedStyles.content}>
         <View style={s.block}>
           <ThemedText style={s.text}>{plegaria.texto}</ThemedText>
         </View>
@@ -52,9 +51,6 @@ export default function PlegariaDetalleScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
-  center: { alignItems: "center", justifyContent: "center" },
-  content: { padding: S.lg, paddingBottom: S.huge },
   errorText: { color: C.gold, fontSize: 16 },
   block: {
     backgroundColor: C.navyMid,

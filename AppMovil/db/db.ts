@@ -1,10 +1,10 @@
-export { getLibros, getCapitulos, getVersiculos } from "./biblia";
+export { getLibros, getCapitulos, getVersiculos, searchBiblia } from "./biblia";
 export type { Book, Chapter, Verse } from "@/types";
 
 export {
-  getCICPartes, getCICSecciones, getCICNumerales, getCICDetalle, searchCIC,
+  getYoucatPartes, getYoucatPreguntas, getYoucatDetalle, searchYoucat,
 } from "./catecismo";
-export type { CICNumeral, CICParte, CICSeccion, CICNumeralPreview } from "@/types";
+export type { YoucatPregunta } from "@/types";
 
 export { getLecturaDelDia, getSeasonFromNearestLectura } from "./lecturas";
 export type { Lectura } from "@/types";
@@ -14,7 +14,10 @@ export {
   getMisalPropioPorSemana, getMisalOrdinarioPorSeccion, getMisalOrdinarioSecciones,
   getMisalPrefacios, getMisalPrefacioDetalle, getMisalPlegarias,
   getMisalPlegariaDetalle, getMisalOrdinarioDetalle,
+  getMisalGuiaSecciones, getMisalGuiaPorSeccion, getMisalGuiaDetalle,
+  searchMisalTodo,
 } from "./misal";
+export type { MisalGuiaEntry, MisalSearchResult } from "@/types";
 
-export { getSantosDelDia, getMisalSantosDelDia } from "./santos";
+export { getSantosDelDia, getMisalSantosDelDia, getMisalSantos } from "./santos";
 export type { Santo, MisalSantosEntry } from "@/types";

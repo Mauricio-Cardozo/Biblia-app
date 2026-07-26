@@ -1,6 +1,5 @@
 import { C } from '@/constants/theme';
-import { S } from '@/constants/spacing';
-import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
@@ -20,7 +19,7 @@ export default function OrdinarioDetalleScreen() {
 
   if (loading) {
     return (
-      <View style={[s.container, s.center, { paddingTop: insets.top }]}>
+      <View style={[sharedStyles.container, sharedStyles.center, { paddingTop: insets.top }]}>
         <ActivityIndicator color={C.gold} />
       </View>
     );
@@ -28,21 +27,21 @@ export default function OrdinarioDetalleScreen() {
 
   if (!block) {
     return (
-      <View style={[s.container, s.center, { paddingTop: insets.top }]}>
+      <View style={[sharedStyles.container, sharedStyles.center, { paddingTop: insets.top }]}>
         <ThemedText style={s.errorText}>Bloque no encontrado</ThemedText>
       </View>
     );
   }
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader
         title={block.subseccion}
         superLabel={`${block.seccion} · ${block.rol}`}
         showBack
         onBack={() => router.back()}
       />
-      <ScrollView contentContainerStyle={s.content}>
+      <ScrollView contentContainerStyle={sharedStyles.content}>
         <View style={s.block}>
           <ThemedText style={s.text}>{block.texto}</ThemedText>
         </View>
@@ -52,9 +51,6 @@ export default function OrdinarioDetalleScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
-  center: { alignItems: "center", justifyContent: "center" },
-  content: { padding: S.lg, paddingBottom: S.huge },
   errorText: { color: C.gold, fontSize: 16 },
   block: {
     backgroundColor: C.navyMid,

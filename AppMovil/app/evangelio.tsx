@@ -1,6 +1,7 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import ReadingSection from "@/components/reading-section";
@@ -53,7 +54,7 @@ export default function EvangelioScreen() {
 
   return (
     <ScrollView
-      style={[s.container, { paddingTop: insets.top }]}
+      style={[sharedStyles.container, { paddingTop: insets.top }]}
       contentContainerStyle={s.content}
     >
       <ScreenHeader
@@ -127,7 +128,6 @@ export default function EvangelioScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
   content: { paddingBottom: S.massive },
   centered: { flex: 1, backgroundColor: C.navy, justifyContent: "center", alignItems: "center", paddingHorizontal: S.xl },
   errorText: { color: C.error, fontSize: 15, textAlign: "center", marginBottom: S.lg },

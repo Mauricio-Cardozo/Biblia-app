@@ -2,8 +2,10 @@ import { ThemedText } from "@/components/themed-text";
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import ScreenHeader from "@/components/ui/screen-header";
 import ListItemCard from "@/components/ui/list-item-card";
+import Buscador from "@/components/ui/buscador";
 import FavBtn from "@/components/fav-btn";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -14,55 +16,54 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  getCICPartes, getCICSecciones, getCICNumerales, getCICDetalle, searchCIC,
+  getYoucatPartes, getYoucatPreguntas, getYoucatDetalle, searchYoucat,
 } from "@/db/db";
-import type { CICNumeral, CICParte, CICSeccion, CICNumeralPreview } from "@/types";
+import type { YoucatPregunta } from "@/types";
 
-type Nivel = "partes" | "secciones" | "numerales" | "detalle";
+type Nivel = "partes" | "preguntas" | "detalle";
+
+const PARTE_ICONS = ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"];
 
 export default function CatecismoScreen() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
 
   const [nivel, setNivel] = useState<Nivel>("partes");
-  const [parteActual, setParteActual] = useState<string | null>(null);
-  const [seccionActual, setSeccionActual] = useState<string | null>(null);
-  const [detalle, setDetalle] = useState<CICNumeral | null>(null);
+  const [parteActual, setParteActual] = useState<{ parte_id: number; parte: string } | null>(null);
+  const [detalle, setDetalle] = useState<YoucatPregunta | null>(null);
 
-  const [partes, setPartes] = useState<CICParte[]>([]);
-  const [secciones, setSecciones] = useState<CICSeccion[]>([]);
-  const [numerales, setNumerales] = useState<CICNumeralPreview[]>([]);
+  const [partes, setPartes] = useState<{ parte_id: number; parte: string }[]>([]);
+  const [preguntas, setPreguntas] = useState<YoucatPregunta[]>([]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [query, setQuery] = useState("");
-  const [resultados, setResultados] = useState<CICNumeral[]>([]);
+  const [resultados, setResultados] = useState<YoucatPregunta[]>([]);
   const [buscando, setBuscando] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [currentNumeralId, setCurrentNumeralId] = useState<number | null>(null);
+
   const [jumpValue, setJumpValue] = useState("");
   const inputRef = useRef<TextInput>(null);
 
   const cargarPartes = useCallback(async () => {
     setLoading(true); setError(null);
-    try { setPartes(await getCICPartes(db)); }
+    try { setPartes(await getYoucatPartes(db)); }
     catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
   }, [db]);
 
-  useEffect(() => { cargarPartes(); }, [cargarPartes]);
-
-  const cargarSecciones = useCallback(async (parte: string) => {
-    setLoading(true); setError(null);
-    try { setSecciones(await getCICSecciones(db, parte)); }
-    catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
-    finally { setLoading(false); }
+  useEffect(() => {
+    let mounted = true;
+    getYoucatPartes(db).then((res) => { if (mounted) setPartes(res); })
+      .catch((e) => { if (mounted) setError(e instanceof Error ? e.message : String(e)); })
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
   }, [db]);
 
-  const cargarNumerales = useCallback(async (parte: string, seccion: string) => {
+  const cargarPreguntas = useCallback(async (parte_id: number) => {
     setLoading(true); setError(null);
-    try { setNumerales(await getCICNumerales(db, parte, seccion)); }
+    try { setPreguntas(await getYoucatPreguntas(db, parte_id)); }
     catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
   }, [db]);
@@ -70,13 +71,12 @@ export default function CatecismoScreen() {
   const cargarDetalle = useCallback(async (id: number) => {
     setLoading(true); setError(null);
     try {
-      const row = await getCICDetalle(db, id);
+      const row = await getYoucatDetalle(db, id);
       if (row) {
         setDetalle(row);
-        setCurrentNumeralId(id);
         setNivel("detalle");
       } else {
-        setError(`No existe el numeral ${id}`);
+        setError(`No existe la pregunta ${id}`);
       }
     } catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
@@ -89,30 +89,26 @@ export default function CatecismoScreen() {
     }
     setBuscando(true); setSearchError(null);
     try {
-      const rows = await searchCIC(db, termino);
+      const rows = await searchYoucat(db, termino);
       setResultados(rows);
-      if (rows.length === 0) {
-        setSearchError("Sin resultados. Si esperabas encontrar algo, andá a Test y usá 'Rebuild FTS'.");
-      }
+      if (rows.length === 0) setSearchError("Sin resultados.");
     } catch (e: unknown) {
       setResultados([]);
-      setSearchError(`Error en búsqueda: ${e instanceof Error ? e.message : String(e)}. Probá con términos más simples.`);
+      setSearchError(`Error en búsqueda: ${e instanceof Error ? e.message : String(e)}.`);
     }
     setBuscando(false);
   }, [db]);
 
-  const irAlNumeral = useCallback(async (nro: number) => {
+  const irAPregunta = useCallback(async (nro: number) => {
     setLoading(true); setError(null);
     try {
-      const row = await getCICDetalle(db, nro);
+      const row = await getYoucatDetalle(db, nro);
       if (row) {
         setDetalle(row);
-        setCurrentNumeralId(nro);
-        setParteActual(row.parte);
-        setSeccionActual(row.seccion);
+        setParteActual({ parte_id: row.parte_id, parte: row.parte });
         setNivel("detalle");
       } else {
-        setError(`No existe el numeral ${nro}`);
+        setError(`No existe la pregunta ${nro}`);
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
@@ -121,74 +117,53 @@ export default function CatecismoScreen() {
     }
   }, [db]);
 
-  const seleccionarParte = (parte: string) => {
-    setParteActual(parte); cargarSecciones(parte); setNivel("secciones");
-  };
-  const seleccionarSeccion = (seccion: string) => {
-    setSeccionActual(seccion); cargarNumerales(parteActual!, seccion); setNivel("numerales");
+  const seleccionarParte = (p: { parte_id: number; parte: string }) => {
+    setParteActual(p); cargarPreguntas(p.parte_id); setNivel("preguntas");
   };
   const volver = () => {
     if (resultados.length > 0 || buscando || searchError) {
       setResultados([]); setBuscando(false); setSearchError(null); setQuery("");
       return;
     }
-    if (nivel === "detalle") { setNivel("numerales"); setDetalle(null); setCurrentNumeralId(null); }
-    else if (nivel === "numerales") { setNivel("secciones"); setSeccionActual(null); }
-    else if (nivel === "secciones") { setNivel("partes"); setParteActual(null); }
+    if (nivel === "detalle") { setNivel("preguntas"); setDetalle(null); }
+    else if (nivel === "preguntas") { setNivel("partes"); setParteActual(null); }
   };
-
-  const idx = currentNumeralId != null ? numerales.findIndex((n) => n.id === currentNumeralId) : -1;
-  const prevId = idx > 0 ? numerales[idx - 1]?.id : null;
-  const nextId = idx < numerales.length - 1 ? numerales[idx + 1]?.id : null;
 
   const getHeaderTitles = () => {
     switch (nivel) {
-      case "partes": return { title: "Catecismo de la Iglesia", superLabel: "✝ IGLESIA DIGITAL" };
-      case "secciones": return { title: parteActual ?? "", superLabel: "✝ IGLESIA DIGITAL", subtitle: "Seleccioná una sección" };
-      case "numerales": return { title: seccionActual ?? "", superLabel: "✝ IGLESIA DIGITAL", subtitle: parteActual ?? "" };
-      case "detalle": return { title: "Numeral", superLabel: "✝ IGLESIA DIGITAL" };
+      case "partes": return { title: "YOUCAT", superLabel: "✝ IGLESIA DIGITAL" };
+      case "preguntas": return { title: parteActual?.parte ?? "", superLabel: "✝ IGLESIA DIGITAL" };
+      case "detalle": return { title: "Pregunta", superLabel: "✝ IGLESIA DIGITAL" };
     }
   };
 
   const renderBuscador = () => (
-    <View style={s.buscadorRow}>
-      <View style={s.buscador}>
-        <TextInput
-          ref={inputRef}
-          style={s.input}
-          placeholder="Buscar en CIC…"
-          placeholderTextColor={C.muted}
-          value={query}
-          onChangeText={setQuery}
-          onSubmitEditing={() => buscar(query)}
-          returnKeyType="search"
-        />
-        {query.length > 0 && (
-          <TouchableOpacity
-            onPress={() => { setQuery(""); setResultados([]); setBuscando(false); setSearchError(null); }}
-            style={s.clearBtn}
-          >
-            <ThemedText style={s.clearText}>✕</ThemedText>
-          </TouchableOpacity>
-        )}
-      </View>
-      <View style={s.jumpBox}>
-        <TextInput
-          style={s.jumpInput}
-          placeholder="#"
-          placeholderTextColor={C.muted}
-          value={jumpValue}
-          onChangeText={setJumpValue}
-          onSubmitEditing={() => {
-            const n = parseInt(jumpValue, 10);
-            if (n > 0) irAlNumeral(n);
-            setJumpValue("");
-          }}
-          keyboardType="number-pad"
-          returnKeyType="go"
-        />
-      </View>
-    </View>
+    <Buscador
+      value={query}
+      onChangeText={setQuery}
+      onSubmit={() => buscar(query)}
+      onClear={() => { setQuery(""); setResultados([]); setBuscando(false); setSearchError(null); }}
+      placeholder="Buscar en YOUCAT…"
+      inputRef={inputRef}
+      rightSlot={
+        <View style={s.jumpBox}>
+          <TextInput
+            style={s.jumpInput}
+            placeholder="#"
+            placeholderTextColor={C.muted}
+            value={jumpValue}
+            onChangeText={setJumpValue}
+            onSubmitEditing={() => {
+              const n = parseInt(jumpValue, 10);
+              if (n > 0) irAPregunta(n);
+              setJumpValue("");
+            }}
+            keyboardType="number-pad"
+            returnKeyType="go"
+          />
+        </View>
+      }
+    />
   );
 
   if (loading) return (
@@ -211,20 +186,20 @@ export default function CatecismoScreen() {
     <View style={[s.safe, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
       <ScreenHeader
-        title="Numeral"
+        title="Pregunta"
         showBack
         onBack={volver}
         superLabel="✝ IGLESIA DIGITAL"
       />
       <ScrollView contentContainerStyle={s.detalleContent} showsVerticalScrollIndicator={false}>
         <View style={s.nroBadgeRow}>
-          <View style={s.nroBadge}><ThemedText style={s.nroBadgeText}>Numeral {detalle.id}</ThemedText></View>
+          <View style={s.nroBadge}><ThemedText style={s.nroBadgeText}>#{detalle.id}</ThemedText></View>
           <FavBtn
             favorito={{
-              id: `cic-${detalle.id}`,
-              tipo: "cic",
-              referencia: `CIC #${detalle.id}`,
-              preview: detalle.texto?.slice(0, 80) ?? "",
+              id: `youcat-${detalle.id}`,
+              tipo: "youcat",
+              referencia: `YOUCAT #${detalle.id}`,
+              preview: detalle.pregunta?.slice(0, 80) ?? "",
               timestamp: 0,
             }}
           />
@@ -233,61 +208,32 @@ export default function CatecismoScreen() {
           {detalle.parte ? <ThemedText style={s.jerarquiaItem}>📖 {detalle.parte}</ThemedText> : null}
           {detalle.seccion ? <ThemedText style={s.jerarquiaItem}>  › {detalle.seccion}</ThemedText> : null}
           {detalle.capitulo ? <ThemedText style={s.jerarquiaItem}>  › {detalle.capitulo}</ThemedText> : null}
-          {detalle.articulo ? <ThemedText style={s.jerarquiaItem}>  › {detalle.articulo}</ThemedText> : null}
         </View>
         <View style={s.divider} />
-        <ThemedText style={s.detalleTexto}>{detalle.texto}</ThemedText>
-
-        <View style={s.prevNextRow}>
-          <TouchableOpacity
-            style={[s.prevNextBtn, !prevId && s.prevNextDisabled]}
-            onPress={() => prevId && cargarDetalle(prevId)}
-            disabled={!prevId}
-            activeOpacity={0.7}
-          >
-            <ThemedText style={s.prevNextText}>← Anterior</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[s.prevNextBtn, !nextId && s.prevNextDisabled]}
-            onPress={() => nextId && cargarDetalle(nextId)}
-            disabled={!nextId}
-            activeOpacity={0.7}
-          >
-            <ThemedText style={s.prevNextText}>Siguiente →</ThemedText>
-          </TouchableOpacity>
-        </View>
-
-        <View style={s.jumpDetailRow}>
-          <TextInput
-            style={s.jumpDetailInput}
-            placeholder="Ir al numeral #"
-            placeholderTextColor={C.muted}
-            value={jumpValue}
-            onChangeText={setJumpValue}
-            onSubmitEditing={() => {
-              const n = parseInt(jumpValue, 10);
-              if (n > 0) irAlNumeral(n);
-              setJumpValue("");
-            }}
-            keyboardType="number-pad"
-            returnKeyType="go"
-          />
-        </View>
-
-        <TouchableOpacity style={s.volverBtn} onPress={volver} activeOpacity={0.8}>
-          <ThemedText style={s.volverBtnText}>← Volver a lista</ThemedText>
-        </TouchableOpacity>
+        <ThemedText style={s.preguntaTexto}>{detalle.pregunta}</ThemedText>
+        {detalle.respuesta ? (
+          <>
+            <View style={s.respuestaLabel}><ThemedText style={s.labelText}>RESPUESTA</ThemedText></View>
+            <ThemedText style={s.respuestaTexto}>{detalle.respuesta}</ThemedText>
+          </>
+        ) : null}
+        {detalle.comentario ? (
+          <>
+            <View style={s.comentarioLabel}><ThemedText style={s.labelText}>COMENTARIO</ThemedText></View>
+            <ThemedText style={s.comentarioTexto}>{detalle.comentario}</ThemedText>
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );
 
   if (resultados.length > 0 || buscando || searchError) {
     return (
-      <View style={[s.safe, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle="light-content" backgroundColor={C.navy} />
         <ScreenHeader
           title={getHeaderTitles().title}
-        showBack
+          showBack
           onBack={volver}
           superLabel="✝ IGLESIA DIGITAL"
         />
@@ -304,8 +250,8 @@ export default function CatecismoScreen() {
             renderItem={({ item }) => (
               <ListItemCard
                 index={item.id}
-                title={item.texto?.slice(0, 80) + "…"}
-                subtitle={[item.parte, item.seccion].filter(Boolean).join(" › ")}
+                title={item.pregunta?.slice(0, 80) + "…"}
+                subtitle={item.respuesta?.slice(0, 60) + "…" ?? ""}
                 onPress={() => cargarDetalle(item.id)}
               />
             )}
@@ -321,53 +267,39 @@ export default function CatecismoScreen() {
   }
 
   return (
-    <View style={[s.safe, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
       <ScreenHeader
         title={getHeaderTitles().title}
         showBack={nivel !== "partes"}
         onBack={volver}
         superLabel="✝ IGLESIA DIGITAL"
-        subtitle={getHeaderTitles().subtitle}
       />
       {renderBuscador()}
 
       {nivel === "partes" && (
-        <FlashList data={partes} keyExtractor={(item) => item.parte} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
-          ListHeaderComponent={<ThemedText style={s.nivelInfo}>Seleccioná una parte del Catecismo</ThemedText>}
+        <FlashList data={partes} keyExtractor={(item) => String(item.parte_id)} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
+          ListHeaderComponent={<ThemedText style={s.nivelInfo}>Seleccioná una parte del YOUCAT</ThemedText>}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item, index }) => (
             <ListItemCard
               index={index + 1}
-              title={item.parte}
-              onPress={() => seleccionarParte(item.parte)}
+              title={`${PARTE_ICONS[index] ?? ""} ${item.parte}`}
+              onPress={() => seleccionarParte(item)}
             />
           )}
         />
       )}
 
-      {nivel === "secciones" && (
-        <FlashList data={secciones} keyExtractor={(item) => item.seccion} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
-          ListHeaderComponent={<ThemedText style={s.nivelInfo}>Seleccioná una sección</ThemedText>}
-          ItemSeparatorComponent={() => <View style={s.sep} />}
-          renderItem={({ item, index }) => (
-            <ListItemCard
-              index={index + 1}
-              title={item.seccion}
-              onPress={() => seleccionarSeccion(item.seccion)}
-            />
-          )}
-        />
-      )}
-
-      {nivel === "numerales" && (
-        <FlashList data={numerales} keyExtractor={(item) => String(item.id)} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
-          ListHeaderComponent={<ThemedText style={s.nivelInfo}>Seleccioná un numeral</ThemedText>}
+      {nivel === "preguntas" && (
+        <FlashList data={preguntas} keyExtractor={(item) => String(item.id)} contentContainerStyle={s.list} showsVerticalScrollIndicator={false}
+          ListHeaderComponent={<ThemedText style={s.nivelInfo}>{preguntas.length} preguntas</ThemedText>}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item }) => (
             <ListItemCard
-              title={item.articulo || `Numeral ${item.id}`}
-              subtitle={item.texto?.slice(0, 80) + "…"}
+              index={item.id}
+              title={item.pregunta?.slice(0, 80) + "…"}
+              subtitle={item.respuesta?.slice(0, 60) + "…" ?? ""}
               onPress={() => cargarDetalle(item.id)}
             />
           )}
@@ -378,19 +310,13 @@ export default function CatecismoScreen() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.navy },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: S.md, backgroundColor: C.navy },
   muted: { color: C.muted, fontSize: 14 },
   mutedCenter: { color: C.muted, fontSize: 14, textAlign: "center", paddingVertical: S.huge },
   errorText: { color: C.error, fontSize: 14, textAlign: "center", paddingHorizontal: S.xl },
   retryBtn: { paddingHorizontal: S.xl, paddingVertical: 10, backgroundColor: C.navyLight, borderRadius: R.md, borderWidth: 1, borderColor: C.goldDim },
   retryText: { color: C.goldLight, fontWeight: "600" },
-  buscadorRow: { flexDirection: "row", alignItems: "center", gap: S.sm, marginHorizontal: S.lg, marginVertical: 10 },
-  buscador: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: C.navyMid, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, paddingHorizontal: 14 },
-  input: { flex: 1, color: C.text, fontSize: 15, paddingVertical: S.md },
-  clearBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: C.navyLight, alignItems: "center", justifyContent: "center", marginLeft: S.sm },
-  clearText: { color: C.muted, fontSize: 12 },
-  jumpBox: { width: 52, height: 44, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, backgroundColor: C.navyMid, alignItems: "center", justifyContent: "center" },
+  jumpBox: { width: 52, height: 44, borderRadius: R.md, borderWidth: 1, borderColor: C.goldDim, backgroundColor: C.navyMid, alignItems: "center", justifyContent: "center" },
   jumpInput: { color: C.gold, fontSize: 16, fontWeight: "700", textAlign: "center", width: "100%", padding: 0 },
   list: { padding: S.lg },
   sep: { height: 1, backgroundColor: C.sep, marginHorizontal: S.sm },
@@ -402,13 +328,10 @@ const s = StyleSheet.create({
   jerarquia: { gap: S.xs, marginBottom: S.lg },
   jerarquiaItem: { color: C.muted, fontSize: 13, lineHeight: 20 },
   divider: { height: 2, backgroundColor: C.goldDim, borderRadius: 1, marginBottom: S.xl },
-  detalleTexto: { color: C.text, fontSize: 16, lineHeight: 28, textAlign: "justify" },
-  prevNextRow: { flexDirection: "row", gap: 10, marginTop: S.xxl },
-  prevNextBtn: { flex: 1, paddingVertical: S.md, backgroundColor: C.navyLight, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, alignItems: "center" },
-  prevNextDisabled: { opacity: 0.35 },
-  prevNextText: { color: C.goldLight, fontWeight: "600", fontSize: 14 },
-  jumpDetailRow: { marginTop: S.md },
-  jumpDetailInput: { backgroundColor: C.navyLight, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, paddingVertical: S.md, paddingHorizontal: S.lg, color: C.text, fontSize: 15, textAlign: "center" },
-  volverBtn: { marginTop: S.lg, paddingVertical: S.md, paddingHorizontal: S.xl, backgroundColor: C.navyLight, borderRadius: 10, borderWidth: 1, borderColor: C.goldDim, alignItems: "center" },
-  volverBtnText: { color: C.goldLight, fontWeight: "600", fontSize: 15 },
+  preguntaTexto: { color: C.text, fontSize: 18, fontWeight: "700", lineHeight: 28, marginBottom: S.lg },
+  respuestaLabel: { marginTop: S.lg, marginBottom: S.xs },
+  labelText: { color: C.gold, fontSize: 12, fontWeight: "700", letterSpacing: 1 },
+  respuestaTexto: { color: C.text, fontSize: 16, lineHeight: 26, textAlign: "justify" },
+  comentarioLabel: { marginTop: S.lg, marginBottom: S.xs },
+  comentarioTexto: { color: C.muted, fontSize: 14, lineHeight: 22, textAlign: "justify", fontStyle: "italic" },
 });

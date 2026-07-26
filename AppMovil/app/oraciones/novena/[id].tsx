@@ -1,6 +1,7 @@
 import { C } from "@/constants/theme";
 import { R } from '@/constants/radius';
 import { S } from '@/constants/spacing';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import { useFontSize, fs } from "@/contexts/font-size";
 import { router, useLocalSearchParams } from "expo-router";
@@ -46,7 +47,7 @@ export default function NovenaDetalleScreen() {
   const diaActual = dias.find((d) => d.dia === diaSel);
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
           <ThemedText style={s.backArrow}>←</ThemedText>
@@ -90,7 +91,6 @@ export default function NovenaDetalleScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
   header: {
     flexDirection: "row", alignItems: "center", paddingHorizontal: S.lg,
     paddingVertical: Platform.OS === "android" ? 12 : 8,

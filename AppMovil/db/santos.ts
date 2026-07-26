@@ -94,3 +94,9 @@ export async function getMisalSantosDelDia(
     [mes, dia],
   );
 }
+
+export async function getMisalSantos(db: SQLiteDatabase): Promise<MisalSantosEntry[]> {
+  return db.getAllAsync<MisalSantosEntry>(
+    "SELECT * FROM misal_santos ORDER BY mes, dia, id",
+  );
+}

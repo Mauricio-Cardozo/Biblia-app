@@ -1,6 +1,7 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
@@ -42,14 +43,14 @@ export default function PropioScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.center, { paddingTop: insets.top }]}>
+      <View style={[sharedStyles.container, sharedStyles.center, { paddingTop: insets.top }]}>
         <ActivityIndicator color={C.gold} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader
         title={selected ? `${selected.charAt(0).toUpperCase() + selected.slice(1)}` : "Propio del Tiempo"}
         subtitle={selected ? `${entries.length} días` : "Seleccioná un tiempo litúrgico"}
@@ -63,7 +64,7 @@ export default function PropioScreen() {
           }
         }}
       />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={sharedStyles.content}>
         {!selected && temporadas.map((t) => (
           <TouchableOpacity
             key={t.temporada}
@@ -107,9 +108,6 @@ export default function PropioScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
-  center: { alignItems: "center", justifyContent: "center" },
-  content: { padding: S.lg, paddingBottom: S.huge },
   card: {
     backgroundColor: C.navyMid,
     borderRadius: R.lg,

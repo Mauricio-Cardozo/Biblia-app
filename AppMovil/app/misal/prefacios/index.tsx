@@ -1,6 +1,7 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import { router } from "expo-router";
 import React from "react";
@@ -18,7 +19,7 @@ export default function PrefaciosScreen() {
 
   if (loading) {
     return (
-      <View style={[s.container, s.center, { paddingTop: insets.top }]}>
+      <View style={[sharedStyles.container, sharedStyles.center, { paddingTop: insets.top }]}>
         <ActivityIndicator color={C.gold} />
       </View>
     );
@@ -27,9 +28,9 @@ export default function PrefaciosScreen() {
   const list = prefacios ?? [];
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader title="Prefacios" subtitle={`${list.length} prefacios`} showBack onBack={() => router.back()} />
-      <ScrollView contentContainerStyle={s.content}>
+      <ScrollView contentContainerStyle={sharedStyles.content}>
         {list.map((p) => (
           <TouchableOpacity
             key={p.id}
@@ -47,9 +48,6 @@ export default function PrefaciosScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
-  center: { alignItems: "center", justifyContent: "center" },
-  content: { padding: S.lg, paddingBottom: S.huge },
   card: {
     backgroundColor: C.navyMid,
     borderRadius: R.lg,

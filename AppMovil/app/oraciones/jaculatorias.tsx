@@ -1,5 +1,6 @@
 import { C } from "@/constants/theme";
 import { S } from '@/constants/spacing';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import { router } from "expo-router";
@@ -12,7 +13,7 @@ export default function JaculatoriasScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader title="Jaculatorias" showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
         <ThemedText style={s.intro}>
@@ -44,7 +45,6 @@ export default function JaculatoriasScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
   content: { padding: S.lg, paddingBottom: S.massive },
   intro: { color: C.muted, fontSize: 14, lineHeight: 22, marginBottom: S.xxl, fontStyle: "italic" },
   grupo: { marginBottom: 28 },

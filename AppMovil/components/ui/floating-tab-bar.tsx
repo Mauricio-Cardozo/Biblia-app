@@ -22,7 +22,7 @@ const ICONS: Record<string, string> = {
 };
 
 export default function FloatingTabBar({ state, navigation }: TabBarProps) {
-  const translateY = useRef(new Animated.Value(0)).current;
+  const [translateY] = useState(() => new Animated.Value(0));
   const prevScrollY = useRef(0);
   const hidden = useRef(false);
 
@@ -54,7 +54,7 @@ export default function FloatingTabBar({ state, navigation }: TabBarProps) {
           };
 
           return (
-            <TouchableOpacity key={route.key} onPress={onPress} style={s.tab} activeOpacity={0.7}>
+            <TouchableOpacity key={route.key} onPress={onPress} style={s.tab} activeOpacity={0.7} accessibilityLabel={route.name}>
               <IconSymbol name={iconName as any} size={22} color={isFocused ? C.gold : C.muted} />
               <View style={[s.dot, isFocused && s.dotActive]} />
             </TouchableOpacity>

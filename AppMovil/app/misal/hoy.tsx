@@ -1,23 +1,28 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
+import SectionCard from "@/components/section-card";
 import ScreenHeader from "@/components/ui/screen-header";
 import ReadingSection from "@/components/reading-section";
 import { router } from "expo-router";
 import React from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDbQuery } from "@/hooks/use-db-query";
 import { getLecturaDelDia, getMisalTemporadas } from "@/db/db";
 import { SEASON_EMOJI } from "@/utils/seasons";
+import { hoy } from "@/utils/date";
 import type { Lectura } from "@/types";
+
+type HoyData = [Lectura | null, { temporada: string; temporada_label: string; count: number }[]];
 
 export default function HoyScreen() {
   const insets = useSafeAreaInsets();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = hoy();
 
-  const { data, loading } = useDbQuery(
+  const { data, loading } = useDbQuery<HoyData>(
     (db) => Promise.all([
       getLecturaDelDia(db, today),
       getMisalTemporadas(db),
@@ -25,19 +30,19 @@ export default function HoyScreen() {
     [today],
   );
 
-  const lectura = (data?.[0] as Lectura | null) ?? null;
-  const temporadas = (data?.[1] as { temporada: string; temporada_label: string; count: number }[]) ?? [];
+  const lectura = data?.[0] ?? null;
+  const temporadas = data?.[1] ?? [];
 
   if (loading) {
     return (
-      <View style={[s.container, s.center, { paddingTop: insets.top }]}>
+      <View style={[sharedStyles.container, sharedStyles.center, { paddingTop: insets.top }]}>
         <ActivityIndicator color={C.gold} />
       </View>
     );
   }
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader title="Misa de Hoy" subtitle={today} showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
         {lectura ? (
@@ -60,37 +65,21 @@ export default function HoyScreen() {
 
         <ThemedText style={s.sectionTitle}>Propio del Tiempo</ThemedText>
         {temporadas.map((t) => (
-          <TouchableOpacity
+          <SectionCard
             key={t.temporada}
-            style={s.card}
+            icono={SEASON_EMOJI[t.temporada] ?? "🌿"}
+            titulo={t.temporada_label}
+            subtitulo={`${t.count} días`}
             onPress={() => router.push("/misal/propio")}
-            activeOpacity={0.7}
-          >
-            <View style={s.cardRow}>
-              <ThemedText style={s.cardIcon}>{SEASON_EMOJI[t.temporada] ?? "🌿"}</ThemedText>
-              <View style={s.cardTextWrap}>
-                <ThemedText style={s.cardTitle}>{t.temporada_label}</ThemedText>
-                <ThemedText style={s.cardSubtitle}>{t.count} días</ThemedText>
-              </View>
-              <ThemedText style={s.chevron}>›</ThemedText>
-            </View>
-          </TouchableOpacity>
+          />
         ))}
 
-        <TouchableOpacity
-          style={[s.card, { marginTop: S.sm }]}
+        <SectionCard
+          icono="✋"
+          titulo="Prefacios"
+          subtitulo="67 prefacios para cada tiempo"
           onPress={() => router.push("/misal/prefacios")}
-          activeOpacity={0.7}
-        >
-          <View style={s.cardRow}>
-            <ThemedText style={s.cardIcon}>✋</ThemedText>
-            <View style={s.cardTextWrap}>
-              <ThemedText style={s.cardTitle}>Prefacios</ThemedText>
-              <ThemedText style={s.cardSubtitle}>67 prefacios para cada tiempo</ThemedText>
-            </View>
-            <ThemedText style={s.chevron}>›</ThemedText>
-          </View>
-        </TouchableOpacity>
+        />
       </ScrollView>
     </View>
   );

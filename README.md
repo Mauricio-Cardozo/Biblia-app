@@ -14,11 +14,16 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
   - 📖 Lista de libros con distinción Antiguo/Nuevo Testamento
   - 🔢 Selección de capítulo en grilla
   - 📜 Lectura de versículos con número dorado
+- **Catecismo YOUCAT** — 526 preguntas con búsqueda LIKE, navegación por partes
 - **Catecismo de la Iglesia Católica (CIC)** — Navegación completa en 5 niveles:
   - Parte → Sección → Capítulo → Artículo → Numerales con jerarquía completa y búsqueda FTS5
-- **Misal Romano (México)** — Ordinario de la Misa, Propio del Tiempo completo (157 días), 67 Prefacios y 4 Plegarias Eucarísticas, desde los PDFs oficiales de LiturgiaPapal
+- **Misal Romano (México)** — Ordinario de la Misa, Propio del Tiempo completo (157 días), 67 Prefacios, 4 Plegarias Eucarísticas, 207 Misal de Santos, desde los PDFs oficiales de LiturgiaPapal
+- **Santoral** — 919 santos con biografías y misa propia cuando corresponde
 - **Misa de Hoy** — Lecturas diarias del leccionario + acceso rápido al Propio del Tiempo y Prefacios
-- **Favoritos** — Marcá versículos y numerales como favoritos con persistencia en AsyncStorage
+- **Home rediseñado** — Hero section con gradient, badge litúrgico, saludo contextual ("Bendecido día/tarde/noche"), evangelio destacado, santo del día + rachas
+- **Favoritos con etiquetas** — Marcá versículos y numerales como favoritos con persistencia en AsyncStorage; agrupación por tags, notas personales, color picker
+- **Highlights en Biblia** — Long-press para resaltar versículos con 6 colores, fondo tintado, corazón coloreado
+- **Notificaciones diarias** — 3 notificaciones programables: evangelio 7am, versículo aleatorio 12pm, recordatorio de rachas 8pm
 - **Rosario Guiado** — Recitación paso a paso con cuentas visuales, misterios según el día y registro de racha (🔥 días consecutivos)
 - **Coronilla de la Divina Misericordia** — Guiada paso a paso con el mismo sistema de rachas
 - **Oraciones del Vaticano** — 23 oraciones extraídas de Vatican News (Ángelus, Magnificat, Te Deum, etc.)
@@ -29,6 +34,10 @@ Una aplicación móvil católica desarrollada con **Expo** y **React Native**, d
 - **Modo Lectura** — Control de tamaño de fuente (0.8×–1.5×) con persistencia
 - **Búsqueda FTS5** — Búsqueda de texto completo optimizada en SQLite sobre CIC
 - **100% Offline** — Toda la base de datos está incluida en la app
+- **Santoral completo** — 919 santos con biografía y misa propia
+- **YOUCAT** — 526 preguntas del Youcat con búsqueda
+- **Favoritos** — Marcá versículos, preguntas YOUCAT y lecturas como favoritos con persistencia en AsyncStorage, agrupables por etiquetas, con notas y color
+- **Notificaciones diarias** — 3 notificaciones programables: evangelio 7am, versículo aleatorio 12pm, recordatorio de rachas 8pm
 
 ---
 
@@ -64,62 +73,105 @@ TABLE biblia_pueblo_dios (
   testamento  TEXT   -- 'Antiguo' | 'Nuevo'
 )
 
--- Catecismo de la Iglesia Católica (CIC) — 2865 numerales con capítulo/artículo poblados
+-- YOUCAT (526 preguntas)
+TABLE youcat (
+  id        INTEGER PRIMARY KEY,
+  parte_id  INTEGER,
+  parte     TEXT,
+  seccion   TEXT,
+  capitulo  TEXT,
+  pregunta  TEXT,
+  respuesta TEXT,
+  comentario TEXT
+)
+
+-- Catecismo de la Iglesia Católica (CIC) — 2865 numerales
 TABLE catecismo_cic (
-  id        INTEGER PRIMARY KEY,  -- Número de numeral (1-2865)
-  parte     TEXT,                 -- 4 partes principales
-  seccion   TEXT,                 -- 7 secciones
-  capitulo  TEXT,                 -- extraído de marcadores textuales (2359 poblados)
-  articulo  TEXT,                 -- extraído de marcadores textuales (1964 poblados)
+  id        INTEGER PRIMARY KEY,
+  parte     TEXT,
+  seccion   TEXT,
+  capitulo  TEXT,
+  articulo  TEXT,
   texto     TEXT NOT NULL
 )
 
 -- Leccionario diario (evangelio del día)
 TABLE lecturas (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  fecha           TEXT NOT NULL UNIQUE,  -- YYYY-MM-DD
+  fecha           TEXT NOT NULL UNIQUE,
   titulo_misa     TEXT,
+  primera_lectura_ref TEXT,
   primera_lectura TEXT,
   salmo           TEXT,
   aleluia         TEXT,
-  evangelio       TEXT
+  evangelio_ref   TEXT,
+  evangelio       TEXT,
+  comentario_papal TEXT,
+  url             TEXT
 )
 
--- Misal Romano — Propio del Tiempo (Adviento, Navidad, Cuaresma, Pascua, Ordinario)
+-- Misal Romano — Propio del Tiempo (157 días)
 TABLE misal_propio (
-  id        INTEGER PRIMARY KEY AUTOINCREMENT,
-  temporada TEXT NOT NULL,       -- adviento | navidad | cuaresma | pascua | ordinario
-  dia       TEXT NOT NULL,       -- nombre del día o fecha
-  titulo    TEXT,
-  entrada   TEXT,
-  oracion   TEXT,
-  ofrendas  TEXT,
-  comunion  TEXT,
-  poscomunion TEXT,
-  unico     TEXT                -- algunos días tienen formato distinto (1 bloque)
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  temporada       TEXT NOT NULL,
+  temporada_label TEXT,
+  dia             TEXT NOT NULL,
+  colecta         TEXT,
+  oracion_ofrendas TEXT,
+  postcomunion    TEXT,
+  prefacio        TEXT,
+  antifona_entrada TEXT,
+  antifona_comunion TEXT
 )
 
 -- Misal Romano — Ordinario de la Misa
 TABLE misal_ordinario (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  seccion     TEXT NOT NULL,     -- Ritos Iniciales, Liturgia de la Palabra, etc.
-  titulo      TEXT,
-  contenido   TEXT NOT NULL,
+  seccion     TEXT NOT NULL,
+  subseccion  TEXT,
+  rol         TEXT,
+  texto       TEXT NOT NULL,
   orden       INTEGER
 )
 
--- Misal Romano — Prefacios
+-- Misal Romano — Prefacios (67)
 TABLE misal_prefacios (
   id      INTEGER PRIMARY KEY AUTOINCREMENT,
   titulo  TEXT NOT NULL,
   texto   TEXT NOT NULL
 )
 
--- Misal Romano — Plegarias Eucarísticas
+-- Misal Romano — Plegarias Eucarísticas (4)
 TABLE misal_plegarias (
   id    INTEGER PRIMARY KEY AUTOINCREMENT,
-  titulo TEXT NOT NULL,
+  nombre TEXT NOT NULL,
   texto  TEXT NOT NULL
+)
+
+-- Misal Romano — Santos (207 con misa propia)
+TABLE misal_santos (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  mes             INTEGER,
+  dia             INTEGER,
+  nombre          TEXT,
+  titulo          TEXT,
+  rango           TEXT,
+  colecta         TEXT,
+  oracion_ofrendas TEXT,
+  postcomunion    TEXT,
+  prefacio        TEXT,
+  antifona_entrada TEXT,
+  antifona_comunion TEXT
+)
+
+-- Santoral (919 santos con biografía)
+TABLE santos (
+  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  mes       INTEGER,
+  dia       INTEGER,
+  nombre    TEXT,
+  titulo    TEXT,
+  biografia TEXT
 )
 
 -- Novenas (devociones de 9 días)
@@ -143,6 +195,12 @@ TABLE novena_dias (
 ---
 
 ## 🚀 Instalación y ejecución
+
+> **Nota sobre E2E tests:** Los 8 flujos Maestro en `maestro/flows/` se ejecutan con:
+> ```bash
+> maestro test maestro/flows/
+> ```
+> Requiere emulador Android o dispositivo con depuración USB.
 
 > **Nota sobre actualizaciones de BD:** Si la app muestra errores de columnas o tablas faltantes (ej. `no such column: parte` o `no such table: ..._fts`), la migración automática en `db/init.ts` los corrige al arrancar. También podés forzar la recreación borrando la DB almacenada en el dispositivo:
 > ```bash
@@ -193,67 +251,121 @@ eas build --platform android --profile production
 ## 📁 Estructura del Proyecto
 
 ```
-Biblia-app/
 ├── AppMovil/                        # App principal (Expo)
 │   ├── app/
 │   │   ├── _layout.tsx              # Layout raíz — SQLiteProvider + DatabaseInit + Stack
 │   │   ├── (tabs)/
-│   │   │   ├── _layout.tsx          # Tab bar (Home, Biblia, Catecismo, Misal, Oración)
-│   │   │   ├── index.tsx            # Home — versículo del día + rachas + acceso rápido
-│   │   │   ├── biblia.tsx           # Biblia — libros → capítulos → versículos
-│   │   │   ├── catecismo.tsx        # CIC — partes → secciones → numerales → detalle + FTS5
-│   │   │   ├── misal.tsx            # Misal — Misa de Hoy, Propio, Ordinario, Prefacios, Plegarias
-│   │   │   └── oracion.tsx          # Hub de oración — rosario, coronilla, oraciones del Vaticano, jaculatorias
+│   │   │   ├── _layout.tsx          # Tab bar flotante (Home, Biblia, Calendario, Oración)
+│   │   │   ├── index.tsx            # Home — liturgia del día + rachas + santo + propio
+│   │   │   ├── biblia.tsx           # Biblia — libros → capítulos → versículos + búsqueda FTS5
+│   │   │   ├── catecismo.tsx        # YOUCAT — partes → preguntas → detalle + búsqueda LIKE
+│   │   │   └── oracion.tsx          # Hub de oración — rosario, coronilla, oraciones, jaculatorias, novenas
+│   │   ├── (tabs)/misal.tsx         # Misal — Propio, Ordinario, Prefacios, Plegarias, Santos
 │   │   ├── misal/
-│   │   │   ├── hoy.tsx              # Misa de Hoy (lecturas + links al Propio)
+│   │   │   ├── hoy.tsx              # Misa de Hoy (lecturas + acceso al Propio)
 │   │   │   ├── propio/
-│   │   │   │   ├── _layout.tsx
 │   │   │   │   ├── index.tsx        # Temporadas (Adviento, Navidad, Cuaresma, Pascua, Ordinario)
 │   │   │   │   └── [id].tsx         # Detalle del día propio
 │   │   │   ├── ordinario/
-│   │   │   │   ├── _layout.tsx
 │   │   │   │   ├── index.tsx        # Secciones del Ordinario
 │   │   │   │   └── [id].tsx         # Detalle de sección
 │   │   │   ├── prefacios/
-│   │   │   │   ├── _layout.tsx
-│   │   │   │   ├── index.tsx        # Lista de 67 prefacios
+│   │   │   │   ├── index.tsx        # Lista de prefacios
 │   │   │   │   └── [id].tsx         # Texto del prefacio
 │   │   │   └── plegarias/
-│   │   │       ├── _layout.tsx
-│   │   │       ├── index.tsx        # Lista de 4 plegarias
+│   │   │       ├── index.tsx        # Lista de plegarias
 │   │   │       └── [id].tsx         # Texto de la plegaria
+│   │   ├── santo/[id].tsx           # Biografía del santo del día
 │   │   ├── rosario/
-│   │   │   └── guia.tsx             # Guía interactiva del Rosario con misterios
+│   │   │   ├── guia.tsx             # Rosario guiado con misterios + racha
+│   │   │   └── coronilla.tsx        # Coronilla de la Divina Misericordia
 │   │   ├── oraciones/
-│   │   │   ├── index.tsx            # Lista de 23 oraciones del Vaticano
-│   │   │   ├── [id].tsx             # Detalle de oración con fuente ajustable
-│   │   │   ├── jaculatorias.tsx     # Jaculatorias agrupadas con V./R.
+│   │   │   ├── index.tsx            # Lista de oraciones del Vaticano
+│   │   │   ├── [id].tsx             # Detalle con fuente ajustable
+│   │   │   ├── jaculatorias.tsx     # Jaculatorias agrupadas V./R.
 │   │   │   └── novena/
 │   │   │       ├── index.tsx        # Lista de 18 novenas
 │   │   │       └── [id].tsx         # Detalle con selector de día
-│   │   ├── evangelio.tsx            # Lectura del día (evangelio + primera lectura + salmo)
-│   │   ├── calendario.tsx           # Calendario litúrgico mensual con lecturas
-│   │   ├── favoritos.tsx            # Todos los favoritos agrupados
-│   │   └── test.tsx                 # Sandbox para pruebas de DB y FTS5
-│   ├── db/
-│   │   └── init.ts                  # Migración automática de BD al arrancar
+│   │   ├── evangelio.tsx            # Lectura del día (evangelio + 1ra lectura + salmo)
+│   │   ├── calendario.tsx           # Calendario litúrgico mensual
+│   │   ├── favoritos.tsx            # Favoritos agrupados (Biblia + YOUCAT)
+│   │   └── test.tsx                 # Debug — DB diagnosis, rebuild FTS, expand DB
 │   ├── components/
-│   │   ├── themed-text.tsx
-│   ├── types/
-│   │   └── index.ts                 # Interfaces compartidas (Book, CICNumeral, etc.)
+│   │   ├── themed-text.tsx          # Texto con 5 variantes (title/body/caption/...)
+│   │   ├── reading-section.tsx      # Layout reutilizable de secciones de lectura
+│   │   ├── prayer-runner.tsx        # Genérico para oraciones contadas (rosario, coronilla)
+│   │   ├── fav-btn.tsx              # Heart toggle para favoritos con color dot
+│   │   ├── font-size-control.tsx    # A-/A+ con persistencia
+│   │   └── ui/
+│   │       ├── screen-header.tsx    # Header reutilizable con back, superLabel, title, rightSlot
+│   │       ├── hero-section.tsx     # Hero gradient con greeting, season badge, gospel quote
+│   │       ├── streak-card.tsx      # Card reutilizable para rachas
+│   │       ├── santo-card.tsx       # Card de santo del día
+│   │       ├── list-item-card.tsx   # Card con badge, animación scale, chevron
+│   │       ├── libro-card.tsx       # Card de libro bíblico con abreviatura + nombre
+│   │       ├── buscador.tsx         # Input de búsqueda compartido (Biblia + YOUCAT)
+│   │       ├── section-card.tsx     # Card de sección con subtítulo
+│   │       ├── icon-symbol.tsx      # Iconos SF Symbols (iOS) / MaterialIcons (Android)
+│   │       └── floating-tab-bar.tsx # Tab bar flotante con scroll-to-hide
+│   ├── db/
+│   │   ├── init.ts                  # Migración automática (CURRENT_VERSION=7)
+│   │   ├── db.ts                    # Barrel — re-exporta todas las queries
+│   │   ├── biblia.ts                # Queries de Biblia (libros, capítulos, versículos, búsqueda)
+│   │   ├── catecismo.ts             # Queries de YOUCAT + CIC
+│   │   ├── lecturas.ts              # Queries del leccionario diario
+│   │   ├── misal.ts                 # Queries del Misal (propio, ordinario, prefacios, plegarias)
+│   │   ├── santos.ts                # Queries del santoral (santos + misal_santos)
+│   │   └── test-utils.ts            # sql.js adapter para tests en memoria
+│   ├── hooks/
+│   │   └── use-db-query.ts          # Hook genérico: fetch async + loading/error/data
+│   ├── contexts/
+│   │   ├── font-size.tsx            # Context de tamaño de fuente (0.8–1.5, paso 0.1)
+│   │   └── bible-version.tsx        # Context de versión bíblica (1 traducción)
 │   ├── constants/
-│   │   └── theme.ts                 # Paleta Navy/Gold + tokens C
+│   │   ├── theme.ts                 # Paleta Navy/Gold (C.*)
+│   │   ├── spacing.ts               # Tokens de espaciado (S.*)
+│   │   ├── radius.ts               # Tokens de borde (R.*)
+│   │   ├── shared-styles.ts         # Estilos comunes (container, center, card, etc.)
+│   │   └── misal-sections.ts        # Secciones tipadas del Misal
+│   ├── data/
+│   │   ├── prayers.ts               # Textos de oraciones compartidas
+│   │   ├── rosario-steps.ts         # Misterios del rosario por día
+│   │   ├── coronilla-steps.ts       # Pasos de la Coronilla
+│   │   ├── streaks.ts               # Cálculo de rachas (AsyncStorage)
+│   │   ├── favoritos.ts             # CRUD de favoritos con notas/tags/color (AsyncStorage)
+│   │   ├── tags.ts                  # CRUD de etiquetas (AsyncStorage)
+│   │   ├── export-import.ts         # Backup/restore de AsyncStorage
+│   │   ├── jaculatorias.ts          # Jaculatorias agrupadas
+│   │   ├── vatican-prayers.ts       # 23 oraciones de Vatican News
+│   │   ├── notifications.ts         # Notificaciones diarias (expo-notifications)
+│   │   └── export-import.ts         # Backup/restore de AsyncStorage
+│   ├── utils/
+│   │   ├── date.ts                  # formatoFecha, hoy, fechaActualLarga
+│   │   ├── seasons.ts               # detectSeason, parseWeekNumber, romanToInt, isSunday
+│   │   └── scroll-state.ts          # Animated.Value compartido para tab bar
+│   ├── types/
+│   │   └── index.ts                 # Interfaces: Book, Chapter, Verse, Lectura, Santo, etc.
+│   ├── maestro/
+│   │   ├── config.yaml              # Config de Maestro E2E (appId)
+│   │   ├── PROMPT.md                # Prompt para Antigravity (generar flujos)
+│   │   ├── CI_PROMPT.md             # Prompt para CI/CD con Antigravity
+│   │   └── flows/                   # 8 flujos E2E Maestro YAML
+│   ├── __tests__/                   # 46 tests, 6 suites (Jest) — 0 lint errors
+│   ├── .antigravity/
+│   │   └── rules.md                 # Contexto de la app para Antigravity CLI
 │   └── assets/
-│       └── iglesia_digital.db       # Base de datos SQLite
-    ├── archive/                         # Scripts Python de ingesta de datos
-    │   ├── popular_cic.py               # Extrae capítulo/artículo de marcadores textuales del CIC
-    │   ├── scraper_vaticano.py          # Vatican News → SQLite (lecturas diarias)
-    │   ├── scraper_cic.py               # PDF del CIC → SQLite (catecismo_cic)
-    │   ├── scraper_misal.py             # PDFs del Misal Romano → SQLite (157 días propios + Ordinario + Prefacios + Plegarias)
-    │   ├── scraper_biblia.py            # Scraper original de la Biblia
-    │   ├── scraper_oraciones_vatican.py # 23 oraciones desde Vatican News → JSON
-    │   └── scraper_novenas.py           # 18 novenas desde devocionario.com → SQLite/JSON
-    └── misal_pdfs/                  # 17 PDFs del Misal Romano (LiturgiaPapal México)
+│       ├── iglesia_digital.db       # Base de datos SQLite (12 tablas)
+│       └── images/                  # Iconos, splash, fondos
+├── archive/                         # Scripts Python de ingesta de datos
+│   ├── scraper_vaticano.py          # Vatican News → SQLite (lecturas)
+│   ├── scraper_misal.py             # PDFs Misal Romano → SQLite
+│   ├── scraper_youcat.py            # YOUCAT desde mscperu.org
+│   ├── scraper_novenas.py           # Novenas desde devocionario.com
+│   ├── scraper_cic.py               # PDF CIC → SQLite
+│   ├── scraper_oraciones_vatican.py # Oraciones Vatican News → JSON
+│   ├── popular_cic.py               # Extrae capítulo/artículo del CIC
+│   └── misal_pdfs/                  # 17 PDFs fuente del Misal Romano
+└── AGENTS.md                        # Guía para agentes IA
 ```
 
 ---
@@ -263,13 +375,15 @@ Biblia-app/
 Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 
 | Token | Hex | Uso |
-|---|---|---|
+|---|---|---|---|
 | `navy` | `#0D1B2A` | Fondo principal |
 | `navyMid` | `#1A2D45` | Cards y headers |
 | `navyLight` | `#243B55` | Botones y elementos secundarios |
 | `gold` | `#C9A84C` | Acentos, números de versículo |
 | `goldLight` | `#E8C97A` | Texto destacado |
 | `text` | `#F0E6CC` | Texto principal |
+
+Además: `constants/spacing.ts` (S.*) con 8 tokens de espaciado, `constants/radius.ts` (R.*) con 5 tokens de borde, y `constants/shared-styles.ts` con estilos comunes.
 
 ---
 
@@ -292,25 +406,21 @@ Paleta **Navy Blue y Dorado** inspirada en los colores litúrgicos:
 - [x] CIC capítulo/artículo poblado — 2359/2865 caps, 1964/2865 arts extraídos vía `popular_cic.py`
 - [x] Modo lectura (fuente ajustable 0.8×–1.5×)
 - [x] Novenas — 18 devociones de 9 días
-- [x] Expo SDK 54 → 56 (React 19.2.3, RN 0.85.3)
-- [x] Rebranding — nombre, icono personalizado, splash
-- [x] **Bugs corregidos** — `\n` literal en letanías, `?fecha` en favoritos a evangelio, `find()` cliente → query directa en detalle de ordinario/prefacios/plegarias, `.catch()` faltantes, `#D4AF37` → `C.gold`, `catch(e: any)` → `instanceof Error`
-- [x] **Compartir versículos** — botón ↗ por versículo en Biblia y en header de Evangelio, vía `Share.share`
-- [x] **Export/import AsyncStorage** — backup de favoritos/rachas/font-size via `Share.share` + paste restore en Ajustes
-- [x] **Limpieza de deuda técnica** — eliminado `modal.tsx`, `collapsible.tsx`, `hasColumn`, `themed-view.tsx`, `reset-project.js`, `notifications.ts`, `searchMisal`. Movido `getLecturaDelDia` al bloque correcto. Completado tipo `Lectura` con columnas faltantes.
-- [x] **Eliminar duplicación** — `formatoFecha`/`hoy()`, mapa de emojis de temporadas, layout de sección de lecturas extraídos a `utils/date.ts`, `utils/seasons.ts`, `components/reading-section.tsx`.
-- [x] **Tokens de diseño** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados + refactorizados en ~25 archivos
-- [x] **StatusBar + NavigationBar ocultos** en toda la app vía `expo-navigation-bar`
-- [x] **Ajustes screen** — gear ⚙️ en Home, versión dinámica, font-size, export/import de datos
+- [x] **YOUCAT** — 526 preguntas con navegación por partes + LIKE search
+- [x] **Santoral completo** — 919 santos con biografía + 207 con misa propia
 - [x] **Rediseño navegación** — tab bar flotante redondeada, scroll-to-hide, ajustes en Home, calendario como tab
-- [x] **React Compiler — 27 violaciones corregidas** — `Animated.Value` en render (useRef), `Date.now()` en render (const module-level), `.then(setState)` en screens (useDbQuery/async-await inline)
-- [x] **BibliaVersionContext simplificado** — eliminado multi-versión (1 sola traducción), `setVersion`, `versiones` array, selector UI
+- [x] **React Compiler — 27 violaciones corregidas** — Animated.Value, setState en efectos, impure functions
+- [x] **BibliaVersionContext simplificado** — eliminado multi-versión (1 sola traducción)
+- [x] **Tokens de diseño** — spacing.ts (S.*), radius.ts (R.*), shared-styles.ts, misal-sections.ts
+- [x] **Componentes compartidos** — LibroCard, Buscador, SectionCard, ReadingSection
+- [x] **Tests E2E** — 8 flujos Maestro para navegación principal
+- [x] **Infra testing** — @testing-library/react, jest-environment-jsdom, test de hooks
+- [x] **Limpieza total de deuda técnica** — ~15 archivos muertos eliminados, catch(e: any) → instanceof Error, DB queries sin find() cliente
+- [x] **Rediseño de Home** — HeroSection con gradient + season badge + greeting + evangelio. StreakCard + SantoCard extraídos. `expo-linear-gradient`.
+- [x] **Notificaciones bíblicas diarias** — 3 notificaciones (7am evangelio, 12pm versículo, 8pm rachas) con toggles en ajustes y reschedule al abrir.
+- [x] **Sistema de etiquetas, highlights y notas** — Favorito expandido con `notas`, `tags`, `color`. CRUD de tags. Modal de edición. Highlights en Biblia con color picker.
 
-### 🔴 Corto plazo (alta prioridad)
-
-- [ ] **Rediseño de Home** — hero section con saludo ("Buenos días hermano/hijo"), santo del día, color litúrgico, evangelio destacado, acceso rápido a rachas. Inspirado en Lummen.
-- [ ] **Notificaciones bíblicas diarias** — evangelio del día a las 7am, versículo aleatorio al mediodía, recordatorio de rachas. Basado en `expo-notifications` + SQLite.
-- [ ] **Sistema de etiquetas, highlights y notas** — expandir favs actuales con etiquetas de colores, resaltado de versículos, notas personales.
+### 🟡 Mediano plazo
 
 ### 🟡 Mediano plazo
 - [ ] **Configuraciones funcionales** — tema claro/oscuro real, notificaciones push (expo-notifications), ayuda integrada.

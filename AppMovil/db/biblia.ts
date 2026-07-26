@@ -35,3 +35,22 @@ export async function getVersiculos(
     [libro, capitulo],
   );
 }
+
+export async function searchBiblia(
+  db: SQLiteDatabase,
+  termino: string,
+): Promise<Verse[]> {
+  try {
+    return await db.getAllAsync<Verse>(
+      `SELECT v.* FROM biblia_pueblo_dios v
+       JOIN biblia_pueblo_dios_fts f ON v.rowid = f.rowid
+       WHERE biblia_pueblo_dios_fts MATCH ?
+       ORDER BY f.rank
+       LIMIT 50`,
+      [termino],
+    );
+  } catch (e: unknown) {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn("searchBiblia error:", e instanceof Error ? e.message : e);
+    return [];
+  }
+}

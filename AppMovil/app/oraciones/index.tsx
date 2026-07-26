@@ -1,5 +1,5 @@
-import { C } from "@/constants/theme";
 import { S } from '@/constants/spacing';
+import { sharedStyles } from '@/constants/shared-styles';
 import ScreenHeader from "@/components/ui/screen-header";
 import ListItemCard from "@/components/ui/list-item-card";
 import { router } from "expo-router";
@@ -12,7 +12,7 @@ export default function OracionesScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader title="Oraciones" showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
         {ORACIONES.map((p) => (
@@ -28,6 +28,5 @@ export default function OracionesScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
   content: { padding: S.lg, paddingBottom: S.massive },
 });

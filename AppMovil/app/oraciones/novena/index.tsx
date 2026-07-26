@@ -1,6 +1,7 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import { router } from "expo-router";
 import React from "react";
@@ -23,7 +24,7 @@ export default function NovenaListScreen() {
   );
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
           <ThemedText style={s.backArrow}>←</ThemedText>
@@ -52,7 +53,6 @@ export default function NovenaListScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
   header: {
     flexDirection: "row", alignItems: "center", paddingHorizontal: S.lg,
     paddingVertical: Platform.OS === "android" ? 12 : 8,

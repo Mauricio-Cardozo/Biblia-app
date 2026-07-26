@@ -1,7 +1,12 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from '@/components/themed-text';
+import HeroSection from '@/components/ui/hero-section';
+import StreakCard from '@/components/ui/streak-card';
+import SantoCard from '@/components/ui/santo-card';
+import type { SeasonInfo } from '@/components/ui/hero-section';
 import { Link, router } from 'expo-router';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
@@ -67,7 +72,7 @@ export default function LiturgiaScreen() {
       try {
         const santos = await getSantosDelDia(db, now.getMonth() + 1, now.getDate());
         setSantoDelDia(santos[0] ?? null);
-      } catch (e) { console.warn('[santo]', e); }
+      } catch (e: unknown) { console.warn('[santo]', e instanceof Error ? e.message : e); }
 
       if (lec?.titulo_misa) {
         const season = detectSeason(lec.titulo_misa);
@@ -80,7 +85,7 @@ export default function LiturgiaScreen() {
             const fb = await getSeasonFromNearestLectura(db, hoy());
             if (fb) setPropio(await getMisalPropioPorSemana(db, fb.season, fb.week, fb.isSunday));
           }
-        } catch (e) { console.warn('[misa]', e); }
+        } catch (e: unknown) { console.warn('[misa]', e instanceof Error ? e.message : e); }
       }
     })();
   }, [db]);
@@ -88,78 +93,69 @@ export default function LiturgiaScreen() {
   const misaTitle = lectura?.titulo_misa;
   const season = misaTitle ? detectSeason(misaTitle) : null;
   const seasonData = season ? temporadas.find((t) => t.temporada === season) : null;
-  const seasonColor = season ? (SEASON_COLOR[season] ?? C.gold) : undefined;
+
+  const seasonInfo: SeasonInfo | null = season && seasonData ? {
+    season,
+    label: seasonData.temporada_label,
+    color: SEASON_COLOR[season] ?? C.gold,
+    emoji: SEASON_EMOJI[season] ?? '🌿',
+    colorName: SEASON_COLOR_NAME[season],
+  } : null;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
-        {__DEV__ && (
-          <Link href="/test" style={styles.debugLink} asChild>
-            <TouchableOpacity activeOpacity={0.7}>
-              <ThemedText style={styles.debugText}>[Debug] Test Database</ThemedText>
-            </TouchableOpacity>
-          </Link>
-        )}
-        <View style={styles.headerRow}>
-          <View style={{ flex: 1 }}>
-            <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
-            <ThemedText style={styles.pageTitle}>Liturgia</ThemedText>
-          </View>
-          <TouchableOpacity onPress={() => router.push('/ajustes')} style={styles.gearBtn}>
-            <ThemedText style={styles.gearIcon}>⚙️</ThemedText>
+    <View style={[sharedStyles.container, { paddingTop: insets.top + 20 }]}>
+      {__DEV__ && (
+        <Link href="/test" style={styles.debugLink} asChild>
+          <TouchableOpacity activeOpacity={0.7}>
+            <ThemedText style={styles.debugText}>[Debug] Test Database</ThemedText>
           </TouchableOpacity>
+        </Link>
+      )}
+      <View style={styles.headerRow}>
+        <View style={{ flex: 1 }}>
+          <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
+          <ThemedText style={styles.pageTitle}>Liturgia</ThemedText>
         </View>
-        <ThemedText style={styles.dateText}>{fechaActualLarga()}</ThemedText>
-        {misaTitle ? <ThemedText style={styles.misaTitle}>{misaTitle}</ThemedText> : null}
+        <TouchableOpacity onPress={() => router.push('/ajustes')} style={styles.gearBtn}>
+          <ThemedText style={styles.gearIcon}>⚙️</ThemedText>
+        </TouchableOpacity>
+      </View>
+      <ThemedText style={styles.dateText}>{fechaActualLarga()}</ThemedText>
+      {misaTitle ? <ThemedText style={styles.misaTitle}>{misaTitle}</ThemedText> : null}
 
       <ScrollView onScroll={handleScroll} scrollEventThrottle={16} showsVerticalScrollIndicator={false}>
-        {/* Hero — Saludo + Temporada + Evangelio */}
-        <TouchableOpacity onPress={() => router.push('/evangelio')} style={[styles.heroCard, seasonColor ? { borderLeftColor: seasonColor } : undefined]} activeOpacity={0.9}>
-          {season ? (
-            <View style={styles.seasonRow}>
-              <View style={[styles.colorDot, { backgroundColor: seasonColor }]} />
-              <ThemedText style={styles.seasonLabel}>{SEASON_EMOJI[season] ?? '🌿'} {seasonData?.temporada_label ?? 'Tiempo Ordinario'} · {SEASON_COLOR_NAME[season]}</ThemedText>
-            </View>
-          ) : null}
-          <ThemedText style={styles.greeting}>{saludo}</ThemedText>
-          <ThemedText style={styles.heroQuote} numberOfLines={4}>
-            {'\u201C'}{lectura?.evangelio ?? 'Yo soy el camino, la verdad y la vida.'}{'\u201D'}
-          </ThemedText>
-          {lectura?.evangelio_ref ? (
-            <ThemedText style={styles.heroRef}>{lectura.evangelio_ref}</ThemedText>
-          ) : null}
-        </TouchableOpacity>
+        <HeroSection
+          greeting={saludo}
+          season={seasonInfo}
+          gospelQuote={lectura?.evangelio ?? null}
+          gospelRef={lectura?.evangelio_ref ?? null}
+          onPress={() => router.push('/evangelio')}
+        />
 
-        {/* Oración — Rachas */}
         <View style={styles.streakRow}>
-          <TouchableOpacity onPress={() => router.push('/rosario/guia')} style={[styles.cardSm, { flex: 0.48, marginHorizontal: 0 }]}>
-            <ThemedText style={styles.cardLabel}>ROSARIO</ThemedText>
-            <ThemedText style={styles.streakText}>🕊️ {stats.rosario_total}</ThemedText>
-            {rachaRosario > 0 && <ThemedText style={styles.streakSub}>🔥 {rachaRosario} días seguidos</ThemedText>}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/rosario/coronilla')} style={[styles.cardSm, { flex: 0.48, marginHorizontal: 0 }]}>
-            <ThemedText style={styles.cardLabel}>CORONILLA</ThemedText>
-            <ThemedText style={styles.streakText}>🕊️ {stats.coronilla_total}</ThemedText>
-            {rachaCoronilla > 0 && <ThemedText style={styles.streakSub}>🔥 {rachaCoronilla} días seguidos</ThemedText>}
-          </TouchableOpacity>
+          <StreakCard
+            label="ROSARIO"
+            count={stats.rosario_total}
+            streakDays={rachaRosario}
+            onPress={() => router.push('/rosario/guia')}
+          />
+          <StreakCard
+            label="CORONILLA"
+            count={stats.coronilla_total}
+            streakDays={rachaCoronilla}
+            onPress={() => router.push('/rosario/coronilla')}
+          />
         </View>
 
-        {/* Santo del día */}
         {santoDelDia ? (
-          <TouchableOpacity onPress={() => router.push(`/santo/${santoDelDia.id}`)} style={styles.card} activeOpacity={0.7}>
-            <View style={styles.cardRow}>
-              <ThemedText style={styles.cardIcon}>✝</ThemedText>
-              <View style={styles.cardTextWrap}>
-                <ThemedText style={styles.cardLabel}>SANTO DEL DÍA</ThemedText>
-                <ThemedText style={styles.cardTitle}>{santoDelDia.nombre}</ThemedText>
-                {santoDelDia.titulo ? <ThemedText style={styles.santoSub}>{santoDelDia.titulo}</ThemedText> : null}
-                <ThemedText style={styles.santoBio} numberOfLines={2}>{santoDelDia.biografia}</ThemedText>
-              </View>
-              <ThemedText style={styles.chevron}>›</ThemedText>
-            </View>
-          </TouchableOpacity>
+          <SantoCard
+            nombre={santoDelDia.nombre}
+            titulo={santoDelDia.titulo}
+            biografia={santoDelDia.biografia}
+            onPress={() => router.push(`/santo/${santoDelDia.id}`)}
+          />
         ) : null}
 
-        {/* Propio del Tiempo */}
         {propio ? (
           <View style={styles.propioSection}>
             <ThemedText style={styles.sectionLabel}>PROPIO DEL TIEMPO</ThemedText>
@@ -175,14 +171,13 @@ export default function LiturgiaScreen() {
             <View style={styles.cardRow}>
               <ThemedText style={styles.cardIcon}>{SEASON_EMOJI[seasonData.temporada] ?? '🌿'}</ThemedText>
               <View style={styles.cardTextWrap}>
-                <ThemedText style={styles.cardLabel}>PROPIO DEL TIEMPO</ThemedText>
+                <ThemedText style={styles.sectionLabel}>PROPIO DEL TIEMPO</ThemedText>
                 <ThemedText style={styles.cardTitle}>{seasonData.temporada_label}</ThemedText>
               </View>
               <ThemedText style={styles.chevron}>›</ThemedText>
             </View>
           </TouchableOpacity>
         ) : null}
-
       </ScrollView>
     </View>
   );
@@ -198,7 +193,6 @@ function PrayerCard({ label, text }: { label: string; text: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
   debugLink: { backgroundColor: '#8B0000', marginBottom: 10, borderRadius: R.md, marginHorizontal: S.xl, padding: 10, alignItems: 'center' },
   debugText: { color: '#fff', fontSize: 13, fontWeight: '600' },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', marginHorizontal: S.xl },
@@ -208,30 +202,17 @@ const styles = StyleSheet.create({
   pageTitle: { color: C.text, fontSize: 28, fontWeight: '700', marginBottom: S.xs },
   dateText: { color: C.gold, fontSize: 18, marginBottom: S.xs, marginHorizontal: S.xl },
   misaTitle: { color: C.goldLight, fontSize: 13, fontStyle: 'italic', marginBottom: S.xl, marginHorizontal: S.xl },
-  heroCard: { backgroundColor: C.navyMid, padding: S.xl, borderRadius: R.lg, marginBottom: 15, marginHorizontal: S.xl, borderLeftWidth: 4, borderLeftColor: C.gold },
-  seasonRow: { flexDirection: 'row', alignItems: 'center', marginBottom: S.md },
-  colorDot: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
-  seasonLabel: { color: C.goldLight, fontSize: 12, fontWeight: '600' },
-  greeting: { color: C.text, fontSize: 22, fontWeight: '700', marginBottom: S.xs },
-  heroQuote: { color: C.text, fontSize: 19, fontStyle: 'italic', lineHeight: 28 },
-  heroRef: { color: C.muted, marginTop: S.sm, textAlign: 'right' },
-  card: { backgroundColor: C.navyMid, padding: S.xl, borderRadius: R.lg, marginBottom: 15, marginHorizontal: S.xl },
-  cardSm: { padding: 18, borderRadius: R.lg, backgroundColor: C.navyMid, marginBottom: 15 },
   streakRow: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: S.xl },
-  cardRow: { flexDirection: 'row', alignItems: 'center' },
-  cardIcon: { fontSize: 28, marginRight: 14 },
-  cardTextWrap: { flex: 1 },
-  cardTitle: { color: C.text, fontSize: 16, fontWeight: '600' },
-  santoSub: { color: C.goldLight, fontSize: 12, fontStyle: 'italic', marginTop: 2 },
-  santoBio: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 4 },
-  chevron: { color: C.gold, fontSize: 24, marginLeft: 6 },
-  cardLabel: { color: C.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: S.xs },
-  streakText: { color: C.text, fontSize: 22, fontWeight: 'bold' },
-  streakSub: { color: C.muted, fontSize: 11, marginTop: 2 },
   sectionLabel: { color: C.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: S.xs, marginHorizontal: S.xl },
   propioSection: { marginBottom: 15 },
   propioDia: { color: C.text, fontSize: 14, fontWeight: '600', marginBottom: S.md, marginHorizontal: S.xl },
   propioCard: { backgroundColor: C.navyMid, padding: S.lg, borderRadius: R.lg, marginBottom: 10, marginHorizontal: S.xl },
   propioLabel: { color: C.gold, fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
   propioText: { color: C.text, fontSize: 14, lineHeight: 22 },
+  card: { backgroundColor: C.navyMid, padding: S.xl, borderRadius: R.lg, marginBottom: 15, marginHorizontal: S.xl },
+  cardRow: { flexDirection: 'row', alignItems: 'center' },
+  cardIcon: { fontSize: 28, marginRight: 14 },
+  cardTextWrap: { flex: 1 },
+  cardTitle: { color: C.text, fontSize: 16, fontWeight: '600' },
+  chevron: { color: C.gold, fontSize: 24, marginLeft: 6 },
 });

@@ -1,8 +1,6 @@
 import { File, Paths } from "expo-file-system";
 import { type SQLiteDatabase } from "expo-sqlite";
 
-const CURRENT_VERSION = 7;
-
 async function getVersion(db: SQLiteDatabase): Promise<number> {
   try {
     const row = await db.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
@@ -67,6 +65,20 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
     }
   }
 
+  // ── v5: Add Misal Romano tables ──────────────────────────────────
+  if (version < 5) {
+    if (__DEV__) console.log("Migration v5: adding misal tables…");
+    try {
+      await db.runAsync("CREATE TABLE IF NOT EXISTS misal_ordinario (id INTEGER PRIMARY KEY AUTOINCREMENT, seccion TEXT NOT NULL, subseccion TEXT, rol TEXT NOT NULL DEFAULT 'rubrica', texto TEXT NOT NULL, orden INTEGER NOT NULL)");
+      await db.runAsync("CREATE TABLE IF NOT EXISTS misal_propio (id INTEGER PRIMARY KEY AUTOINCREMENT, temporada TEXT NOT NULL, temporada_label TEXT, dia TEXT, colecta TEXT, oracion_ofrendas TEXT, postcomunion TEXT, prefacio TEXT, antifona_entrada TEXT, antifona_comunion TEXT)");
+      await db.runAsync("CREATE TABLE IF NOT EXISTS misal_prefacios (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT NOT NULL, texto TEXT NOT NULL)");
+      await db.runAsync("CREATE TABLE IF NOT EXISTS misal_plegarias (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, texto TEXT NOT NULL)");
+      await setVersion(db, 5);
+    } catch (e) {
+      if (__DEV__) console.warn("Migration v5 failed:", e);
+    }
+  }
+
   // ── v6: Add santos table ─────────────────────────────────────
   if (version < 6) {
     if (__DEV__) console.log("Migration v6: adding santos table…");
@@ -89,17 +101,25 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
     } catch {}
   }
 
-  // ── v5: Add Misal Romano tables ──────────────────────────────────
-  if (version < 5) {
-    if (__DEV__) console.log("Migration v5: adding misal tables…");
+  // ── v8: Add YOUCAT table ─────────────────────────────────────
+  if (version < 8) {
+    if (__DEV__) console.log("Migration v8: adding youcat table…");
     try {
-      await db.runAsync("CREATE TABLE IF NOT EXISTS misal_ordinario (id INTEGER PRIMARY KEY AUTOINCREMENT, seccion TEXT NOT NULL, subseccion TEXT, rol TEXT NOT NULL DEFAULT 'rubrica', texto TEXT NOT NULL, orden INTEGER NOT NULL)");
-      await db.runAsync("CREATE TABLE IF NOT EXISTS misal_propio (id INTEGER PRIMARY KEY AUTOINCREMENT, temporada TEXT NOT NULL, temporada_label TEXT, dia TEXT, colecta TEXT, oracion_ofrendas TEXT, postcomunion TEXT, prefacio TEXT, antifona_entrada TEXT, antifona_comunion TEXT)");
-      await db.runAsync("CREATE TABLE IF NOT EXISTS misal_prefacios (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT NOT NULL, texto TEXT NOT NULL)");
-      await db.runAsync("CREATE TABLE IF NOT EXISTS misal_plegarias (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, texto TEXT NOT NULL)");
-      await setVersion(db, 5);
-    } catch (e) {
-      if (__DEV__) console.warn("Migration v5 failed:", e);
+      await db.runAsync("CREATE TABLE IF NOT EXISTS youcat (id INTEGER PRIMARY KEY, parte_id INTEGER NOT NULL, parte TEXT NOT NULL, seccion TEXT NOT NULL DEFAULT '', capitulo TEXT NOT NULL DEFAULT '', pregunta TEXT NOT NULL, respuesta TEXT NOT NULL, comentario TEXT NOT NULL DEFAULT '')");
+      await setVersion(db, 8);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Migration v8 failed:", e);
+    }
+  }
+
+  // ── v9: Add misal_guia table ────────────────────────────────────
+  if (version < 9) {
+    if (__DEV__) console.log("Migration v9: adding misal_guia table…");
+    try {
+      await db.runAsync("CREATE TABLE IF NOT EXISTS misal_guia (id INTEGER PRIMARY KEY AUTOINCREMENT, seccion TEXT NOT NULL, titulo TEXT NOT NULL, texto TEXT NOT NULL, orden INTEGER NOT NULL)");
+      await setVersion(db, 9);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Migration v9 failed:", e);
     }
   }
 
@@ -112,27 +132,6 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
 
 async function ensureFTS(db: SQLiteDatabase): Promise<void> {
   const fts = await areFTSReady(db);
-
-  if (!fts.cic) {
-    if (__DEV__) console.log("Rebuilding catecismo_cic_fts (missing)…");
-    try {
-      await db.runAsync("DROP TABLE IF EXISTS catecismo_cic_fts");
-      await db.runAsync(
-        "CREATE VIRTUAL TABLE IF NOT EXISTS catecismo_cic_fts USING fts5(id, parte, seccion, capitulo, articulo, texto)",
-      );
-      const rows = await db.getAllAsync<any>(
-        "SELECT rowid as id, parte, seccion, capitulo, articulo, texto FROM catecismo_cic",
-      );
-      for (const r of rows) {
-        await db.runAsync(
-          "INSERT INTO catecismo_cic_fts(rowid, id, parte, seccion, capitulo, articulo, texto) VALUES (?, ?, ?, ?, ?, ?, ?)",
-          [r.id, r.id, r.parte, r.seccion, r.capitulo, r.articulo, r.texto],
-        );
-      }
-    } catch (e) {
-      if (__DEV__) console.warn("Failed to rebuild catecismo_cic_fts:", e);
-    }
-  }
 
   if (!fts.misalPropio) {
     if (__DEV__) console.log("Rebuilding misal_propio_fts (missing)…");
@@ -201,6 +200,23 @@ async function ensureFTS(db: SQLiteDatabase): Promise<void> {
       if (__DEV__) console.warn("Failed to rebuild misal_plegarias_fts:", e);
     }
   }
+
+  if (!fts.biblia) {
+    if (__DEV__) console.log("Rebuilding biblia_pueblo_dios_fts (missing)…");
+    try {
+      await db.runAsync("DROP TABLE IF EXISTS biblia_pueblo_dios_fts");
+      await db.runAsync(
+        "CREATE VIRTUAL TABLE IF NOT EXISTS biblia_pueblo_dios_fts USING fts5(libro, texto)",
+      );
+      const rows = await db.getAllAsync<any>("SELECT rowid, libro, texto FROM biblia_pueblo_dios");
+      for (const r of rows) {
+        await db.runAsync("INSERT INTO biblia_pueblo_dios_fts(rowid, libro, texto) VALUES (?, ?, ?)",
+          [r.rowid, r.libro, r.texto]);
+      }
+    } catch (e) {
+      if (__DEV__) console.warn("Failed to rebuild biblia_pueblo_dios_fts:", e);
+    }
+  }
 }
 
 /** Delete the database file so the next open copies fresh from assets */
@@ -220,16 +236,16 @@ export async function forceReCopy(): Promise<void> {
 }
 
 /** Quick check: are FTS5 tables available for search? */
-async function areFTSReady(db: SQLiteDatabase): Promise<{ cic: boolean; misalPropio: boolean; misalOrdinario: boolean; misalPrefacios: boolean; misalPlegarias: boolean }> {
+async function areFTSReady(db: SQLiteDatabase): Promise<{ misalPropio: boolean; misalOrdinario: boolean; misalPrefacios: boolean; misalPlegarias: boolean; biblia: boolean }> {
   const tables = await db.getAllAsync<{ name: string }>(
-    "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('catecismo_cic_fts','misal_propio_fts','misal_ordinario_fts','misal_prefacios_fts','misal_plegarias_fts')",
+    "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('misal_propio_fts','misal_ordinario_fts','misal_prefacios_fts','misal_plegarias_fts','biblia_pueblo_dios_fts')",
   );
   return {
-    cic: tables.some(t => t.name === "catecismo_cic_fts"),
     misalPropio: tables.some(t => t.name === "misal_propio_fts"),
     misalOrdinario: tables.some(t => t.name === "misal_ordinario_fts"),
     misalPrefacios: tables.some(t => t.name === "misal_prefacios_fts"),
     misalPlegarias: tables.some(t => t.name === "misal_plegarias_fts"),
+    biblia: tables.some(t => t.name === "biblia_pueblo_dios_fts"),
   };
 }
 
@@ -242,41 +258,23 @@ export async function diagnose(db: SQLiteDatabase): Promise<string> {
     );
     lines.push(`Tablas (${tables.length}): ${tables.map(t => t.name).join(", ")}`);
 
-    for (const table of ["catecismo_cic"]) {
-      if (tables.some(t => t.name === table)) {
-        const cols = await db.getAllAsync<{ name: string; type: string }>(
-          `PRAGMA table_info(${table})`,
-        );
-        lines.push(`${table}: ${cols.map(c => `${c.name} (${c.type})`).join(", ")}`);
-        lines.push(`  → tiene 'id'? ${cols.some(c => c.name === "id") ? "SÍ" : "NO"}`);
+    // --- YOUCAT stats ---
+    if (tables.some(t => t.name === "youcat")) {
+      const yc = await db.getAllAsync<{ parte_id: number; parte: string; cnt: number }>(
+        "SELECT parte_id, parte, COUNT(*) as cnt FROM youcat GROUP BY parte_id ORDER BY parte_id",
+      );
+      lines.push(`\nYOUCAT partes:`);
+      for (const r of yc) {
+        lines.push(`  · "${r.parte}" → ${r.cnt} preguntas`);
       }
     }
 
-    for (const table of ["catecismo_cic_fts", "misal_propio_fts", "misal_ordinario_fts", "misal_prefacios_fts", "misal_plegarias_fts"]) {
+    for (const table of ["misal_propio_fts", "misal_ordinario_fts", "misal_prefacios_fts", "misal_plegarias_fts", "biblia_pueblo_dios_fts"]) {
       lines.push(`${table}: ${tables.some(t => t.name === table) ? "EXISTE" : "NO EXISTE"}`);
     }
 
-    // --- Parte distribution ---
-    try {
-      const cp = await db.getAllAsync<{ parte: string; cnt: number }>(
-        "SELECT parte, COUNT(*) as cnt FROM catecismo_cic GROUP BY parte ORDER BY id",
-      );
-      lines.push(`\nCIC partes:`);
-      for (const r of cp) {
-        const label = r.parte === "" ? "(vacío)" : r.parte;
-        lines.push(`  · "${label}" → ${r.cnt} numerales`);
-      }
-    } catch (e: any) { lines.push(`\nCIC partes: ERROR ${e.message}`); }
-
     // --- FTS5 status ---
     const ftsStatus = await areFTSReady(db);
-    if (ftsStatus.cic) {
-      lines.push(`\n✅ FTS5 disponible: CIC`);
-    } else {
-      lines.push(`\n❌ FTS5 NO disponible: CIC`);
-      lines.push(`   → Andá a "Rebuild FTS" para recrearlas.`);
-      lines.push(`   → Si el rebuild falla, tu dispositivo no soporta FTS5.`);
-    }
     if (ftsStatus.misalPropio) lines.push(`✅ FTS5 disponible: Misal Propio`);
     else lines.push(`❌ FTS5 NO disponible: Misal Propio`);
     if (ftsStatus.misalOrdinario) lines.push(`✅ FTS5 disponible: Misal Ordinario`);
@@ -285,6 +283,8 @@ export async function diagnose(db: SQLiteDatabase): Promise<string> {
     else lines.push(`❌ FTS5 NO disponible: Prefacios`);
     if (ftsStatus.misalPlegarias) lines.push(`✅ FTS5 disponible: Plegarias`);
     else lines.push(`❌ FTS5 NO disponible: Plegarias`);
+    if (ftsStatus.biblia) lines.push(`✅ FTS5 disponible: Biblia`);
+    else lines.push(`❌ FTS5 NO disponible: Biblia`);
   } catch (e: any) {
     lines.push(`Error en diagnóstico: ${e.message}`);
   }

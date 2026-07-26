@@ -1,6 +1,7 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
@@ -115,7 +116,7 @@ export default function CalendarioLiturgico() {
   const diaLabel = `${parseInt(fechaParts[2])} de ${MESES[parseInt(fechaParts[1])]} de ${fechaParts[0]}`;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ThemedText style={styles.title}>Calendario Litúrgico</ThemedText>
 
       <View style={styles.mesNav}>
@@ -216,7 +217,6 @@ export default function CalendarioLiturgico() {
 const CELDA = 44;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
   title: { color: C.text, fontSize: 22, fontWeight: '700', marginHorizontal: S.xl, marginBottom: S.sm },
   mesNav: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: S.xl, marginVertical: S.md },
   mesBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.navyLight, alignItems: "center", justifyContent: "center" },

@@ -1,6 +1,7 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import { useSQLiteContext } from "expo-sqlite";
 import { router } from "expo-router";
@@ -39,14 +40,14 @@ export default function OrdinarioScreen() {
 
   if (loading) {
     return (
-      <View style={[s.container, s.center, { paddingTop: insets.top }]}>
+      <View style={[sharedStyles.container, sharedStyles.center, { paddingTop: insets.top }]}>
         <ActivityIndicator color={C.gold} />
       </View>
     );
   }
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader
         title={selected ?? "Ordinario de la Misa"}
         subtitle={selected ? `${blocks.length} bloques` : "Seleccioná una sección"}
@@ -56,7 +57,7 @@ export default function OrdinarioScreen() {
           else { router.back(); }
         }}
       />
-      <ScrollView contentContainerStyle={s.content}>
+      <ScrollView contentContainerStyle={sharedStyles.content}>
         {!selected && secciones.map((se) => (
           <TouchableOpacity
             key={se.seccion}
@@ -97,9 +98,6 @@ export default function OrdinarioScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
-  center: { alignItems: "center", justifyContent: "center" },
-  content: { padding: S.lg, paddingBottom: S.huge },
   card: {
     backgroundColor: C.navyMid,
     borderRadius: R.lg,

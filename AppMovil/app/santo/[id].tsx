@@ -1,6 +1,7 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
@@ -30,7 +31,7 @@ export default function SantoDetalleScreen() {
   const santoPropio = (data as [Santo | null, MisalSantosEntry | null] | undefined)?.[1] ?? null;
 
   if (!santo) return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}><ThemedText style={s.backText}>‹</ThemedText></TouchableOpacity>
         <ThemedText style={s.title}>Cargando...</ThemedText>
@@ -41,7 +42,7 @@ export default function SantoDetalleScreen() {
   const cleanTitulo = santo.titulo?.replace(/[.\s]*(Memoria|Fiesta|Solemnidad)$/i, '').replace(/[.\s]+$/, '').trim();
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}><ThemedText style={s.backText}>‹</ThemedText></TouchableOpacity>
         <ThemedText style={s.title} numberOfLines={1}>{santo.nombre}</ThemedText>
@@ -84,7 +85,6 @@ export default function SantoDetalleScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
   header: { flexDirection: 'row', alignItems: 'center', marginHorizontal: S.xl, marginBottom: S.sm },
   backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.navyLight, alignItems: 'center', justifyContent: 'center' },
   backText: { color: C.gold, fontSize: 22, fontWeight: '700', marginTop: -2 },

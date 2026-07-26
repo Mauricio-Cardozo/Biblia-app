@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { ActivityIndicator, StatusBar, View } from 'react-native';
@@ -7,18 +7,26 @@ import { C } from '@/constants/theme';
 import { ensureDatabaseSchema } from '@/db/init';
 import { FontSizeProvider } from '@/contexts/font-size';
 import { BibliaVersionProvider } from '@/contexts/bible-version';
+import { initNotificationHandler, getPrefEvangelio, getPrefRachas, scheduleBibleNotifications, scheduleStreakNotification } from '@/data/notifications';
+
+initNotificationHandler();
 
 function DatabaseInit({ children }: { children: React.ReactNode }) {
   const db = useSQLiteContext();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    ensureDatabaseSchema(db)
-      .then(() => setReady(true))
-      .catch((e) => {
-        console.warn("Migration error:", e);
-        setReady(true);
-      });
+    (async () => {
+      try {
+        await ensureDatabaseSchema(db);
+        const [ev, ra] = await Promise.all([getPrefEvangelio(), getPrefRachas()]);
+        if (ev) scheduleBibleNotifications(db).catch((e: unknown) => console.warn('[notif]', e));
+        if (ra) scheduleStreakNotification().catch((e: unknown) => console.warn('[notif]', e));
+      } catch (e: unknown) {
+        console.warn("Migration error:", e instanceof Error ? e.message : e);
+      }
+      setReady(true);
+    })();
   }, [db]);
 
   if (!ready) {

@@ -1,5 +1,5 @@
 import { type SQLiteDatabase } from "expo-sqlite";
-import type { MisalPropioEntry, MisalOrdinarioBlock, MisalPrefacio, MisalPlegaria } from "@/types";
+import type { MisalPropioEntry, MisalOrdinarioBlock, MisalPrefacio, MisalPlegaria, MisalGuiaEntry, MisalSearchResult } from "@/types";
 
 export async function getMisalTemporadas(db: SQLiteDatabase): Promise<{ temporada: string; temporada_label: string; count: number }[]> {
   return db.getAllAsync<{ temporada: string; temporada_label: string; count: number }>(
@@ -80,6 +80,54 @@ export async function getMisalOrdinarioDetalle(db: SQLiteDatabase, id: number): 
     "SELECT id, seccion, subseccion, rol, texto, orden FROM misal_ordinario WHERE id = ?",
     [id],
   );
+}
+
+export async function getMisalGuiaSecciones(db: SQLiteDatabase): Promise<{ seccion: string; count: number }[]> {
+  return db.getAllAsync<{ seccion: string; count: number }>(
+    "SELECT seccion, COUNT(*) as count FROM misal_guia GROUP BY seccion ORDER BY MIN(orden)",
+  );
+}
+
+export async function getMisalGuiaPorSeccion(db: SQLiteDatabase, seccion: string): Promise<MisalGuiaEntry[]> {
+  return db.getAllAsync<MisalGuiaEntry>(
+    "SELECT id, seccion, titulo, texto, orden FROM misal_guia WHERE seccion = ? ORDER BY orden",
+    [seccion],
+  );
+}
+
+export async function getMisalGuiaDetalle(db: SQLiteDatabase, id: number): Promise<MisalGuiaEntry | null> {
+  return db.getFirstAsync<MisalGuiaEntry>(
+    "SELECT id, seccion, titulo, texto, orden FROM misal_guia WHERE id = ?",
+    [id],
+  );
+}
+
+export async function searchMisalTodo(
+  db: SQLiteDatabase,
+  termino: string,
+): Promise<MisalSearchResult[]> {
+  const results: MisalSearchResult[] = [];
+  try {
+    const propio = await db.getAllAsync<MisalSearchResult>(
+      "SELECT 'propio' as tipo, id, COALESCE(dia,'') as titulo, COALESCE(colecta,'') as preview FROM misal_propio_fts WHERE misal_propio_fts MATCH ? ORDER BY rank LIMIT 20", [termino]);
+    results.push(...propio);
+  } catch {}
+  try {
+    const ordinario = await db.getAllAsync<MisalSearchResult>(
+      "SELECT 'ordinario' as tipo, id, COALESCE(seccion,'') as titulo, COALESCE(texto,'') as preview FROM misal_ordinario_fts WHERE misal_ordinario_fts MATCH ? ORDER BY rank LIMIT 20", [termino]);
+    results.push(...ordinario);
+  } catch {}
+  try {
+    const prefacios = await db.getAllAsync<MisalSearchResult>(
+      "SELECT 'prefacio' as tipo, id, COALESCE(titulo,'') as titulo, COALESCE(texto,'') as preview FROM misal_prefacios_fts WHERE misal_prefacios_fts MATCH ? ORDER BY rank LIMIT 20", [termino]);
+    results.push(...prefacios);
+  } catch {}
+  try {
+    const plegarias = await db.getAllAsync<MisalSearchResult>(
+      "SELECT 'plegaria' as tipo, id, COALESCE(nombre,'') as titulo, COALESCE(texto,'') as preview FROM misal_plegarias_fts WHERE misal_plegarias_fts MATCH ? ORDER BY rank LIMIT 20", [termino]);
+    results.push(...plegarias);
+  } catch {}
+  return results;
 }
 
 

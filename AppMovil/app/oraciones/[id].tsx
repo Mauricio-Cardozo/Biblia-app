@@ -1,5 +1,6 @@
 import { C } from "@/constants/theme";
 import { S } from '@/constants/spacing';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from "@/components/themed-text";
 import ScreenHeader from "@/components/ui/screen-header";
 import { useFontSize, fs } from "@/contexts/font-size";
@@ -17,14 +18,14 @@ export default function OracionDetalleScreen() {
 
   if (!prayer) {
     return (
-      <View style={[s.container, { paddingTop: insets.top }]}>
-        <ScreenHeader title="Oración no encontrada" showBack onBack={() => router.back()} />
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
+      <ScreenHeader title="Oración no encontrada" showBack onBack={() => router.back()} />
       </View>
     );
   }
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader title={prayer.titulo} showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
         <ThemedText style={[s.texto, { fontSize: fs(16, multiplier), lineHeight: fs(28, multiplier) }]}>
@@ -36,7 +37,6 @@ export default function OracionDetalleScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
   content: { padding: S.lg, paddingBottom: S.massive },
   texto: { color: C.text, lineHeight: 28 },
 });

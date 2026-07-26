@@ -1,47 +1,65 @@
 import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { ThemedText } from '@/components/themed-text';
 import ScreenHeader from '@/components/ui/screen-header';
 import FontSizeControl from '@/components/font-size-control';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, Share, StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSQLiteContext } from 'expo-sqlite';
 import { exportarDatos, importarDatos } from '@/data/export-import';
+import { scheduleBibleNotifications, cancelBibleNotifications, scheduleStreakNotification, cancelStreakNotification, getPrefEvangelio, getPrefRachas, setPrefEvangelio, setPrefRachas } from '@/data/notifications';
 import Constants from 'expo-constants';
 
 export default function AjustesScreen() {
   const insets = useSafeAreaInsets();
-  const [temaOscuro, setTemaOscuro] = useState(true);
+  const db = useSQLiteContext();
   const [notifEvangelio, setNotifEvangelio] = useState(false);
   const [notifRachas, setNotifRachas] = useState(false);
   const [mostrarImport, setMostrarImport] = useState(false);
   const [importText, setImportText] = useState("");
 
+  useEffect(() => {
+    (async () => {
+      setNotifEvangelio(await getPrefEvangelio());
+      setNotifRachas(await getPrefRachas());
+    })();
+  }, []);
+
+  const toggleEvangelio = async (v: boolean) => {
+    if (v) {
+      const ok = await scheduleBibleNotifications(db);
+      if (!ok) { Alert.alert('Permiso requerido', 'Activá las notificaciones en Ajustes del sistema'); return; }
+    } else {
+      await cancelBibleNotifications();
+    }
+    setNotifEvangelio(v);
+    await setPrefEvangelio(v);
+  };
+
+  const toggleRachas = async (v: boolean) => {
+    if (v) {
+      const ok = await scheduleStreakNotification();
+      if (!ok) { Alert.alert('Permiso requerido', 'Activá las notificaciones en Ajustes del sistema'); return; }
+    } else {
+      await cancelStreakNotification();
+    }
+    setNotifRachas(v);
+    await setPrefRachas(v);
+  };
+
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader title="Ajustes" showBack onBack={() => router.back()} />
-      <ScrollView contentContainerStyle={s.content}>
+      <ScrollView contentContainerStyle={sharedStyles.content}>
         <ThemedText style={s.seccionTitulo}>APARIENCIA</ThemedText>
         <View style={s.card}>
           <View style={s.fila}>
             <ThemedText style={s.filaLabel}>Tamaño de fuente</ThemedText>
             <FontSizeControl />
-          </View>
-        </View>
-        <View style={s.card}>
-          <View style={s.fila}>
-            <View>
-              <ThemedText style={s.filaLabel}>Tema oscuro</ThemedText>
-              <ThemedText style={s.filaSub}>Alternar entre claro y oscuro</ThemedText>
-            </View>
-            <Switch
-              value={temaOscuro}
-              onValueChange={setTemaOscuro}
-              trackColor={{ false: C.muted, true: C.goldDim }}
-              thumbColor={temaOscuro ? C.gold : C.text}
-            />
           </View>
         </View>
 
@@ -50,11 +68,11 @@ export default function AjustesScreen() {
           <View style={s.fila}>
             <View>
               <ThemedText style={s.filaLabel}>Evangelio del día</ThemedText>
-              <ThemedText style={s.filaSub}>Recordatorio diario de la lectura</ThemedText>
+              <ThemedText style={s.filaSub}>7:00 Evangelio · 12:00 Versículo</ThemedText>
             </View>
             <Switch
               value={notifEvangelio}
-              onValueChange={setNotifEvangelio}
+              onValueChange={toggleEvangelio}
               trackColor={{ false: C.muted, true: C.goldDim }}
               thumbColor={notifEvangelio ? C.gold : C.text}
             />
@@ -64,11 +82,11 @@ export default function AjustesScreen() {
           <View style={s.fila}>
             <View>
               <ThemedText style={s.filaLabel}>Rachas de oración</ThemedText>
-              <ThemedText style={s.filaSub}>Recordatorio para mantener la racha</ThemedText>
+              <ThemedText style={s.filaSub}>20:00 Recordatorio diario</ThemedText>
             </View>
             <Switch
               value={notifRachas}
-              onValueChange={setNotifRachas}
+              onValueChange={toggleRachas}
               trackColor={{ false: C.muted, true: C.goldDim }}
               thumbColor={notifRachas ? C.gold : C.text}
             />
@@ -144,8 +162,6 @@ export default function AjustesScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
-  content: { padding: S.lg, paddingBottom: S.huge },
   seccionTitulo: { color: C.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: S.sm, marginTop: S.lg, marginHorizontal: S.xs },
   card: { backgroundColor: C.navyMid, borderRadius: R.lg, padding: S.lg, marginBottom: S.sm },
   fila: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

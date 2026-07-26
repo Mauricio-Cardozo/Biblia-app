@@ -1,22 +1,21 @@
 import { C } from '@/constants/theme';
 import { R } from '@/constants/radius';
 import { S } from '@/constants/spacing';
+import { sharedStyles } from '@/constants/shared-styles';
 import { tabBarScrollY } from '@/utils/scroll-state';
+import SectionCard from '@/components/section-card';
 import { ThemedText } from '@/components/themed-text';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDbQuery } from '@/hooks/use-db-query';
-import { getCICPartes } from '@/db/db';
-import { SECCIONES_MISAL } from './misal';
-import type { CICParte } from '@/types';
+import { SECCIONES_MISAL } from '@/constants/misal-sections';
 
 const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
   tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
 };
 
-type Pill = 'oraciones' | 'catecismo' | 'misal';
+type Pill = 'oraciones' | 'misal';
 
 const ORACIONES_SECCIONES = [
   { id: 'rosario', titulo: 'Santo Rosario', subtitulo: 'Guía completa con misterios del día', icono: '📿', ruta: '/rosario/guia' },
@@ -30,20 +29,18 @@ const ORACIONES_SECCIONES = [
 export default function OracionScreen() {
   const insets = useSafeAreaInsets();
   const [pill, setPill] = useState<Pill>('oraciones');
-  const { data: partes } = useDbQuery<CICParte[]>(
-    (db) => pill === 'catecismo' ? getCICPartes(db) : Promise.resolve([]),
-    [pill],
-  );
 
   return (
-    <ScrollView onScroll={handleScroll} scrollEventThrottle={16} style={[styles.container, { paddingTop: insets.top + 16 }]} contentContainerStyle={styles.content}>
-      <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
-      <ThemedText style={styles.title}>Oración</ThemedText>
+    <ScrollView onScroll={handleScroll} scrollEventThrottle={16} style={[sharedStyles.container, { paddingTop: insets.top + 16 }]} contentContainerStyle={styles.content}>
+      <View style={styles.header}>
+        <ThemedText style={styles.brand}>✝ IGLESIA DIGITAL</ThemedText>
+        <ThemedText style={styles.title}>Oración</ThemedText>
+      </View>
 
       <View style={styles.pillRow}>
-        {(['oraciones', 'catecismo', 'misal'] as Pill[]).map((p) => {
+        {(['oraciones', 'misal'] as Pill[]).map((p) => {
           const active = pill === p;
-          const label = p === 'oraciones' ? 'Oraciones' : p === 'catecismo' ? 'Catecismo' : 'Misal';
+          const label = p === 'oraciones' ? 'Oraciones' : 'Misal';
           return (
             <TouchableOpacity key={p} style={[styles.pill, active && styles.pillActive]} onPress={() => setPill(p)} activeOpacity={0.7}>
               <ThemedText style={[styles.pillText, active && styles.pillTextActive]}>{label}</ThemedText>
@@ -52,70 +49,27 @@ export default function OracionScreen() {
         })}
       </View>
 
-      {pill === 'oraciones' && ORACIONES_SECCIONES.map((s) => (
-        <TouchableOpacity key={s.id} style={styles.card} onPress={() => router.push(s.ruta as any)} activeOpacity={0.7}>
-          <View style={styles.cardRow}>
-            <ThemedText style={styles.cardIcon}>{s.icono}</ThemedText>
-            <View style={styles.cardTextWrap}>
-              <ThemedText style={styles.cardTitle}>{s.titulo}</ThemedText>
-              <ThemedText style={styles.cardSubtitle}>{s.subtitulo}</ThemedText>
-            </View>
-            <ThemedText style={styles.chevron}>›</ThemedText>
-          </View>
-        </TouchableOpacity>
-      ))}
-
-      {pill === 'catecismo' && (
-        <View>
-          <ThemedText style={styles.subHeader}>Partes del Catecismo</ThemedText>
-          {(partes ?? []).map((p, i) => (
-            <TouchableOpacity key={p.parte} style={styles.card} onPress={() => router.push('/catecismo')} activeOpacity={0.7}>
-              <View style={styles.cardRow}>
-                <View style={styles.indexBadge}><ThemedText style={styles.indexBadgeText}>{i + 1}</ThemedText></View>
-                <View style={styles.cardTextWrap}>
-                  <ThemedText style={styles.cardTitle}>{p.parte}</ThemedText>
-                </View>
-                <ThemedText style={styles.chevron}>›</ThemedText>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {pill === 'misal' && SECCIONES_MISAL.map((s) => (
-        <TouchableOpacity key={s.id} style={styles.card} onPress={() => router.push(s.ruta as any)} activeOpacity={0.7}>
-          <View style={styles.cardRow}>
-            <ThemedText style={styles.cardIcon}>{s.icono}</ThemedText>
-            <View style={styles.cardTextWrap}>
-              <ThemedText style={styles.cardTitle}>{s.titulo}</ThemedText>
-              <ThemedText style={styles.cardSubtitle}>{s.subtitulo}</ThemedText>
-            </View>
-            <ThemedText style={styles.chevron}>›</ThemedText>
-          </View>
-        </TouchableOpacity>
+      {(pill === 'oraciones' ? ORACIONES_SECCIONES : SECCIONES_MISAL).map((s) => (
+        <SectionCard
+          key={s.id}
+          icono={s.icono}
+          titulo={s.titulo}
+          subtitulo={s.subtitulo}
+          onPress={() => router.push(s.ruta as any)}
+        />
       ))}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.navy },
   content: { paddingBottom: 100 },
-  brand: { color: C.gold, fontSize: 12, fontWeight: '700', letterSpacing: 2, marginBottom: S.xs, marginHorizontal: S.xl },
-  title: { color: C.text, fontSize: 28, fontWeight: '700', marginBottom: S.xxl, marginHorizontal: S.xl },
+  header: { paddingHorizontal: S.xl, marginBottom: S.xxl },
+  brand: { color: C.gold, fontSize: 12, fontWeight: '700', letterSpacing: 2, marginBottom: S.xs },
+  title: { color: C.text, fontSize: 28, fontWeight: '700' },
   pillRow: { flexDirection: 'row', gap: S.sm, paddingHorizontal: S.xl, marginBottom: S.xl },
   pill: { flex: 1, paddingVertical: 10, borderRadius: R.xxl, borderWidth: 1, borderColor: C.goldDim, alignItems: 'center' },
   pillActive: { backgroundColor: C.gold, borderColor: C.gold },
   pillText: { color: C.gold, fontSize: 13, fontWeight: '600' },
   pillTextActive: { color: C.navy },
-  subHeader: { color: C.muted, fontSize: 12, marginBottom: S.sm, marginHorizontal: S.xl },
-  card: { marginHorizontal: S.xl, marginBottom: S.md, padding: 18, borderRadius: 15, backgroundColor: C.navyMid },
-  cardRow: { flexDirection: 'row', alignItems: 'center' },
-  cardIcon: { fontSize: 32, marginRight: S.lg },
-  cardTextWrap: { flex: 1 },
-  cardTitle: { color: C.text, fontSize: 16, fontWeight: '600' },
-  cardSubtitle: { color: C.muted, fontSize: 13, marginTop: 2 },
-  chevron: { color: C.gold, fontSize: 24, marginLeft: S.sm },
-  indexBadge: { width: 32, height: 32, borderRadius: R.xl, backgroundColor: C.goldDim, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  indexBadgeText: { color: C.goldLight, fontSize: 14, fontWeight: '800' },
 });

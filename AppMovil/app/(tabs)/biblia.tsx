@@ -1,20 +1,23 @@
 import ScreenHeader from "@/components/ui/screen-header";
+import LibroCard from "@/components/ui/libro-card";
+import Buscador from "@/components/ui/buscador";
 import { ThemedText } from "@/components/themed-text";
 import { C } from "@/constants/theme";
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
+import { sharedStyles } from '@/constants/shared-styles';
 import { useSQLiteContext } from "expo-sqlite";
 import { useBibliaVersion } from "@/contexts/bible-version";
 import { tabBarScrollY } from "@/utils/scroll-state";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, Animated, ImageBackground, Share, StatusBar,
-  StyleSheet, TouchableOpacity, View,
+  ActivityIndicator, ImageBackground, Modal, Share, StatusBar,
+  StyleSheet, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getLibros, getCapitulos, getVersiculos } from "@/db/db";
-import { addFavorito, isFavorito, removeFavorito, type Favorito } from "@/data/favoritos";
+import { getLibros, getCapitulos, getVersiculos, searchBiblia } from "@/db/db";
+import { addFavorito, getFavoritos, isFavorito, removeFavorito, type Favorito } from "@/data/favoritos";
 import type { Book, Chapter, Verse } from "@/types";
 
 type Nivel = "libros" | "capitulos" | "versiculos";
@@ -23,58 +26,6 @@ type Filtro = "Antiguo" | "Nuevo" | "Todos";
 const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
   tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
 };
-
-const ABREVIATURAS: Record<string, string> = {
-  "Génesis": "Gn", "Éxodo": "Éx", "Levítico": "Lv", "Números": "Nm",
-  "Deuteronomio": "Dt", "Josué": "Jos", "Jueces": "Jue", "Rut": "Rut",
-  "1 Samuel": "1 Sm", "2 Samuel": "2 Sm", "1 Reyes": "1 Re", "2 Reyes": "2 Re",
-  "1 Crónicas": "1 Cr", "2 Crónicas": "2 Cr", "Esdras": "Esd", "Nehemías": "Ne",
-  "Tobías": "Tb", "Judit": "Jdt", "Ester": "Est", "1 Macabeos": "1 Mac",
-  "2 Macabeos": "2 Mac", "Job": "Job", "Salmos": "Sal", "Proverbios": "Prov",
-  "Eclesiastés": "Ecl", "Cantar de los Cantares": "Cant", "Sabiduría": "Sab",
-  "Eclesiástico": "Sir", "Isaías": "Is", "Jeremías": "Jr", "Lamentaciones": "Lam",
-  "Baruc": "Bar", "Ezequiel": "Ez", "Daniel": "Dn", "Oseas": "Os",
-  "Joel": "Jl", "Amós": "Am", "Abdías": "Abd", "Jonás": "Jon",
-  "Miqueas": "Miq", "Nahúm": "Na", "Habacuc": "Hab", "Sofonías": "Sof",
-  "Ageo": "Ag", "Zacarías": "Za", "Malaquías": "Mal",
-  "Mateo": "Mt", "Marcos": "Mc", "Lucas": "Lc", "Juan": "Jn",
-  "Hechos de los Apóstoles": "Hch", "Romanos": "Rom", "1 Corintios": "1 Cor",
-  "2 Corintios": "2 Cor", "Gálatas": "Gal", "Efesios": "Ef", "Filipenses": "Fil",
-  "Colosenses": "Col", "1 Tesalonicenses": "1 Tes", "2 Tesalonicenses": "2 Tes",
-  "1 Timoteo": "1 Tim", "2 Timoteo": "2 Tim", "Tito": "Tit", "Filemón": "Flm",
-  "Hebreos": "Heb", "Santiago": "Sant", "1 Pedro": "1 Pe", "2 Pedro": "2 Pe",
-  "1 Juan": "1 Jn", "2 Juan": "2 Jn", "3 Juan": "3 Jn", "Judas": "Jds",
-  "Apocalipsis": "Ap",
-};
-
-const abrev = (libro: string) => ABREVIATURAS[libro] ?? libro.slice(0, 3);
-
-function LibroCard({ item, onPress }: { item: Book; onPress: () => void }) {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () => {
-    Animated.timing(scale, { toValue: 0.95, duration: 100, useNativeDriver: true }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.timing(scale, { toValue: 1, duration: 100, useNativeDriver: true }).start();
-  };
-
-  return (
-    <Animated.View style={[s.libroCardWrapper, { transform: [{ scale }] }]}>
-      <TouchableOpacity
-        style={s.libroCard}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={1}
-      >
-        <ThemedText style={s.libroAbr}>{abrev(item.libro)}</ThemedText>
-        <ThemedText style={s.libroNombre} numberOfLines={1}>{item.libro}</ThemedText>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-}
 
 export default function BibliaScreen() {
   const db = useSQLiteContext();
@@ -91,6 +42,32 @@ export default function BibliaScreen() {
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("Todos");
   const [favs, setFavs] = useState<Set<number>>(new Set());
+  const [favColors, setFavColors] = useState<Record<number, string>>({});
+  const [pickerVerse, setPickerVerse] = useState<Verse | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Verse[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const inputRef = useRef<TextInput>(null);
+
+  const handleSearch = useCallback(async (q: string) => {
+    if (!q.trim()) { setSearchResults([]); setSearchError(null); setSearching(false); return; }
+    setSearching(true); setSearchError(null);
+    try {
+      const termino = q.trim().split(/\s+/).filter(Boolean).map(w => `"${w}"`).join(' ');
+      const rows = await searchBiblia(db, termino);
+      setSearchResults(rows);
+      if (rows.length === 0) setSearchError("Sin resultados.");
+    } catch (e: unknown) {
+      setSearchError(`Error: ${e instanceof Error ? e.message : String(e)}`);
+    }
+    setSearching(false);
+  }, [db]);
+
+  const clearSearch = () => {
+    setSearchQuery(""); setSearchResults([]); setSearchError(null); setSearching(false);
+  };
 
   useEffect(() => {
     (async () => {
@@ -117,30 +94,41 @@ export default function BibliaScreen() {
 
   useEffect(() => {
     (async () => {
-      const results = await Promise.all(versiculos.map((v) => isFavorito(`biblia-${v.id}`)));
+      const all = await getFavoritos();
       const s = new Set<number>();
-      versiculos.forEach((v, i) => { if (results[i]) s.add(v.id); });
+      const colors: Record<number, string> = {};
+      for (const v of versiculos) {
+        const f = all.find((x) => x.id === `biblia-${v.id}`);
+        if (f) { s.add(v.id); if (f.color) colors[v.id] = f.color; }
+      }
       setFavs(s);
+      setFavColors(colors);
     })();
   }, [versiculos]);
 
-  const toggleFav = useCallback(async (v: Verse) => {
+  const handleLongPress = useCallback(async (v: Verse) => {
     const id = `biblia-${v.id}`;
     const isFav = await isFavorito(id);
     if (isFav) {
       await removeFavorito(id);
       setFavs((prev) => { const s = new Set(prev); s.delete(v.id); return s; });
+      setFavColors((prev) => { const n = { ...prev }; delete n[v.id]; return n; });
     } else {
-      await addFavorito({
-        id,
-        tipo: "biblia",
-        referencia: `${v.libro} ${v.capitulo}:${v.versiculo}`,
-        preview: v.texto.slice(0, 80),
-        timestamp: Date.now(),
-      } as Favorito);
-      setFavs((prev) => new Set(prev).add(v.id));
+      setPickerVerse(v);
     }
   }, []);
+
+  const pickColor = useCallback(async (color: string) => {
+    if (!pickerVerse) return;
+    const v = pickerVerse;
+    const id = `biblia-${v.id}`;
+    try {
+      await addFavorito({ id, tipo: "biblia", referencia: `${v.libro} ${v.capitulo}:${v.versiculo}`, preview: v.texto.slice(0, 80), timestamp: Date.now(), color } as Favorito);
+      setFavs((prev) => new Set(prev).add(v.id));
+      setFavColors((prev) => ({ ...prev, [v.id]: color }));
+    } catch (e: unknown) { console.warn('[biblia] highlight error:', e instanceof Error ? e.message : e); }
+    setPickerVerse(null);
+  }, [pickerVerse]);
 
   const seleccionarLibro = (libro: Book) => {
     setLibroActual(libro); cargarCapitulos(libro.libro); setNivel("capitulos");
@@ -149,6 +137,7 @@ export default function BibliaScreen() {
     setCapActual(cap); cargarVersiculos(libroActual!.libro, cap); setNivel("versiculos");
   };
   const volver = () => {
+    if (searchResults.length > 0 || searching || searchError) { clearSearch(); return; }
     if (nivel === "versiculos") { setNivel("capitulos"); setCapActual(null); }
     else if (nivel === "capitulos") { setNivel("libros"); setLibroActual(null); }
   };
@@ -189,6 +178,14 @@ export default function BibliaScreen() {
     );
   };
 
+  const irAVersiculo = (v: Verse) => {
+    setLibroActual({ libro: v.libro, testamento: v.testamento as 'Antiguo' | 'Nuevo' });
+    setCapActual(v.capitulo);
+    cargarVersiculos(v.libro, v.capitulo);
+    setNivel("versiculos");
+    clearSearch();
+  };
+
   if (loading) return (
     <View style={s.center}>
       <ActivityIndicator size="large" color={C.gold} />
@@ -202,8 +199,45 @@ export default function BibliaScreen() {
     </View>
   );
 
+  if (searchResults.length > 0 || searching || searchError) {
+    return (
+      <SafeAreaView style={sharedStyles.container}>
+        <StatusBar barStyle="light-content" backgroundColor={C.navy} />
+        <ScreenHeader title="Buscar en la Biblia" showBack onBack={volver} superLabel="✝ IGLESIA DIGITAL" />
+        <Buscador
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onSubmit={() => handleSearch(searchQuery)}
+          onClear={clearSearch}
+          placeholder="Buscá palabras…"
+          inputRef={inputRef}
+        />
+        {searching ? (
+          <View style={s.center}><ActivityIndicator size="large" color={C.gold} /></View>
+        ) : (
+          <FlashList
+            data={searchResults}
+            keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={s.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={s.resultRow} onPress={() => irAVersiculo(item)} activeOpacity={0.75}>
+                <View style={s.resultRef}>
+                  <ThemedText style={s.resultRefText}>{item.libro} {item.capitulo}:{item.versiculo}</ThemedText>
+                </View>
+                <ThemedText style={s.resultTexto} numberOfLines={2}>{item.texto}</ThemedText>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={searchError ? <ThemedText style={s.emptyText}>{searchError}</ThemedText> : null}
+          />
+        )}
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={sharedStyles.container}>
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
 
       {nivel !== "libros" && renderHeader()}
@@ -220,6 +254,14 @@ export default function BibliaScreen() {
           ListHeaderComponent={
             <View>
               {renderHeader()}
+              <Buscador
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmit={() => handleSearch(searchQuery)}
+                onClear={clearSearch}
+                placeholder="Buscá en la Biblia…"
+                inputRef={inputRef}
+              />
               <View style={s.pillRow}>
                 {(["Antiguo", "Nuevo", "Todos"] as Filtro[]).map((f) => {
                   const count = f === "Antiguo" ? antiguos : f === "Nuevo" ? nuevos : antiguos + nuevos;
@@ -231,6 +273,7 @@ export default function BibliaScreen() {
                       style={[s.pill, active && s.pillActive]}
                       onPress={() => setFiltro(f)}
                       activeOpacity={0.7}
+                      accessibilityLabel={f}
                     >
                       <ThemedText style={[s.pillText, active && s.pillTextActive]}>{label}</ThemedText>
                     </TouchableOpacity>
@@ -261,25 +304,43 @@ export default function BibliaScreen() {
         <FlashList data={versiculos} keyExtractor={(item) => String(item.id)} contentContainerStyle={s.list}
           showsVerticalScrollIndicator={false} ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           onScroll={handleScroll} scrollEventThrottle={16}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={s.versRow} onLongPress={() => toggleFav(item)} activeOpacity={0.85} delayLongPress={400}>
-              <ThemedText style={s.versNum}>{item.versiculo}</ThemedText>
-              <ThemedText style={s.versTexto}>{item.texto}</ThemedText>
-              <TouchableOpacity onPress={() => Share.share({ message: `${item.libro} ${item.capitulo}:${item.versiculo}\n${item.texto}` })} style={s.shareBtn}>
-                <ThemedText style={s.shareIcon}>↗</ThemedText>
+          renderItem={({ item }) => {
+            const color = favColors[item.id];
+            return (
+              <TouchableOpacity style={[s.versRow, color ? { backgroundColor: color + '30' } : undefined]} onLongPress={() => handleLongPress(item)} activeOpacity={0.85} delayLongPress={400}>
+                <ThemedText style={s.versNum}>{item.versiculo}</ThemedText>
+                <ThemedText style={s.versTexto}>{item.texto}</ThemedText>
+                <TouchableOpacity onPress={() => Share.share({ message: `${item.libro} ${item.capitulo}:${item.versiculo}\n${item.texto}` })} style={s.shareBtn}>
+                  <ThemedText style={s.shareIcon}>↗</ThemedText>
+                </TouchableOpacity>
+                <ThemedText style={[s.versFav, color ? { color } : undefined]}>{favs.has(item.id) ? "♥" : ""}</ThemedText>
               </TouchableOpacity>
-              <ThemedText style={s.versFav}>{favs.has(item.id) ? "♥" : ""}</ThemedText>
-            </TouchableOpacity>
-          )}
+            );
+          }}
         />
       )}
+
+      <Modal visible={!!pickerVerse} transparent animationType="fade" onRequestClose={() => setPickerVerse(null)}>
+        <TouchableOpacity style={s.pickerOverlay} activeOpacity={1} onPress={() => setPickerVerse(null)}>
+          <View style={s.pickerModal} onStartShouldSetResponder={() => true}>
+            <ThemedText style={s.pickerTitle}>Resaltar versículo</ThemedText>
+            <View style={s.pickerRow}>
+              {['#E8C97A', '#4CAF50', '#7B3FAF', '#2196F3', '#E07070', '#FF9800'].map((c) => (
+                <TouchableOpacity key={c} style={[s.pickerSwatch, { backgroundColor: c }]} onPress={() => pickColor(c)} />
+              ))}
+              <TouchableOpacity style={s.pickerSwatch} onPress={() => setPickerVerse(null)}>
+                <ThemedText style={s.pickerCancel}>✕</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.navy },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: S.md },
   muted: { color: C.muted, fontSize: 14 },
   errorText: { color: "#E07070", fontSize: 14, textAlign: "center", padding: S.xl },
@@ -304,19 +365,10 @@ const s = StyleSheet.create({
   pillTextActive: { color: C.navy },
 
   gridContainer: { paddingHorizontal: S.sm, paddingBottom: S.xxl },
-  libroCardWrapper: { flex: 1, margin: 6 },
-  libroCard: {
-    backgroundColor: C.navyMid, borderRadius: R.lg,
-    borderWidth: 1, borderColor: C.sep,
-    height: 90, alignItems: "center", justifyContent: "center",
-    paddingHorizontal: S.sm,
-  },
-  libroAbr: { color: C.gold, fontSize: 28, fontWeight: "800" },
-  libroNombre: { color: C.muted, fontSize: 13, marginTop: S.xs, textAlign: "center" },
 
   list: { padding: S.md },
   capGrid: { padding: S.md },
-  capCard: { flex: 1, margin: 5, backgroundColor: C.navyMid, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.goldDim, paddingVertical: 10, paddingHorizontal: 6, minHeight: 48 },
+  capCard: { flex: 1, margin: 5, backgroundColor: C.navyMid, borderRadius: R.md, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.goldDim, paddingVertical: 10, paddingHorizontal: 6, minHeight: 48 },
   capNum: { color: C.goldLight, fontSize: 15, fontWeight: "700" },
   versRow: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
   versNum: { color: C.gold, fontSize: 13, fontWeight: "700", minWidth: 28, paddingTop: 2, textAlign: "right" },
@@ -324,4 +376,17 @@ const s = StyleSheet.create({
   shareBtn: { paddingHorizontal: S.xs },
   shareIcon: { color: C.muted, fontSize: 16 },
   versFav: { color: C.error, fontSize: 16, minWidth: 20, textAlign: "center", paddingTop: 2 },
+
+  pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: S.xl },
+  pickerModal: { backgroundColor: C.navyLight, borderRadius: R.xl, padding: S.xl },
+  pickerTitle: { color: C.text, fontSize: 16, fontWeight: '700', marginBottom: S.lg, textAlign: 'center' },
+  pickerRow: { flexDirection: 'row', gap: S.md, justifyContent: 'center', flexWrap: 'wrap' },
+  pickerSwatch: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  pickerCancel: { color: C.muted, fontSize: 18 },
+
+  resultRow: { paddingVertical: S.sm, paddingHorizontal: S.md, gap: S.xs },
+  resultRef: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: R.sm, paddingHorizontal: 10, paddingVertical: 3 },
+  resultRefText: { color: C.goldLight, fontSize: 12, fontWeight: "700" },
+  resultTexto: { color: C.text, fontSize: 14, lineHeight: 20, marginTop: S.xs },
+  emptyText: { color: C.muted, fontSize: 14, textAlign: "center", paddingVertical: S.huge },
 });
