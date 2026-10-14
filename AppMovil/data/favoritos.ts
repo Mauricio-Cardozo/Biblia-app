@@ -16,7 +16,17 @@ export interface Favorito {
 export async function getFavoritos(): Promise<Favorito[]> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const favs: Favorito[] = raw ? JSON.parse(raw) : [];
+    // Migración: claves v1 sin versión (`biblia-{id}`) → versión Pueblo de Dios
+    let changed = false;
+    for (const f of favs) {
+      if (f.tipo === "biblia" && /^biblia-\d+$/.test(f.id)) {
+        f.id = `biblia-pueblo-${f.id.replace(/^biblia-/, "")}`;
+        changed = true;
+      }
+    }
+    if (changed) await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(favs));
+    return favs;
   } catch {
     return [];
   }

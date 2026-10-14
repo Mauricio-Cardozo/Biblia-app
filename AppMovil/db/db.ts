@@ -1,5 +1,6 @@
-export { getLibros, getCapitulos, getVersiculos, searchBiblia } from "./biblia";
+export { getLibros, getCapitulos, getVersiculos, searchBiblia, favoritoId } from "./biblia";
 export type { Book, Chapter, Verse } from "@/types";
+export type { BibliaVersion } from "./biblia";
 
 export {
   getYoucatPartes, getYoucatPreguntas, getYoucatDetalle, searchYoucat,

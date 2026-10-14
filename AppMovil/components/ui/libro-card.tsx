@@ -34,9 +34,10 @@ const abrev = (libro: string) => ABREVIATURAS[libro] ?? libro.slice(0, 3);
 interface LibroCardProps {
   item: Book;
   onPress: () => void;
+  deuterocanonico?: boolean;
 }
 
-export default function LibroCard({ item, onPress }: LibroCardProps) {
+export default function LibroCard({ item, onPress, deuterocanonico }: LibroCardProps) {
   const [scale] = useState(() => new Animated.Value(1));
 
   const handlePressIn = () => {
@@ -58,6 +59,7 @@ export default function LibroCard({ item, onPress }: LibroCardProps) {
       >
         <ThemedText style={s.libroAbr}>{abrev(item.libro)}</ThemedText>
         <ThemedText style={s.libroNombre} numberOfLines={1}>{item.libro}</ThemedText>
+        {deuterocanonico && <ThemedText style={s.deutBadge}>†</ThemedText>}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -77,4 +79,5 @@ const s = StyleSheet.create({
   },
   libroAbr: { color: C.gold, fontSize: 28, fontWeight: "800" },
   libroNombre: { color: C.muted, fontSize: 13, marginTop: S.xs, textAlign: "center" },
+  deutBadge: { position: "absolute", top: 6, right: 10, color: C.gold, fontSize: 16, fontWeight: "800" },
 });

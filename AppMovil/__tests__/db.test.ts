@@ -38,6 +38,27 @@ describe("Biblia", () => {
   });
 });
 
+describe("Biblia Navarra (versión)", () => {
+  it("retorna 73 libros", async () => {
+    const libros = await getLibros(db, "navarra");
+    expect(libros).toHaveLength(73);
+  });
+
+  it("Génesis 1,1 difiere de la versión Pueblo de Dios", async () => {
+    const navarra = await getVersiculos(db, "Génesis", 1, "navarra");
+    const pueblo = await getVersiculos(db, "Génesis", 1, "pueblo");
+    const n = navarra.find((v) => v.versiculo === 1);
+    const p = pueblo.find((v) => v.versiculo === 1);
+    expect(n).toBeDefined();
+    expect(n?.texto).not.toBe(p?.texto);
+  });
+
+  it("searchBiblia busca en biblia_navarra", async () => {
+    const res = await searchBiblia(db, '"Dios"', "navarra");
+    expect(Array.isArray(res)).toBe(true);
+  });
+});
+
 describe("YOUCAT", () => {
   it("tiene 4 partes", async () => {
     const partes = await getYoucatPartes(db);

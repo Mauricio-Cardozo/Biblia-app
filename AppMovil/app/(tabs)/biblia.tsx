@@ -15,8 +15,10 @@ import {
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getLibros, getCapitulos, getVersiculos, searchBiblia } from "@/db/db";
+import { getLibros, getCapitulos, getVersiculos, searchBiblia, favoritoId, type BibliaVersion } from "@/db/db";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { addFavorito, getFavoritos, isFavorito, removeFavorito, type Favorito } from "@/data/favoritos";
+import { GRUPOS_BIBLIA } from "@/constants/bible-sections";
 import type { Book, Chapter, Verse } from "@/types";
 
 type Nivel = "libros" | "capitulos" | "versiculos";
@@ -26,9 +28,17 @@ const handleScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
   tabBarScrollY.setValue(e.nativeEvent.contentOffset.y);
 };
 
+const BIBLIA_VERSION_KEY = "biblia_version";
+
+const BIBLE_VERSION_LABELS: Record<BibliaVersion, string> = {
+  pueblo: "Pueblo de Dios",
+  navarra: "Navarra",
+};
+
 export default function BibliaScreen() {
   const db = useSQLiteContext();
 
+  const [version, setVersionState] = useState<BibliaVersion>("pueblo");
   const [nivel, setNivel] = useState<Nivel>("libros");
   const [libroActual, setLibroActual] = useState<Book | null>(null);
   const [capActual, setCapActual] = useState<number | null>(null);
@@ -49,19 +59,31 @@ export default function BibliaScreen() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
 
+  useEffect(() => {
+    (async () => {
+      const saved = await AsyncStorage.getItem(BIBLIA_VERSION_KEY);
+      if (saved === "pueblo" || saved === "navarra") setVersionState(saved);
+    })();
+  }, []);
+
+  const setVersion = useCallback((v: BibliaVersion) => {
+    setVersionState(v);
+    AsyncStorage.setItem(BIBLIA_VERSION_KEY, v).catch(() => {});
+  }, []);
+
   const handleSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setSearchResults([]); setSearchError(null); setSearching(false); return; }
     setSearching(true); setSearchError(null);
     try {
       const termino = q.trim().split(/\s+/).filter(Boolean).map(w => `"${w}"`).join(' ');
-      const rows = await searchBiblia(db, termino);
+      const rows = await searchBiblia(db, termino, version);
       setSearchResults(rows);
       if (rows.length === 0) setSearchError("Sin resultados.");
     } catch (e: unknown) {
       setSearchError(`Error: ${e instanceof Error ? e.message : String(e)}`);
     }
     setSearching(false);
-  }, [db]);
+  }, [db, version]);
 
   const clearSearch = () => {
     setSearchQuery(""); setSearchResults([]); setSearchError(null); setSearching(false);
@@ -70,25 +92,25 @@ export default function BibliaScreen() {
   useEffect(() => {
     (async () => {
       setLoading(true); setError(null);
-      try { setLibros(await getLibros(db)); }
+      try { setLibros(await getLibros(db, version)); }
       catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
       finally { setLoading(false); }
     })();
-  }, [db]);
+  }, [db, version]);
 
   const cargarCapitulos = useCallback(async (libro: string) => {
     setLoading(true); setError(null);
-    try { setCapitulos(await getCapitulos(db, libro)); }
+    try { setCapitulos(await getCapitulos(db, libro, version)); }
     catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
-  }, [db]);
+  }, [db, version]);
 
   const cargarVersiculos = useCallback(async (libro: string, cap: number) => {
     setLoading(true); setError(null);
-    try { setVersiculos(await getVersiculos(db, libro, cap)); }
+    try { setVersiculos(await getVersiculos(db, libro, cap, version)); }
     catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
-  }, [db]);
+  }, [db, version]);
 
   useEffect(() => {
     (async () => {
@@ -96,16 +118,16 @@ export default function BibliaScreen() {
       const s = new Set<number>();
       const colors: Record<number, string> = {};
       for (const v of versiculos) {
-        const f = all.find((x) => x.id === `biblia-${v.id}`);
+        const f = all.find((x) => x.id === favoritoId(version, v.id));
         if (f) { s.add(v.id); if (f.color) colors[v.id] = f.color; }
       }
       setFavs(s);
       setFavColors(colors);
     })();
-  }, [versiculos]);
+  }, [versiculos, version]);
 
   const handleLongPress = useCallback(async (v: Verse) => {
-    const id = `biblia-${v.id}`;
+    const id = favoritoId(version, v.id);
     const isFav = await isFavorito(id);
     if (isFav) {
       await removeFavorito(id);
@@ -114,19 +136,19 @@ export default function BibliaScreen() {
     } else {
       setPickerVerse(v);
     }
-  }, []);
+  }, [version]);
 
   const pickColor = useCallback(async (color: string) => {
     if (!pickerVerse) return;
     const v = pickerVerse;
-    const id = `biblia-${v.id}`;
+    const id = favoritoId(version, v.id);
     try {
       await addFavorito({ id, tipo: "biblia", referencia: `${v.libro} ${v.capitulo}:${v.versiculo}`, preview: v.texto.slice(0, 80), timestamp: Date.now(), color } as Favorito);
       setFavs((prev) => new Set(prev).add(v.id));
       setFavColors((prev) => ({ ...prev, [v.id]: color }));
     } catch (e: unknown) { console.warn('[biblia] highlight error:', e instanceof Error ? e.message : e); }
     setPickerVerse(null);
-  }, [pickerVerse]);
+  }, [pickerVerse, version]);
 
   const seleccionarLibro = (libro: Book) => {
     setLibroActual(libro); cargarCapitulos(libro.libro); setNivel("capitulos");
@@ -140,9 +162,9 @@ export default function BibliaScreen() {
     else if (nivel === "capitulos") { setNivel("libros"); setLibroActual(null); }
   };
 
-  const librosFiltrados = filtro === "Todos"
-    ? libros
-    : libros.filter((b) => b.testamento === filtro);
+  const gruposFiltrados = filtro === "Todos"
+    ? GRUPOS_BIBLIA
+    : GRUPOS_BIBLIA.filter((g) => g.testamento === filtro);
 
   const antiguos = libros.filter((b) => b.testamento === "Antiguo").length;
   const nuevos = libros.filter((b) => b.testamento === "Nuevo").length;
@@ -156,7 +178,7 @@ export default function BibliaScreen() {
       return (
         <ImageBackground source={imgSrc} style={s.heroImg} resizeMode="cover">
           <View style={s.heroOverlay}>
-            <ThemedText style={s.heroSuper}>✝ BIBLIA DEL PUEBLO DE DIOS</ThemedText>
+            <ThemedText style={s.heroSuper}>✝ BIBLIA {BIBLE_VERSION_LABELS[version].toUpperCase()}</ThemedText>
             <ThemedText style={s.heroTitle}>La Sagrada Escritura</ThemedText>
             <ThemedText style={s.heroSub}>{antiguos + nuevos} Libros</ThemedText>
           </View>
@@ -166,7 +188,7 @@ export default function BibliaScreen() {
 
     return (
       <ScreenHeader
-        superLabel="✝ BIBLIA DEL PUEBLO DE DIOS"
+        superLabel={`✝ BIBLIA ${BIBLE_VERSION_LABELS[version].toUpperCase()}`}
         title={nivel === "capitulos" ? (libroActual?.libro ?? "") : `${libroActual?.libro ?? ""} ${capActual ?? ""}`}
         subtitle={nivel === "capitulos" ? `${libroActual?.testamento} Testamento` : `${libroActual?.libro ?? ""} › Cap. ${capActual ?? ""}`}
         showBack
@@ -244,11 +266,10 @@ export default function BibliaScreen() {
       {nivel === "libros" && (
         <FlashList
           key={filtro}
-          data={librosFiltrados}
-          keyExtractor={(item) => item.libro}
-          numColumns={2}
+          data={gruposFiltrados}
+          keyExtractor={(item) => item.nombre}
           contentContainerStyle={s.gridContainer}
-          estimatedItemSize={102}
+          estimatedItemSize={250}
           showsVerticalScrollIndicator={false}
           onScroll={handleScroll} scrollEventThrottle={16}
           ListHeaderComponent={
@@ -280,10 +301,42 @@ export default function BibliaScreen() {
                   );
                 })}
               </View>
+              <ThemedText style={s.deutNote}>† deuterocanónico</ThemedText>
+              <View style={s.pillRow}>
+                {(["pueblo", "navarra"] as BibliaVersion[]).map((v) => {
+                  const active = version === v;
+                  return (
+                    <TouchableOpacity
+                      key={v}
+                      style={[s.pill, active && s.pillActive]}
+                      onPress={() => setVersion(v)}
+                      activeOpacity={0.7}
+                    >
+                      <ThemedText style={[s.pillText, active && s.pillTextActive]}>{BIBLE_VERSION_LABELS[v]}</ThemedText>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
           }
           renderItem={({ item }) => (
-            <LibroCard item={item} onPress={() => seleccionarLibro(item)} />
+            <View>
+              <View style={s.grupoHeader}>
+                <ThemedText style={s.grupoTitulo}>{item.nombre}</ThemedText>
+                <ThemedText style={s.grupoCount}>{item.libros.length} libros</ThemedText>
+              </View>
+              <View style={s.grupoGrid}>
+                {item.libros.map((l) => (
+                  <View key={l.libro} style={s.grupoCol}>
+                    <LibroCard
+                      item={{ libro: l.libro, testamento: item.testamento }}
+                      deuterocanonico={l.deuterocanonico}
+                      onPress={() => seleccionarLibro({ libro: l.libro, testamento: item.testamento })}
+                    />
+                  </View>
+                ))}
+              </View>
+            </View>
           )}
         />
       )}
@@ -367,6 +420,20 @@ const s = StyleSheet.create({
   pillTextActive: { color: C.navy },
 
   gridContainer: { paddingHorizontal: S.sm, paddingBottom: S.xxl },
+
+  grupoHeader: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    paddingHorizontal: S.md,
+    paddingTop: S.lg,
+    paddingBottom: S.xs,
+  },
+  grupoTitulo: { color: C.gold, fontSize: 16, fontWeight: "800", letterSpacing: 0.5 },
+  grupoCount: { color: C.muted, fontSize: 12 },
+  grupoGrid: { flexDirection: "row", flexWrap: "wrap" },
+  grupoCol: { width: "50%" },
+  deutNote: { color: C.muted, fontSize: 11, paddingHorizontal: S.md, marginBottom: S.xs },
 
   list: { padding: S.md },
   capGrid: { padding: S.md },
