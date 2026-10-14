@@ -47,8 +47,8 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
         "CREATE TABLE IF NOT EXISTS novena_dias (id INTEGER PRIMARY KEY AUTOINCREMENT, novena_id INTEGER NOT NULL, dia INTEGER NOT NULL, titulo TEXT, texto TEXT NOT NULL, FOREIGN KEY (novena_id) REFERENCES novenas(id))",
       );
       await setVersion(db, 3);
-    } catch (e) {
-      if (__DEV__) console.warn("Migration v3 failed:", e);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Migration v3 failed:", e instanceof Error ? e.message : e);
     }
   }
 
@@ -60,8 +60,8 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
         "CREATE TABLE IF NOT EXISTS lecturas (id INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT NOT NULL UNIQUE, url TEXT, titulo_misa TEXT, primera_lectura_ref TEXT, primera_lectura TEXT, salmo TEXT, aleluia TEXT, evangelio_ref TEXT, evangelio TEXT, comentario_papal TEXT, creado_en TEXT DEFAULT (datetime('now','localtime')))",
       );
       await setVersion(db, 4);
-    } catch (e) {
-      if (__DEV__) console.warn("Migration v4 failed:", e);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Migration v4 failed:", e instanceof Error ? e.message : e);
     }
   }
 
@@ -74,8 +74,8 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
       await db.runAsync("CREATE TABLE IF NOT EXISTS misal_prefacios (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT NOT NULL, texto TEXT NOT NULL)");
       await db.runAsync("CREATE TABLE IF NOT EXISTS misal_plegarias (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, texto TEXT NOT NULL)");
       await setVersion(db, 5);
-    } catch (e) {
-      if (__DEV__) console.warn("Migration v5 failed:", e);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Migration v5 failed:", e instanceof Error ? e.message : e);
     }
   }
 
@@ -112,7 +112,7 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
       await db.runAsync("CREATE TABLE IF NOT EXISTS youcat (id INTEGER PRIMARY KEY, parte_id INTEGER NOT NULL, parte TEXT NOT NULL, seccion TEXT NOT NULL DEFAULT '', capitulo TEXT NOT NULL DEFAULT '', pregunta TEXT NOT NULL, respuesta TEXT NOT NULL, comentario TEXT NOT NULL DEFAULT '')");
       await setVersion(db, 8);
     } catch (e: unknown) {
-      if (__DEV__) console.warn("Migration v8 failed:", e);
+      if (__DEV__) console.warn("Migration v8 failed:", e instanceof Error ? e.message : e);
     }
   }
 
@@ -123,7 +123,30 @@ export async function ensureDatabaseSchema(db: SQLiteDatabase): Promise<void> {
       await db.runAsync("CREATE TABLE IF NOT EXISTS misal_guia (id INTEGER PRIMARY KEY AUTOINCREMENT, seccion TEXT NOT NULL, titulo TEXT NOT NULL, texto TEXT NOT NULL, orden INTEGER NOT NULL)");
       await setVersion(db, 9);
     } catch (e: unknown) {
-      if (__DEV__) console.warn("Migration v9 failed:", e);
+      if (__DEV__) console.warn("Migration v9 failed:", e instanceof Error ? e.message : e);
+    }
+  }
+
+  // ── v10: Add segunda_lectura columns to lecturas ──────────────
+  if (version < 10) {
+    if (__DEV__) console.log("Migration v10: adding segunda_lectura columns…");
+    try {
+      await db.runAsync("ALTER TABLE lecturas ADD COLUMN segunda_lectura_ref TEXT");
+      await db.runAsync("ALTER TABLE lecturas ADD COLUMN segunda_lectura TEXT");
+      await setVersion(db, 10);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Migration v10 failed:", e instanceof Error ? e.message : e);
+    }
+  }
+
+  // ── v11: Add biblia_navarra table ────────────────────────────
+  if (version < 11) {
+    if (__DEV__) console.log("Migration v11: adding biblia_navarra table…");
+    try {
+      await db.runAsync("CREATE TABLE IF NOT EXISTS biblia_navarra (id INTEGER PRIMARY KEY AUTOINCREMENT, libro TEXT NOT NULL, capitulo INTEGER NOT NULL, versiculo INTEGER NOT NULL, texto TEXT NOT NULL, testamento TEXT NOT NULL)");
+      await setVersion(db, 11);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Migration v11 failed:", e instanceof Error ? e.message : e);
     }
   }
 
@@ -149,8 +172,8 @@ async function ensureFTS(db: SQLiteDatabase): Promise<void> {
         await db.runAsync("INSERT INTO misal_propio_fts(rowid, id, dia, colecta, oracion_ofrendas, postcomunion, prefacio, antifona_entrada, antifona_comunion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
           [r.id, r.id, r.dia, r.colecta, r.oracion_ofrendas, r.postcomunion, r.prefacio, r.antifona_entrada, r.antifona_comunion]);
       }
-    } catch (e) {
-      if (__DEV__) console.warn("Failed to rebuild misal_propio_fts:", e);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Failed to rebuild misal_propio_fts:", e instanceof Error ? e.message : e);
     }
   }
 
@@ -166,8 +189,8 @@ async function ensureFTS(db: SQLiteDatabase): Promise<void> {
         await db.runAsync("INSERT INTO misal_ordinario_fts(rowid, id, seccion, subseccion, texto) VALUES (?, ?, ?, ?, ?)",
           [r.id, r.id, r.seccion, r.subseccion, r.texto]);
       }
-    } catch (e) {
-      if (__DEV__) console.warn("Failed to rebuild misal_ordinario_fts:", e);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Failed to rebuild misal_ordinario_fts:", e instanceof Error ? e.message : e);
     }
   }
 
@@ -183,8 +206,8 @@ async function ensureFTS(db: SQLiteDatabase): Promise<void> {
         await db.runAsync("INSERT INTO misal_prefacios_fts(rowid, id, titulo, texto) VALUES (?, ?, ?, ?)",
           [r.id, r.id, r.titulo, r.texto]);
       }
-    } catch (e) {
-      if (__DEV__) console.warn("Failed to rebuild misal_prefacios_fts:", e);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Failed to rebuild misal_prefacios_fts:", e instanceof Error ? e.message : e);
     }
   }
 
@@ -200,8 +223,8 @@ async function ensureFTS(db: SQLiteDatabase): Promise<void> {
         await db.runAsync("INSERT INTO misal_plegarias_fts(rowid, id, nombre, texto) VALUES (?, ?, ?, ?)",
           [r.id, r.id, r.nombre, r.texto]);
       }
-    } catch (e) {
-      if (__DEV__) console.warn("Failed to rebuild misal_plegarias_fts:", e);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Failed to rebuild misal_plegarias_fts:", e instanceof Error ? e.message : e);
     }
   }
 
@@ -217,8 +240,25 @@ async function ensureFTS(db: SQLiteDatabase): Promise<void> {
         await db.runAsync("INSERT INTO biblia_pueblo_dios_fts(rowid, libro, texto) VALUES (?, ?, ?)",
           [r.rowid, r.libro, r.texto]);
       }
-    } catch (e) {
-      if (__DEV__) console.warn("Failed to rebuild biblia_pueblo_dios_fts:", e);
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Failed to rebuild biblia_pueblo_dios_fts:", e instanceof Error ? e.message : e);
+    }
+  }
+
+  if (!fts.bibliaNavarra) {
+    if (__DEV__) console.log("Rebuilding biblia_navarra_fts (missing)…");
+    try {
+      await db.runAsync("DROP TABLE IF EXISTS biblia_navarra_fts");
+      await db.runAsync(
+        "CREATE VIRTUAL TABLE IF NOT EXISTS biblia_navarra_fts USING fts5(libro, texto)",
+      );
+      const rows = await db.getAllAsync<any>("SELECT rowid, libro, texto FROM biblia_navarra");
+      for (const r of rows) {
+        await db.runAsync("INSERT INTO biblia_navarra_fts(rowid, libro, texto) VALUES (?, ?, ?)",
+          [r.rowid, r.libro, r.texto]);
+      }
+    } catch (e: unknown) {
+      if (__DEV__) console.warn("Failed to rebuild biblia_navarra_fts:", e instanceof Error ? e.message : e);
     }
   }
 }
@@ -240,9 +280,9 @@ export async function forceReCopy(): Promise<void> {
 }
 
 /** Quick check: are FTS5 tables available for search? */
-async function areFTSReady(db: SQLiteDatabase): Promise<{ misalPropio: boolean; misalOrdinario: boolean; misalPrefacios: boolean; misalPlegarias: boolean; biblia: boolean }> {
+async function areFTSReady(db: SQLiteDatabase): Promise<{ misalPropio: boolean; misalOrdinario: boolean; misalPrefacios: boolean; misalPlegarias: boolean; biblia: boolean; bibliaNavarra: boolean }> {
   const tables = await db.getAllAsync<{ name: string }>(
-    "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('misal_propio_fts','misal_ordinario_fts','misal_prefacios_fts','misal_plegarias_fts','biblia_pueblo_dios_fts')",
+    "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('misal_propio_fts','misal_ordinario_fts','misal_prefacios_fts','misal_plegarias_fts','biblia_pueblo_dios_fts','biblia_navarra_fts')",
   );
   return {
     misalPropio: tables.some(t => t.name === "misal_propio_fts"),
@@ -250,6 +290,7 @@ async function areFTSReady(db: SQLiteDatabase): Promise<{ misalPropio: boolean; 
     misalPrefacios: tables.some(t => t.name === "misal_prefacios_fts"),
     misalPlegarias: tables.some(t => t.name === "misal_plegarias_fts"),
     biblia: tables.some(t => t.name === "biblia_pueblo_dios_fts"),
+    bibliaNavarra: tables.some(t => t.name === "biblia_navarra_fts"),
   };
 }
 
@@ -273,7 +314,7 @@ export async function diagnose(db: SQLiteDatabase): Promise<string> {
       }
     }
 
-    for (const table of ["misal_propio_fts", "misal_ordinario_fts", "misal_prefacios_fts", "misal_plegarias_fts", "biblia_pueblo_dios_fts"]) {
+    for (const table of ["misal_propio_fts", "misal_ordinario_fts", "misal_prefacios_fts", "misal_plegarias_fts", "biblia_pueblo_dios_fts", "biblia_navarra_fts"]) {
       lines.push(`${table}: ${tables.some(t => t.name === table) ? "EXISTE" : "NO EXISTE"}`);
     }
 
@@ -289,6 +330,8 @@ export async function diagnose(db: SQLiteDatabase): Promise<string> {
     else lines.push(`❌ FTS5 NO disponible: Plegarias`);
     if (ftsStatus.biblia) lines.push(`✅ FTS5 disponible: Biblia`);
     else lines.push(`❌ FTS5 NO disponible: Biblia`);
+    if (ftsStatus.bibliaNavarra) lines.push(`✅ FTS5 disponible: Biblia Navarra`);
+    else lines.push(`❌ FTS5 NO disponible: Biblia Navarra`);
   } catch (e: unknown) {
     lines.push(`Error en diagnóstico: ${e instanceof Error ? e.message : String(e)}`);
   }
