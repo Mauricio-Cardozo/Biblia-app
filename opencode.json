@@ -4,12 +4,14 @@
     "notebooklm": {
       "type": "local",
       "command": ["npx", "-y", "notebooklm-mcp@latest"],
-      "enabled": true
+      "enabled": true,
+      "timeout": 30000
     },
     "sqlite": {
       "type": "local",
       "command": ["npx", "-y", "@mokei/mcp-sqlite@latest", "--db", "/home/mauricionc/Documentos/bible-app/AppMovil/assets/iglesia_digital.db"],
-      "enabled": true
+      "enabled": true,
+      "timeout": 30000
     },
     "expo": {
       "type": "remote",
