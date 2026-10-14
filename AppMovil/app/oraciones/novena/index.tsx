@@ -2,10 +2,11 @@ import { C } from '@/constants/theme';
 import { S } from '@/constants/spacing';
 import { R } from '@/constants/radius';
 import { sharedStyles } from '@/constants/shared-styles';
+import ScreenHeader from "@/components/ui/screen-header";
 import { ThemedText } from "@/components/themed-text";
 import { router } from "expo-router";
 import React from "react";
-import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDbQuery } from "@/hooks/use-db-query";
 
@@ -25,12 +26,7 @@ export default function NovenaListScreen() {
 
   return (
     <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <ThemedText style={s.backArrow}>←</ThemedText>
-        </TouchableOpacity>
-        <ThemedText style={s.title}>Novenas</ThemedText>
-      </View>
+      <ScreenHeader title="Novenas" showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
         <ThemedText style={s.intro}>Elegí una novena para comenzar</ThemedText>
         {(novenas ?? []).map((n) => (
@@ -53,17 +49,6 @@ export default function NovenaListScreen() {
 }
 
 const s = StyleSheet.create({
-  header: {
-    flexDirection: "row", alignItems: "center", paddingHorizontal: S.lg,
-    paddingVertical: Platform.OS === "android" ? 12 : 8,
-    borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid, gap: 10,
-  },
-  backBtn: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: C.navyLight,
-    borderWidth: 1, borderColor: C.goldDim, alignItems: "center", justifyContent: "center",
-  },
-  backArrow: { color: C.gold, fontSize: 20, lineHeight: 22 },
-  title: { color: C.text, fontSize: 18, fontWeight: "700" },
   content: { padding: S.lg, paddingBottom: S.massive },
   intro: { color: C.muted, fontSize: 14, marginBottom: S.lg },
   card: {

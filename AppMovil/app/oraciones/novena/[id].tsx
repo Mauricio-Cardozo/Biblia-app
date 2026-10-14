@@ -2,11 +2,12 @@ import { C } from "@/constants/theme";
 import { R } from '@/constants/radius';
 import { S } from '@/constants/spacing';
 import { sharedStyles } from '@/constants/shared-styles';
+import ScreenHeader from "@/components/ui/screen-header";
 import { ThemedText } from "@/components/themed-text";
 import { useFontSize, fs } from "@/contexts/font-size";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
-import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDbQuery } from "@/hooks/use-db-query";
 
@@ -48,12 +49,7 @@ export default function NovenaDetalleScreen() {
 
   return (
     <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <ThemedText style={s.backArrow}>←</ThemedText>
-        </TouchableOpacity>
-        <ThemedText style={s.title} numberOfLines={1}>{titulo}</ThemedText>
-      </View>
+      <ScreenHeader title={titulo} showBack onBack={() => router.back()} />
 
       <View style={s.diaRow}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.diaScroll}>
@@ -77,10 +73,12 @@ export default function NovenaDetalleScreen() {
           <ThemedText style={s.loading}>Cargando…</ThemedText>
         ) : diaActual ? (
           <>
-            <ThemedText style={s.diaTitulo}>{diaActual.titulo}</ThemedText>
-            <ThemedText style={[s.texto, { fontSize: fs(16, multiplier), lineHeight: fs(28, multiplier) }]}>
-              {diaActual.texto}
-            </ThemedText>
+            <ThemedText style={s.diaTitulo}>{diaActual.titulo.replace(/\s+/g, ' ')}</ThemedText>
+            {diaActual.texto.split('\n\n').map((p, i) => (
+              <ThemedText key={i} style={[s.paragraph, { fontSize: fs(16, multiplier), lineHeight: fs(28, multiplier) }]}>
+                {p.trim()}
+              </ThemedText>
+            ))}
           </>
         ) : (
           <ThemedText style={s.loading}>Día no encontrado</ThemedText>
@@ -91,17 +89,6 @@ export default function NovenaDetalleScreen() {
 }
 
 const s = StyleSheet.create({
-  header: {
-    flexDirection: "row", alignItems: "center", paddingHorizontal: S.lg,
-    paddingVertical: Platform.OS === "android" ? 12 : 8,
-    borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid, gap: 10,
-  },
-  backBtn: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: C.navyLight,
-    borderWidth: 1, borderColor: C.goldDim, alignItems: "center", justifyContent: "center",
-  },
-  backArrow: { color: C.gold, fontSize: 20, lineHeight: 22 },
-  title: { color: C.text, fontSize: 18, fontWeight: "700", flex: 1 },
   diaRow: {
     borderBottomWidth: 1, borderBottomColor: C.sep, backgroundColor: C.navyMid,
     paddingVertical: S.sm,
@@ -117,5 +104,5 @@ const s = StyleSheet.create({
   content: { padding: S.xl, paddingBottom: S.massive },
   loading: { color: C.muted, fontSize: 15, textAlign: "center", marginTop: S.huge },
   diaTitulo: { color: C.gold, fontSize: 18, fontWeight: "700", marginBottom: S.lg },
-  texto: { color: C.text, lineHeight: 28 },
+  paragraph: { color: C.text, lineHeight: 28, marginBottom: 16 },
 });

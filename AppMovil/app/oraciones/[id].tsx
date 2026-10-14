@@ -28,9 +28,11 @@ export default function OracionDetalleScreen() {
     <View style={[sharedStyles.container, { paddingTop: insets.top }]}>
       <ScreenHeader title={prayer.titulo} showBack onBack={() => router.back()} />
       <ScrollView contentContainerStyle={s.content}>
-        <ThemedText style={[s.texto, { fontSize: fs(16, multiplier), lineHeight: fs(28, multiplier) }]}>
-          {prayer.texto}
-        </ThemedText>
+        {prayer.texto.split('\n\n').map((p, i) => (
+          <ThemedText key={i} style={[s.paragraph, { fontSize: fs(16, multiplier), lineHeight: fs(28, multiplier) }]}>
+            {p.trim()}
+          </ThemedText>
+        ))}
       </ScrollView>
     </View>
   );
@@ -38,5 +40,5 @@ export default function OracionDetalleScreen() {
 
 const s = StyleSheet.create({
   content: { padding: S.lg, paddingBottom: S.massive },
-  texto: { color: C.text, lineHeight: 28 },
+  paragraph: { color: C.text, lineHeight: 28, marginBottom: 16 },
 });
