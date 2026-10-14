@@ -18,9 +18,9 @@ No tsc/typecheck command available — `npm run lint` is the only static check.
 
 - **Entrypoint**: `expo-router/entry` (in `package.json` `main` field). Routes in `app/`.
 - **Stack**: Expo SDK 56 / RN 0.85.3 / TS 5.9 / Fabric (`newArchEnabled: true`) / React Compiler (`experiments.reactCompiler: true`) / `edgeToEdgeEnabled` on Android.
-- **Routing**: expo-router 6 file-based. `app/_layout.tsx` = root layout (SQLiteProvider + DatabaseInit + FontSizeProvider + BibliaVersionProvider + Stack). `app/(tabs)/_layout.tsx` = JS tab navigator (Home/Biblia/Catecismo/Misal/Oración). Routes inside `(tabs)` get the tab bar; routes outside (`evangelio.tsx`, `calendario.tsx`, `rosario/`, `oraciones/`, `favoritos.tsx`, `modal.tsx`, `test.tsx`, `misal/`) don't.
+- **Routing**: expo-router 6 file-based. `app/_layout.tsx` = root layout (SQLiteProvider + FontSizeProvider + Stack). `app/(tabs)/_layout.tsx` = JS tab navigator (Liturgia/Home, Biblia, Calendario, Oración). Routes inside `(tabs)` get the tab bar; routes outside (`evangelio.tsx`, `rosario/`, `oraciones/`, `favoritos.tsx`, `test.tsx`, `santo/[id].tsx`) don't. La UI de Catecismo (YOUCAT/CIC) y Misal fue removida (tema ABM).
 - **DB**: Single `iglesia_digital.db` shipped in `AppMovil/assets/`, copied via `SQLiteProvider databaseName assetSource` with `useSuspense`. `metro.config.js` adds `db` to `assetExts` so Metro resolves `.db` files.
-- **DB Migrations**: `db/init.ts` uses `PRAGMA user_version`. Runs on every app launch. `CURRENT_VERSION = 7`. V1 recreates FTS tables as standalone (drops triggers, re-inserts data). V2 adds `youcat.parte` column (no-op since youcat dropped). V3 creates `novenas` + `novena_dias` tables. V4 drops YOUCAT tables. V5 creates `misal_propio`, `misal_ordinario`, `misal_prefacios`, `misal_plegarias` tables. V6 creates `santos` table. V7 creates `misal_santos` table. FTS creation is skipped if source columns are missing; use the "Rebuild FTS" button on `/test` to retry.
+- **DB Migrations**: `db/init.ts` uses `PRAGMA user_version` (latest: v11). V1 drops old FTS triggers. V2 (no-op, YOUCAT dropped in v4). V3 creates `novenas` + `novena_dias`. V4 creates `lecturas`. V5 creates misal tables. V6 creates `santos`. V7 creates `misal_santos`. V8 creates `youcat`. V9 creates `misal_guia`. V10 adds `segunda_lectura_ref`/`segunda_lectura` to `lecturas`. V11 creates `biblia_navarra`. FTS creation on every launch if missing.
 - **DB module**: Split into domain files in `db/` — `biblia.ts`, `catecismo.ts`, `lecturas.ts`, `misal.ts`, `santos.ts` + barrel `db.ts`. Each exports domain-specific query functions.
 - **DB API** (v16 `expo-sqlite`): `db.getAllAsync<T>`, `db.getFirstAsync<T>`, `db.runAsync`. FTS5 join: `JOIN table_fts f ON source.rowid = f.rowid WHERE table_fts MATCH ? ORDER BY f.rank` (⚠️ use `rowid`, NOT `id`). `GROUP BY ... ORDER BY MIN(id)` for dedup. `forceReCopy()` in `db/init.ts` uses `expo-file-system` File/Paths API (NOT raw `documentDirectory` strings). `getMisalPropioPorSemana()` matches liturgical day to misal_propio by season + week number + isSunday.
 - **DB queries**: `hooks/use-db-query.ts` provides `useDbQuery<T>(fn, deps)` — wraps async DB calls with loading/error state. Used by 7 screens.
@@ -28,7 +28,7 @@ No tsc/typecheck command available — `npm run lint` is the only static check.
 - **Error handling**: Zero `catch(e: any)`. All catches use `instanceof Error`.
 - **Color palette**: `import { C } from '@/constants/theme'`. `C.*` = Navy/Gold (`#0D1B2A` / `#C9A84C`) — use for all UI. `Fonts` and `Colors` were removed (no theme toggle, fixed palette).
 - **Icons**: Dual-platform files. `components/ui/icon-symbol.ios.tsx` (SF Symbols via `expo-symbols`), `components/ui/icon-symbol.tsx` (MaterialIcons fallback for Android/web). Both export `IconSymbol({ name, size, color })`. SF→Material mapping dict in `icon-symbol.tsx`.
-- **State**: No state management lib. `useState`/`useCallback` + `useSQLiteContext()` for DB access. FontSizeContext and BibliaVersionContext for global UI state.
+- **State**: No state management lib. `useState`/`useCallback` + `useSQLiteContext()` for DB access. FontSizeContext for global UI state. Bible version is a local state in `biblia.tsx` persisted to AsyncStorage (`biblia_version`), no context needed.
 - **TS path alias**: `@/` → `AppMovil/` (e.g. `@/db/db`, `@/constants/theme`).
 - **Haptics**: `process.env.EXPO_OS === 'ios'` check (not `Platform.OS`) in `haptic-tab.tsx`.
 
@@ -36,7 +36,7 @@ No tsc/typecheck command available — `npm run lint` is the only static check.
 
 These reflect actual codebase patterns, not aspirational rules:
 
-- Lists → `FlashList` from `@shopify/flash-list`. `ScrollView` is used for page layouts (Home, Rosario, Catecismo detalle, Oraciones), not for data lists.
+- Lists → `FlashList` from `@shopify/flash-list`. `ScrollView` is used for page layouts (Home, Rosario, Oraciones), not for data lists.
 - `TouchableOpacity` is the default pressable component used throughout. `Pressable` is not used. `HapticTab` wraps `PlatformPressable` for tab bar buttons.
 - `SafeAreaView` is used sparingly (`biblia.tsx`), but `useSafeAreaInsets()` on a plain `View` is more common.
 - Images → `expo-image` (not RN `Image`).
@@ -48,9 +48,10 @@ These reflect actual codebase patterns, not aspirational rules:
 
 | Table | Purpose | Key columns |
 |-------|---------|-------------|
-| `biblia_pueblo_dios` | Bible verses | `id`, `libro`, `capitulo`, `versiculo`, `texto`, `testamento` |
+| `biblia_pueblo_dios` | Bible verses (Pueblo de Dios) | `id`, `libro`, `capitulo`, `versiculo`, `texto`, `testamento` |
+| `biblia_navarra` | Bible verses (Biblia Navarra, EWTN) | `id`, `libro`, `capitulo`, `versiculo`, `texto`, `testamento` |
 | `youcat` | YOUCAT | `id`, `parte_id`, `parte`, `seccion`, `capitulo`, `pregunta`, `respuesta`, `comentario` |
-| `lecturas` | Daily readings | `fecha` (UNIQUE), `titulo_misa`, `primera_lectura_ref`, `primera_lectura`, `salmo`, `aleluia`, `evangelio_ref`, `evangelio`, `comentario_papal`, `url` |
+| `lecturas` | Daily readings | `fecha` (UNIQUE), `titulo_misa`, `primera_lectura_ref`, `primera_lectura`, `segunda_lectura_ref`, `segunda_lectura`, `salmo`, `aleluia`, `evangelio_ref`, `evangelio`, `comentario_papal`, `url` |
 | `misal_propio` | Proper of Time | `id`, `temporada`, `temporada_label`, `dia`, `colecta`, `oracion_ofrendas`, `postcomunion`, `prefacio`, `antifona_entrada`, `antifona_comunion` |
 | `misal_ordinario` | Ordinary of Mass | `id`, `seccion`, `subseccion`, `rol`, `texto`, `orden` |
 | `misal_prefacios` | Prefaces | `id`, `titulo`, `texto` |
@@ -63,11 +64,22 @@ These reflect actual codebase patterns, not aspirational rules:
 ## Notable Gaps & Known Issues
 
 ### Bugs
-- ~~`data/prayers.ts` — `T.letanias` uses literal `\n`~~ ✅ fixed (template literal)
+- ~~`data/prayers.ts` — `T.letanias` uses literal `\n`~~ ✅ fixed
 - ~~`app/favoritos.tsx` — navigation to `/evangelio` doesn't pass `?fecha=YYYY-MM-DD`~~ ✅ fixed
-- ~~`misal/ordinario/[id].tsx`, `misal/prefacios/[id].tsx`, `misal/plegarias/[id].tsx` — `find()` client-side~~ ✅ fixed (direct `WHERE id = ?`)
-- ~~`app/_layout.tsx` — hardcoded `"#D4AF37"`~~ ✅ fixed (`C.gold`)
-- ~~`evangelio.tsx` — `catch` uses `any` type~~ ✅ fixed (`instanceof Error`)
+- ~~`misal/ordinario/[id].tsx`, `misal/prefacios/[id].tsx`, `misal/plegarias/[id].tsx` — `find()` client-side~~ ✅ fixed
+- ~~`app/_layout.tsx` — hardcoded `"#D4AF37"`~~ ✅ fixed
+- ~~`evangelio.tsx` — `catch` uses `any` type~~ ✅ fixed
+- ~~`misal/ordinario/[id].tsx`, `misal/plegarias/[id].tsx`, `misal/prefacios/[id].tsx` — `R`/`S` imports missing~~ ✅ fixed
+- ~~**`app/evangelio.tsx`** — header cut off (rightSlot too wide)~~ ✅ fixed (removed FontSizeControl + calendar button)
+- ~~**`app/misal/hoy.tsx`** — tappings season navigates to Propio list instead of drilling in~~ ✅ fixed (passes `temporada` param, auto-selects)
+- ~~**`db/init.ts` + `app/evangelio.tsx`** — missing `segunda_lectura` and `comentario_papal`~~ ✅ fixed (migration v10, scraper, UI)
+- ~~**`db/biblia.ts`** — FTS5 search returns empty silently~~ ✅ fixed (LIKE fallback added)
+- ~~**`app/oraciones/[id].tsx`** — prayers rendered as one block (no section breaks)~~ ✅ fixed (split by `\n\n`)
+- ~~**`app/oraciones/novena/[id].tsx`** — some novena texts cut/garbled~~ ✅ fixed (split by paragraphs, clean titles)
+- ~~**`components/prayer-runner.tsx`** — bottom area too small~~ ✅ fixed (increased paddingBottom)
+- ~~**`app/(tabs)/calendario.tsx`** — saints section hidden when empty; fechas sin lectura no cargan santos~~ ✅ fixed (always show saints section)
+- ~~**`app/misal/guia/index.tsx`** — `misal_guia` table empty (no data seeded)~~ ✅ fixed (show empty state message)
+- ~~**`SECCIONES_MISAL.busqueda`** — search unnecessary for small dataset~~ ✅ removed
 
 ### Dead Code
 - ~~`app/modal.tsx`~~ ✅ removed
@@ -86,10 +98,10 @@ These reflect actual codebase patterns, not aspirational rules:
 - ~~`assets/iglesia_digital.db-shm`, `assets/iglesia_digital.db-wal` — WAL artifacts~~ ✅ gitignored
 
 ### Design System
-- **Spacing/radius tokens** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados y refactorizados en ~25 archivos (Home, Biblia, Catecismo, Misal, Oración, componentes). `borderRadius: 12` aparece aún en algunos archivos menores.
-- **`themed-text.tsx` simplified** — `type` prop (5 variants), `lightColor`/`darkColor` props, `useThemeColor` dependency, y hardcoded `#0a7ea4` link color removed.
+- ~~**Spacing/radius tokens** — `constants/spacing.ts` (S.*) y `constants/radius.ts` (R.*) creados y refactorizados en ~30 archivos (Home, Biblia, Catecismo, Misal, Oración, componentes).~~ ✅ sin valores numéricos remanentes.
+- ~~**`themed-text.tsx` simplified** — `type` prop (5 variants), `lightColor`/`darkColor` props, `useThemeColor` dependency, y hardcoded `#0a7ea4` link color removed.~~ ✅ ya es un wrapper simple de `<Text>` con color C.text.
 - ~~**`themed-view.tsx` simplified**~~ ✅ removed (replaced with `<View>` in biblia.tsx, catecismo.tsx)
-- **Header pattern duplicated** — `borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid` repeated across 10+ screens instead of using `ScreenHeader`.
+- ~~**Header pattern duplicated** — `borderBottomWidth: 1, borderBottomColor: C.goldDim, backgroundColor: C.navyMid` repeated across 10+ screens instead of using `ScreenHeader`.~~ ✅ solo queda en `screen-header.tsx` (reutilizable).
 
 ### Architecture
 - ~~**`formatoFecha` / `hoy()` duplicated**~~ ✅ extracted to `utils/date.ts`
@@ -97,9 +109,9 @@ These reflect actual codebase patterns, not aspirational rules:
 - ~~**Season emoji map + season/day detection helpers**~~ ✅ extracted to `utils/seasons.ts`
 - ~~**Reading section layout duplicated**~~ ✅ extracted to `components/reading-section.tsx`
 - ~~**`getLecturaDelDia` misplaced**~~ ✅ moved to `// LECTURAS` block
-- ~~**`Lectura` type incomplete**~~ ✅ completed (`comentario_papal`, `url`, `creado_en`)
+- ~~**`Lectura` type incomplete**~~ ✅ completed (`comentario_papal`, `segunda_lectura`, `url`, `creado_en`)
 - ~~**Missing `.catch()` on DB calls**~~ ✅ added to all 8 affected screens
-- **`db/init.ts`** — version gap (v2 no-op skipped without comment); ~~version advances even on migration failure (no rollback)~~ ✅ fixed (`setVersion` inside try/catch in v1, v3, v4, v5, v6, v7).
+- ~~**`db/init.ts`** — version gap (v2 no-op skipped without comment)~~ ✅ comentario agregado.
 
 ### Scrapers (`archive/`)
 - 7 Python scrapers: `scraper_youcat.py`, `popular_cic.py`, `scraper_cic.py`, `scraper_vaticano.py` (writes directly to AppMovil/assets/iglesia_digital.db), `scraper_misal.py`, `scraper_novenas.py`, `scraper_oraciones_vatican.py`.
@@ -114,11 +126,11 @@ These reflect actual codebase patterns, not aspirational rules:
 
 ### Tests
 ```bash
-npm test                    # jest (46 tests, 6 suites)
+npm test                    # jest (49 tests, 6 suites)
 npm run lint                # 0 errors, 0 warnings
 ```
 - **Setup**: Jest + ts-jest, `jest.config.js` + `tsconfig.test.json` (extends base, adds `"types": ["jest"]`).
-- **`__tests__/db.test.ts`** — 20 integration tests with sql.js in-memory DB: Biblia (4), YOUCAT (3), Lecturas (2), Misal (8), Santos (3).
+- **`__tests__/db.test.ts`** — 23 integration tests with sql.js in-memory DB: Biblia (4), Biblia Navarra (3), YOUCAT (3), Lecturas (2), Misal (8), Santos (3).
 - **`__tests__/seasons.test.ts`** — `romanToInt`, `detectSeason`, `parseWeekNumber`, `isSunday` (12 tests).
 - **`__tests__/date.test.ts`** — `formatoFecha`, `fechaActualLarga`, `hoy` (3 tests).
 - **`__tests__/streaks.test.ts`** — `calcularRacha`, `obtenerStats` with mocked AsyncStorage (4 tests).
@@ -126,13 +138,14 @@ npm run lint                # 0 errors, 0 warnings
 - **`__tests__/use-db-query.test.tsx`** — `useDbQuery` hook rendered with `@testing-library/react` + mocked `expo-sqlite` (3 tests).
 - **Mock pattern**: Inline `jest.mock` with `mockStore` object; `beforeEach` clears store.
 - **E2E**: 8 Maestro flows in `maestro/flows/` — `maestro test maestro/flows/` on Android device/emulator.
-- DB health: 12 tables, 35,852 Bible verses, 109 readings, 526 YOUCAT questions, 157 misal propios, 207 misal santos, 919 santos. FTS5 not pre-built (created on launch via migration v1).
+- DB health: 12 tables (+ FTS), 35,852 Bible verses (Pueblo), 35,617 (Navarra), 109 readings, 526 YOUCAT questions, 157 misal propios, 207 misal santos, 919 santos. FTS5 not pre-built (created on launch).
 
 ## Other
 - `app/evangelio.tsx` — fully working, accepts `?fecha=YYYY-MM-DD`. Uses `getLecturaDelDia`.
 - Streak cards on Home (`🔥 N días`) — real data from `data/streaks.ts` via AsyncStorage (`racha_rosario_ultima`, `racha_coronilla_ultima`). `calcularRacha()` counts consecutive days backwards.
 - No pagination on list screens — all data fits in memory.
 - **FTS5 en misal**: 4 virtual tables (`misal_propio_fts`, `misal_ordinario_fts`, `misal_prefacios_fts`, `misal_plegarias_fts`) creadas en `ensureFTS()` en `init.ts`. Sin interfaz de búsqueda por ahora — no necesario.
+- **Biblia Navarra**: segunda traducción (`biblia_navarra`, scrapeada de EWTN). 73 libros / 35,617 versículos. Selector de versión (pills Pueblo de Dios/Navarra) persistido en AsyncStorage (`biblia_version`). Nota: numeración de Ester (10 cap) y Joel (4 cap) difiere de Pueblo de Dios — canon propio de la traducción, no error.
 - Novenas: 18 scraped from `devocionario.com` (single-page format); ~28 more exist on devocionario.com with multi-page or numeric-day format — not yet scraped.
 - YOUCAT: 526 preguntas scrapeadas de mscperu.org (4 páginas HTML) via `archive/scraper_youcat.py`. Migración V8 crea `youcat` table. Sin FTS5 (usa LIKE search, ~130 preguntas/parte).
 - Lecturas coverage: current data through 2026-09-02 (via Vatican scraper). Run `python3 archive/scraper_vaticano.py` to extend.
@@ -140,7 +153,7 @@ npm run lint                # 0 errors, 0 warnings
 ## Floating Tab Bar
 
 - `components/ui/floating-tab-bar.tsx` — absolute-positioned bottom bar with SF Symbols (iOS) / MaterialIcons (Android).
-- 4 visible tabs (index, biblia, calendario, oracion). Catecismo and Misal are hidden (`href: null`).
+- 4 tabs (index/Liturgia, biblia, calendario, oracion). Las secciones Catecismo y Misal fueron removidas.
 - **Scroll-to-hide**: On scroll > 50px down, the bar slides down out of view via `translateY`. On scroll up, it reappears.
 - Scroll position shared across screens via `utils/scroll-state.ts` (module-level `Animated.Value`). Each screen writes to it via `Animated.event` or `tabBarScrollY.setValue()`.
 - ⚠️ `Animated.event` with `useNativeDriver: true` returns an object, not a function, on RN 0.85 Fabric. All screens currently use `tabBarScrollY.setValue()` directly to avoid this.
@@ -182,7 +195,7 @@ Note: These violations were never surfaced by `npm run lint` — `eslint-plugin-
 - **FavBtn** (`components/fav-btn.tsx`) — heart toggle for favorites with color dot indicator. Uses `data/favoritos.ts` (AsyncStorage CRUD).
 - **FontSizeControl** (`components/font-size-control.tsx`) — A-/A+ buttons. Uses `contexts/font-size.tsx`.
 - **FontSizeContext** (`contexts/font-size.tsx`) — multiplier state (0.8–1.5, step 0.1). Persisted to AsyncStorage. Wrapped in root `_layout.tsx`.
-- **BibliaVersionContext** (`contexts/bible-version.tsx`) — which translation is active. Single-version only (`biblia_pueblo_dios`). Simplified: no `setVersion`, no `versiones` array.
+- **BibliaVersionContext** — removed. Bible version (`pueblo`/`navarra`) is local state in `biblia.tsx`, persisted to AsyncStorage under `biblia_version`. All `db/biblia.ts` queries take a `BibliaVersion` param (default `"pueblo"`). `favoritoId(version, verseId)` builds version-scoped favorite keys (`biblia-<version>-<id>`); legacy `biblia-<id>` keys migrate to `biblia-pueblo-<id>` on read.
 - **useDbQuery** (`hooks/use-db-query.ts`) — React hook wrapping async SQLite queries with loading/error state. Used by 7 screens.
 
 ## Data Files
@@ -234,6 +247,9 @@ eas build --platform android --profile production
 ```bash
 python3 archive/scraper_vaticano.py                    # current + next month (no deps) — writes to AppMovil/assets/iglesia_digital.db
 python3 archive/scraper_vaticano.py --fecha 2026-06-12 # single date
+python3 archive/scraper_biblia_navarra.py              # full 73 books from EWTN → biblia_navarra (0.5s sleep, ~30 min)
+python3 archive/scraper_biblia_navarra.py --preview    # list book index only
+python3 archive/scraper_biblia_navarra.py --libros "Rut,Mateo"  # subset for tests
 pip install pdfplumber --break-system-packages          # only for scraper_cic.py / scraper_misal.py
 python3 archive/scraper_misal.py --preview           # Misal Romano: 157 propios, 202 ordinario, 67 prefacios, 4 plegarias
 python3 archive/scraper_misal.py                     # write to AppMovil/assets/iglesia_digital.db
@@ -245,6 +261,14 @@ python3 archive/scraper_youcat.py                      # scrape YOUCAT from mscp
 ```
 
 Vatican scraper: 0.5s sleep between requests, parses 5 HTML `<h2>` sections. Default range = 15d before current month → end of next month. Writes directly to `AppMovil/assets/iglesia_digital.db`.
+
+**Biblia Navarra scraper** (73 books, 1,328 chapters from EWTN Next.js pages):
+```bash
+python3 archive/scraper_biblia_navarra.py --preview   # list 73 books + chapter counts from index
+python3 archive/scraper_biblia_navarra.py             # write biblia_navarra to AppMovil/assets/iglesia_digital.db
+python3 archive/scraper_biblia_navarra.py --libros "Rut"  # subset (fast tests)
+```
+Key patterns: index chapter counts parsed from Next.js flight data (`self.__next_f.push` blocks, `Pentateuco`+`oldTestament` marker, JSON unescape via `json.loads('"'+b+'"')` + brace matching). Verse markup: `<sup>N</sup></span><span class="text-gray-800">texto</span>`. Only name remap: `Hechos` → `Hechos de los Apóstoles`. No chapter-count fix: Ester (10) / Joel (4) legitimately differ from Pueblo de Dios.
 
 **Misal Romano scraper** (17 PDFs from LiturgiaPapal México):
 ```bash

@@ -150,7 +150,7 @@ AppMovil/
 │   ├── rosario/
 │   │   └── guia.tsx              # Guided Rosary (78 steps, AsyncStorage streak)
 │   ├── evangelio.tsx             # PLACEHOLDER — Gospel detail not implemented
-│   ├── modal.tsx                 # PLACEHOLDER
+│   ├── modal.tsx                 # ✅ REMOVED (muerto)
 │   └── test.tsx                  # DB debug sandbox
 ├── components/
 │   ├── ui/
@@ -158,18 +158,18 @@ AppMovil/
 │   │   └── icon-symbol.tsx       # MaterialIcons fallback (Android/web)
 │   ├── haptic-tab.tsx
 │   ├── themed-text.tsx
-│   ├── themed-view.tsx
+│   ├── themed-view.tsx           # ✅ REMOVED (replaced with View)
 │   └── ...
 ├── constants/
-│   └── theme.ts                  # C palette + Colors + Fonts
+│   └── theme.ts                  # C palette (Navy/Gold, fixed)
 ├── db/
 │   ├── db.ts                     # All SQL query functions
 │   └── init.ts                   # DB initialization + migration
 ├── hooks/
-│   ├── use-color-scheme.ts
-│   └── use-theme-color.ts        # Resolves light/dark from C palette
+│   ├── use-color-scheme.ts       # ✅ REMOVED (no consumers)
+│   └── use-theme-color.ts        # ✅ REMOVED (no consumers)
 └── types/
-    └── index.ts                  # TypeScript interfaces
+    └── index.ts                  # TypeScript interfaces (CICSearchResult/FTS5Query removed)
 archive/                          # Python scrapers & data ingestion
 └── scraper_vaticano.py           # Vatican News daily readings scraper
 ```
