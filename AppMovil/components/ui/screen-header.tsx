@@ -1,4 +1,5 @@
 import { C } from "@/constants/theme";
+import { R } from "@/constants/radius";
 import React from "react";
 import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "@/components/themed-text";
@@ -58,7 +59,7 @@ const s = StyleSheet.create({
   backBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: R.full,
     backgroundColor: C.navyLight,
     borderWidth: 1,
     borderColor: C.goldDim,

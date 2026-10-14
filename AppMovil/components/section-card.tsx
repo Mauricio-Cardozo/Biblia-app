@@ -1,4 +1,5 @@
 import { C } from '@/constants/theme';
+import { R } from '@/constants/radius';
 import { S } from '@/constants/spacing';
 import { ThemedText } from '@/components/themed-text';
 import React from 'react';
@@ -31,7 +32,7 @@ const s = StyleSheet.create({
     marginHorizontal: S.xl,
     marginBottom: S.md,
     padding: 18,
-    borderRadius: 15,
+    borderRadius: R.xl,
     backgroundColor: C.navyMid,
   },
   cardRow: { flexDirection: 'row', alignItems: 'center' },
@@ -39,5 +40,5 @@ const s = StyleSheet.create({
   cardTextWrap: { flex: 1 },
   cardTitle: { color: C.text, fontSize: 16, fontWeight: '600' },
   cardSubtitle: { color: C.muted, fontSize: 13, marginTop: 2 },
-  chevron: { color: C.gold, fontSize: 24, marginLeft: S.sm },
+  chevron: { color: C.text, fontSize: 24, marginLeft: S.sm },
 });

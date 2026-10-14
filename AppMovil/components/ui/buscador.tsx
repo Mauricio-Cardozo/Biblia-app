@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   clearBtn: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: R.lg,
     backgroundColor: C.navyLight,
     alignItems: "center",
     justifyContent: "center",

@@ -86,7 +86,7 @@ export default function SantoDetalleScreen() {
 
 const s = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', marginHorizontal: S.xl, marginBottom: S.sm },
-  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.navyLight, alignItems: 'center', justifyContent: 'center' },
+  backBtn: { width: 36, height: 36, borderRadius: R.full, backgroundColor: C.navyLight, alignItems: 'center', justifyContent: 'center' },
   backText: { color: C.gold, fontSize: 22, fontWeight: '700', marginTop: -2 },
   title: { flex: 1, color: C.text, fontSize: 20, fontWeight: '700', textAlign: 'center' },
   content: { paddingHorizontal: S.xl, paddingBottom: 60 },

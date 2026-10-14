@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   input: { backgroundColor: C.navyMid, color: C.text, borderRadius: R.md, padding: S.md, fontSize: 14, borderWidth: 1, borderColor: C.goldDim, minHeight: 44, textAlignVertical: 'top' },
 
   colorRow: { flexDirection: 'row', gap: S.sm, flexWrap: 'wrap' },
-  colorSwatch: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
+  colorSwatch: { width: 36, height: 36, borderRadius: R.full, borderWidth: 2, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
   colorActive: { borderColor: C.gold },
   colorNone: { color: C.muted, fontSize: 14 },
 
