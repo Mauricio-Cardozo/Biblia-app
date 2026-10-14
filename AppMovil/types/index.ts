@@ -39,6 +39,8 @@ export interface Lectura {
   titulo_misa: string | null;
   primera_lectura_ref: string | null;
   primera_lectura: string | null;
+  segunda_lectura_ref: string | null;
+  segunda_lectura: string | null;
   salmo: string | null;
   aleluia: string | null;
   evangelio_ref: string | null;

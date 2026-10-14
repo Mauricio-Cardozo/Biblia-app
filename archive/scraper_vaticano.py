@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS lecturas (
     titulo_misa         TEXT,
     primera_lectura_ref TEXT,
     primera_lectura     TEXT,
+    segunda_lectura_ref TEXT,
+    segunda_lectura     TEXT,
     salmo               TEXT,
     aleluia             TEXT,
     evangelio_ref       TEXT,
@@ -48,6 +50,7 @@ CREATE TABLE IF NOT EXISTS lecturas (
 
 _SECCIONES = {
     "lectura del día": "lectura",
+    "segunda lectura": "segunda",
     "salmo responsorial": "salmo",
     "aleluya": "aleluia",
     "evangelio del día": "evangelio",
@@ -69,6 +72,8 @@ class LecturasParser(html.parser.HTMLParser):
         self.titulo_misa: str | None = None
         self.primera_lectura_ref: str | None = None
         self.primera_lectura: str | None = None
+        self.segunda_lectura_ref: str | None = None
+        self.segunda_lectura: str | None = None
         self.salmo: str | None = None
         self.aleluia: str | None = None
         self.evangelio_ref: str | None = None
@@ -95,6 +100,11 @@ class LecturasParser(html.parser.HTMLParser):
                 self.primera_lectura_ref = texto
             else:
                 self.primera_lectura = (self.primera_lectura or "") + texto + "\n\n"
+        elif self._section_key == "segunda":
+            if self.segunda_lectura_ref is None and _RE_REF.match(texto):
+                self.segunda_lectura_ref = texto
+            else:
+                self.segunda_lectura = (self.segunda_lectura or "") + texto + "\n\n"
         elif self._section_key == "salmo":
             self.salmo = (self.salmo or "") + texto + "\n\n"
         elif self._section_key == "aleluia":
@@ -229,6 +239,8 @@ def scrapear_fecha(fecha: date, preview: bool = False) -> dict | None:
         "titulo_misa": _limpiar(parser.titulo_misa),
         "primera_lectura_ref": _limpiar(parser.primera_lectura_ref),
         "primera_lectura": _limpiar(parser.primera_lectura),
+        "segunda_lectura_ref": _limpiar(parser.segunda_lectura_ref),
+        "segunda_lectura": _limpiar(parser.segunda_lectura),
         "salmo": _limpiar(parser.salmo),
         "aleluia": _limpiar(parser.aleluia),
         "evangelio_ref": _limpiar(parser.evangelio_ref),
@@ -247,6 +259,9 @@ def _preview(d: dict) -> None:
     if d["primera_lectura_ref"]:
         print(f"\n  📖 1ª Lectura: {d['primera_lectura_ref']}")
         print(f"  {d['primera_lectura'][:200]}…" if d["primera_lectura"] else "")
+    if d["segunda_lectura_ref"]:
+        print(f"\n  📖 2ª Lectura: {d['segunda_lectura_ref']}")
+        print(f"  {d['segunda_lectura'][:200]}…" if d["segunda_lectura"] else "")
     if d["salmo"]:
         print(f"\n  🎵 Salmo: {d['salmo'][:120]}…")
     if d["aleluia"]:
@@ -276,14 +291,17 @@ def guardar(lectura: dict) -> bool:
         conn.execute(
             """INSERT INTO lecturas
                (fecha, url, titulo_misa, primera_lectura_ref, primera_lectura,
+                segunda_lectura_ref, segunda_lectura,
                 salmo, aleluia, evangelio_ref, evangelio, comentario_papal)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 lectura["fecha"],
                 lectura["url"],
                 lectura["titulo_misa"],
                 lectura["primera_lectura_ref"],
                 lectura["primera_lectura"],
+                lectura["segunda_lectura_ref"],
+                lectura["segunda_lectura"],
                 lectura["salmo"],
                 lectura["aleluia"],
                 lectura["evangelio_ref"],

@@ -8,7 +8,6 @@ import ReadingSection from "@/components/reading-section";
 import { router, useLocalSearchParams } from "expo-router";
 import { getLecturaDelDia } from "@/db/db";
 import FavBtn from "@/components/fav-btn";
-import FontSizeControl from "@/components/font-size-control";
 import React from "react";
 import {
   ActivityIndicator,
@@ -64,10 +63,6 @@ export default function EvangelioScreen() {
         onBack={() => router.back()}
         rightSlot={
           <View style={s.headerRight}>
-            <FontSizeControl />
-            <TouchableOpacity onPress={() => router.push("/calendario")} style={s.calBtn}>
-              <ThemedText style={{ color: C.gold, fontSize: 20 }}>📅</ThemedText>
-            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
                 const lines = [
@@ -108,6 +103,14 @@ export default function EvangelioScreen() {
         />
       ) : null}
 
+      {lectura.segunda_lectura ? (
+        <ReadingSection
+          label="Segunda Lectura"
+          referencia={lectura.segunda_lectura_ref}
+          texto={lectura.segunda_lectura}
+        />
+      ) : null}
+
       {lectura.salmo ? (
         <ReadingSection label="Salmo Responsorial" texto={lectura.salmo} />
       ) : null}
@@ -123,6 +126,10 @@ export default function EvangelioScreen() {
           texto={lectura.evangelio}
         />
       ) : null}
+
+      {lectura.comentario_papal ? (
+        <ReadingSection label="Comentario" texto={lectura.comentario_papal} />
+      ) : null}
     </ScrollView>
   );
 }
@@ -134,7 +141,6 @@ const s = StyleSheet.create({
   reintentarBtn: { backgroundColor: C.gold, borderRadius: R.lg, paddingHorizontal: S.xxl, paddingVertical: 10 },
   reintentarText: { color: C.navy, fontWeight: "700", fontSize: 14 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: S.sm },
-  calBtn: { padding: S.xs },
   shareBtn: { padding: S.xs },
   tituloMisa: {
     color: C.goldLight,
