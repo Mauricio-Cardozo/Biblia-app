@@ -65,7 +65,7 @@ export default function CalendarioLiturgico() {
         const map = new Map<string, DiaLectura>();
         for (const r of rows) map.set(r.fecha, r);
         setLecturas(map);
-      } catch (e) { console.warn('[calendario]', e); }
+      } catch (e: unknown) { console.warn('[calendario]', e instanceof Error ? e.message : e); }
       setLoading(false);
     })();
   }, [db, ano, mes]);
@@ -80,7 +80,7 @@ export default function CalendarioLiturgico() {
         ]);
         setSantos(ss);
         setSantoPropio(ms.find(e => e.colecta) ?? null);
-      } catch (e) { console.warn('[calendario]', e); }
+      } catch (e: unknown) { console.warn('[calendario]', e instanceof Error ? e.message : e); }
     })();
   }, [db, selectedDate]);
 
@@ -143,71 +143,69 @@ export default function CalendarioLiturgico() {
           <View style={styles.grid}>{celdas}</View>
           <ThemedText style={styles.leyenda}>✦ Días con lectura del Evangelio</ThemedText>
 
-          {santos.length > 0 || santoPropio ? (
-            <View style={styles.santosSection}>
-              <ThemedText style={styles.sectionLabel}>SANTOS DEL DÍA</ThemedText>
-              <ThemedText style={styles.diaLabel}>{diaLabel}</ThemedText>
+          <View style={styles.santosSection}>
+            <ThemedText style={styles.sectionLabel}>SANTOS DEL DÍA</ThemedText>
+            <ThemedText style={styles.diaLabel}>{diaLabel}</ThemedText>
 
-              {santos.length > 0 ? (
-                <View style={styles.santosList}>
-                  {santos.map(s => (
-                    <TouchableOpacity key={s.id} style={styles.santoCard} onPress={() => router.push(`/santo/${s.id}`)} activeOpacity={0.7}>
-                      <ThemedText style={styles.santoName}>
-                        {s.nombre}{s.titulo ? `, ${s.titulo}` : ''}
-                      </ThemedText>
-                      {s.biografia && s.biografia.length > 0 ? (
-                        <ThemedText style={styles.santoChevron}>›</ThemedText>
-                      ) : null}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : (
-                <ThemedText style={styles.sinSanto}>No hay santos registrados para este día</ThemedText>
-              )}
+            {santos.length > 0 ? (
+              <View style={styles.santosList}>
+                {santos.map(s => (
+                  <TouchableOpacity key={s.id} style={styles.santoCard} onPress={() => router.push(`/santo/${s.id}`)} activeOpacity={0.7}>
+                    <ThemedText style={styles.santoName}>
+                      {s.nombre}{s.titulo ? `, ${s.titulo}` : ''}
+                    </ThemedText>
+                    {s.biografia && s.biografia.length > 0 ? (
+                      <ThemedText style={styles.santoChevron}>›</ThemedText>
+                    ) : null}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <ThemedText style={styles.sinSanto}>No hay santos registrados para este día</ThemedText>
+            )}
 
-              {santoPropio?.colecta ? (
-                <View style={styles.propioSection}>
-                  <ThemedText style={styles.sectionSubLabel}>ORACIONES PROPIAS</ThemedText>
-                  {santoPropio.antifona_entrada ? (
-                    <View style={styles.propioCard}>
-                      <ThemedText style={styles.propioLabel}>Antífona de entrada</ThemedText>
-                      <ThemedText style={styles.propioText}>{santoPropio.antifona_entrada}</ThemedText>
-                    </View>
-                  ) : null}
-                  {santoPropio.colecta ? (
-                    <View style={styles.propioCard}>
-                      <ThemedText style={styles.propioLabel}>Oración colecta</ThemedText>
-                      <ThemedText style={styles.propioText}>{santoPropio.colecta}</ThemedText>
-                    </View>
-                  ) : null}
-                  {santoPropio.oracion_ofrendas ? (
-                    <View style={styles.propioCard}>
-                      <ThemedText style={styles.propioLabel}>Oración sobre las ofrendas</ThemedText>
-                      <ThemedText style={styles.propioText}>{santoPropio.oracion_ofrendas}</ThemedText>
-                    </View>
-                  ) : null}
-                  {santoPropio.prefacio ? (
-                    <View style={styles.propioCard}>
-                      <ThemedText style={styles.propioLabel}>Prefacio</ThemedText>
-                      <ThemedText style={styles.propioText}>{santoPropio.prefacio}</ThemedText>
-                    </View>
-                  ) : null}
-                  {santoPropio.antifona_comunion ? (
-                    <View style={styles.propioCard}>
-                      <ThemedText style={styles.propioLabel}>Antífona de comunión</ThemedText>
-                      <ThemedText style={styles.propioText}>{santoPropio.antifona_comunion}</ThemedText>
-                    </View>
-                  ) : null}
-                  {santoPropio.postcomunion ? (
-                    <View style={styles.propioCard}>
-                      <ThemedText style={styles.propioLabel}>Postcomunión</ThemedText>
-                      <ThemedText style={styles.propioText}>{santoPropio.postcomunion}</ThemedText>
-                    </View>
-                  ) : null}
-                </View>
-              ) : null}
-            </View>
-          ) : null}
+            {santoPropio?.colecta ? (
+              <View style={styles.propioSection}>
+                <ThemedText style={styles.sectionSubLabel}>ORACIONES PROPIAS</ThemedText>
+                {santoPropio.antifona_entrada ? (
+                  <View style={styles.propioCard}>
+                    <ThemedText style={styles.propioLabel}>Antífona de entrada</ThemedText>
+                    <ThemedText style={styles.propioText}>{santoPropio.antifona_entrada}</ThemedText>
+                  </View>
+                ) : null}
+                {santoPropio.colecta ? (
+                  <View style={styles.propioCard}>
+                    <ThemedText style={styles.propioLabel}>Oración colecta</ThemedText>
+                    <ThemedText style={styles.propioText}>{santoPropio.colecta}</ThemedText>
+                  </View>
+                ) : null}
+                {santoPropio.oracion_ofrendas ? (
+                  <View style={styles.propioCard}>
+                    <ThemedText style={styles.propioLabel}>Oración sobre las ofrendas</ThemedText>
+                    <ThemedText style={styles.propioText}>{santoPropio.oracion_ofrendas}</ThemedText>
+                  </View>
+                ) : null}
+                {santoPropio.prefacio ? (
+                  <View style={styles.propioCard}>
+                    <ThemedText style={styles.propioLabel}>Prefacio</ThemedText>
+                    <ThemedText style={styles.propioText}>{santoPropio.prefacio}</ThemedText>
+                  </View>
+                ) : null}
+                {santoPropio.antifona_comunion ? (
+                  <View style={styles.propioCard}>
+                    <ThemedText style={styles.propioLabel}>Antífona de comunión</ThemedText>
+                    <ThemedText style={styles.propioText}>{santoPropio.antifona_comunion}</ThemedText>
+                  </View>
+                ) : null}
+                {santoPropio.postcomunion ? (
+                  <View style={styles.propioCard}>
+                    <ThemedText style={styles.propioLabel}>Postcomunión</ThemedText>
+                    <ThemedText style={styles.propioText}>{santoPropio.postcomunion}</ThemedText>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
         </ScrollView>
       )}
     </View>
