@@ -162,7 +162,7 @@ export default function AjustesScreen() {
           <View style={s.fila}>
             <ThemedText style={s.filaLabel}>Acerca de</ThemedText>
             <ThemedText style={s.filaSub}>Iglesia Digital — App católica con Biblia,
-              Catecismo, Misal Romano, Rosario y más. Desarrollada con ❤️.</ThemedText>
+              Rosario, Evangelio diario y más. Desarrollada con ❤️.</ThemedText>
           </View>
         </View>
         <View style={s.card}>

@@ -33,14 +33,6 @@ export default function TabLayout() {
           name="oracion"
           options={{ title: 'Oración' }}
         />
-        <Tabs.Screen
-          name="catecismo"
-          options={{ href: null }}
-        />
-        <Tabs.Screen
-          name="misal"
-          options={{ href: null }}
-        />
       </Tabs>
     </View>
   );

@@ -165,17 +165,6 @@ export default function LiturgiaScreen() {
             {propio.postcomunion ? <PrayerCard label="Postcomunión" text={propio.postcomunion} /> : null}
             {propio.antifona_comunion ? <PrayerCard label="Antífona de comunión" text={propio.antifona_comunion} /> : null}
           </View>
-        ) : seasonData ? (
-          <TouchableOpacity style={styles.card} onPress={() => router.push('/misal/propio')} activeOpacity={0.7}>
-            <View style={styles.cardRow}>
-              <ThemedText style={styles.cardIcon}>{SEASON_EMOJI[seasonData.temporada] ?? '🌿'}</ThemedText>
-              <View style={styles.cardTextWrap}>
-                <ThemedText style={styles.sectionLabel}>PROPIO DEL TIEMPO</ThemedText>
-                <ThemedText style={styles.cardTitle}>{seasonData.temporada_label}</ThemedText>
-              </View>
-              <ThemedText style={styles.chevron}>›</ThemedText>
-            </View>
-          </TouchableOpacity>
         ) : null}
       </ScrollView>
     </View>
@@ -208,10 +197,4 @@ const styles = StyleSheet.create({
   propioCard: { backgroundColor: C.navyMid, padding: S.lg, borderRadius: R.lg, marginBottom: 10, marginHorizontal: S.xl },
   propioLabel: { color: C.gold, fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
   propioText: { color: C.text, fontSize: 14, lineHeight: 22 },
-  card: { backgroundColor: C.navyMid, padding: S.xl, borderRadius: R.lg, marginBottom: 15, marginHorizontal: S.xl },
-  cardRow: { flexDirection: 'row', alignItems: 'center' },
-  cardIcon: { fontSize: 28, marginRight: 14 },
-  cardTextWrap: { flex: 1 },
-  cardTitle: { color: C.text, fontSize: 16, fontWeight: '600' },
-  chevron: { color: C.gold, fontSize: 24, marginLeft: 6 },
 });

@@ -10,7 +10,7 @@ Generate Maestro YAML test flows in `maestro/flows/` for the app **Iglesia Digit
 - Use `TapOn` with visible text (no `testID` in the app — use `"La Sagrada Escritura"`, `"YOUCAT"`, etc.)
 - `appId: com.iglesiadigital.app`
 - All data comes from a shipped SQLite DB — no network calls, so no mocks needed
-- 4 screens are in a tab bar (Home, Biblia, Calendario, Oración). Catecismo/Misal have no tab — navigate via deep links
+- 4 screens are in a tab bar (Home, Biblia, Calendario, Oración). Catecismo/Misal sections were removed — no deep links for them
 - Screen transitions may be slow on CI — use `waitFor` (10s default)
 
 ## Flows to Create
@@ -18,7 +18,7 @@ Generate Maestro YAML test flows in `maestro/flows/` for the app **Iglesia Digit
 ### 1. `home-e2e.yaml` — Home screen smoke
 - Launch app → assert greeting visible ("Bendecido día" or "Bendecida tarde/noche")
 - Scroll down to see saint card → tap it → assert saint name visible
-- Go back → scroll to "PROPIO DEL TIEMPO" card → tap → assert tiempo name visible
+- Go back
 
 ### 2. `biblia-browse.yaml` — Bible navigation
 - Tap "Biblia" tab → assert "La Sagrada Escritura" visible
@@ -31,14 +31,7 @@ Generate Maestro YAML test flows in `maestro/flows/` for the app **Iglesia Digit
 - Tap a result → navigates to that verse in context
 - Clear search → back to book list
 
-### 4. `catecismo-browse.yaml` — YOUCAT
-- Navigate to `/catecismo` → assert "YOUCAT" visible
-- Tap first parte → questions list loads → assert first question visible
-- Tap first question → detail opens (pregunta, respuesta, comentario)
-- Tap back → back to questions list
-- Tap back → back to partes list
-
-### 5. `evangelio-daily.yaml` — Daily gospel
+### 4. `evangelio-daily.yaml` — Daily gospel
 - Navigate to `/evangelio` (or tap the hero card on Home) → assert evangelio visible
 - Verify reading, psalm, gospel sections are visible
 
@@ -47,12 +40,7 @@ Generate Maestro YAML test flows in `maestro/flows/` for the app **Iglesia Digit
 - Verify prayer runner loads with first mystery
 - Complete a prayer → next step appears
 
-### 7. `misal-propio.yaml` — Proper of Mass
-- Navigate to `/misal/propio` → assert temporadas list visible
-- Tap first temporada → proper entries visible
-- Tap first entry → proper detail with colecta visible
-
-### 8. `favoritos.yaml` — Favorites
+### 7. `favoritos.yaml` — Favorites
 - Long-press a Bible verse to favorite it → navigate to `/favoritos`
 - Assert favorited verse appears in list
 - Remove favorite → assert it disappears
