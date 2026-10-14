@@ -229,7 +229,7 @@ const s = StyleSheet.create({
   beadActivo: { backgroundColor: C.gold, borderColor: C.goldLight },
   beadInactivo: { backgroundColor: C.navyLight, borderColor: C.goldDim },
   contentArea: { flex: 1 },
-  contentInner: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingVertical: 20 },
+  contentInner: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingVertical: 20, paddingBottom: 60 },
   stepBadge: { alignSelf: "flex-start", backgroundColor: C.goldDim, borderRadius: R.md, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 16 },
   stepBadgeText: { color: C.goldLight, fontSize: 13, fontWeight: "800", letterSpacing: 0.5 },
   subtitle: { color: C.muted, fontSize: 12, fontStyle: "italic", marginBottom: 12 },
