@@ -14,6 +14,17 @@ npx expo start -c           # clear Metro cache + start
 
 No tsc/typecheck command available — `npm run lint` is the only static check.
 
+## Agent Workflow (applies to every AI agent)
+
+This file is the single source of truth for any AI agent working on the repo (Claude Code loads it through `CLAUDE.md`, which only imports it). Update project knowledge here, not in tool-specific files.
+
+- **Lint after every edit**: after changing any `.ts/.tsx/.js/.jsx` file under `AppMovil/`, run `npx eslint --max-warnings=0 <file>` from `AppMovil/` (or `npm run lint` for the whole project) and fix every error and warning before continuing. The baseline is 0 errors, 0 warnings. Claude Code does this automatically via a hook (`.claude/hooks/lint.sh`); other agents must run it manually.
+- **Tests**: run `npm test` from `AppMovil/` before finishing a change that touches `db/`, `data/`, `utils/` or `hooks/`.
+- **Don't hand-edit binary assets**: `AppMovil/assets/iglesia_digital.db` is only changed through migrations in `db/init.ts` or the scrapers in `archive/`.
+- **Git Flow**: never commit directly to `main` or `develop`. New work goes in `feature/<short-description>` (or `bugfix/<short-description>`) branched from `develop`; releases use `release/X.Y.Z`, urgent fixes `hotfix/X.Y.Z` from `main`. Branch names are lowercase with hyphens. ⚠️ `develop` does not exist yet — ask the owner before creating it.
+- **Conventional Commits**: `<type>(<scope>): <description>` with types `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Imperative, lowercase, no trailing period, ≤72 chars. One logical change per commit. PR titles use the same format.
+- **No AI attribution**: no `Co-Authored-By`, "Generated with…" lines, signatures or comments mentioning an AI in commits, PRs, code or docs.
+
 ## Architecture
 
 - **Entrypoint**: `expo-router/entry` (in `package.json` `main` field). Routes in `app/`.
